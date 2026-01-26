@@ -4,6 +4,11 @@
   "compileOnSave": false,
   "compilerOptions": {
     "strict": true,
+    "paths": {
+      "ez-vid-ang": [
+        "./dist/ez-vid-ang"
+      ]
+    },
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
@@ -21,5 +26,13 @@
     "strictInputAccessModifiers": true,
     "strictTemplates": true
   },
-  "files": []
+  "files": [],
+  "references": [
+    {
+      "path": "./projects/ez-vid-ang/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/ez-vid-ang/tsconfig.spec.json"
+    }
+  ]
 }

@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'eva-scrub-bar',
-  imports: [],
   templateUrl: './scrub-bar.html',
-  styleUrl: './scrub-bar.css',
+  styleUrl: './scrub-bar.scss',
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ScrubBar {
+export class EvaScrubBar {
 
 }

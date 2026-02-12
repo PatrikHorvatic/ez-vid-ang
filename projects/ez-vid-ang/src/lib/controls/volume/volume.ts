@@ -1,11 +1,11 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'eva-volume',
-  imports: [],
   templateUrl: './volume.html',
-  styleUrl: './volume.css',
+  styleUrl: './volume.scss',
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Volume {
-
+export class EvaVolume {
 }

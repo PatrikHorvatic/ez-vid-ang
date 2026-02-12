@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'eva-fullscreen',
-  imports: [],
   templateUrl: './fullscreen.html',
-  styleUrl: './fullscreen.css',
+  styleUrl: './fullscreen.scss',
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Fullscreen {
+export class EvaFullscreen {
 
 }

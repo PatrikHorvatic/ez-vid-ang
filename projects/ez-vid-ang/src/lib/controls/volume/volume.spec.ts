@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Volume } from './volume';
+import { EvaVolume } from './volume';
 
 describe('Volume', () => {
-  let component: Volume;
-  let fixture: ComponentFixture<Volume>;
+  let component: EvaVolume;
+  let fixture: ComponentFixture<EvaVolume>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Volume]
+      imports: [EvaVolume]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(Volume);
+    fixture = TestBed.createComponent(EvaVolume);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

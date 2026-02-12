@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PlaybackSpeed } from './playback-speed';
+import { EvaPlaybackSpeed } from './playback-speed';
 
-describe('PlaybackSpeed', () => {
-  let component: PlaybackSpeed;
-  let fixture: ComponentFixture<PlaybackSpeed>;
+describe('EvaPlaybackSpeed', () => {
+  let component: EvaPlaybackSpeed;
+  let fixture: ComponentFixture<EvaPlaybackSpeed>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PlaybackSpeed]
+      imports: [EvaPlaybackSpeed]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(PlaybackSpeed);
+    fixture = TestBed.createComponent(EvaPlaybackSpeed);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

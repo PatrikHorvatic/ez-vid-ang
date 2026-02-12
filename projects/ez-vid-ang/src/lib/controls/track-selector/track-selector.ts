@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'eva-track-selector',
-  imports: [],
   templateUrl: './track-selector.html',
-  styleUrl: './track-selector.css',
+  styleUrl: './track-selector.scss',
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TrackSelector {
+export class EvaTrackSelector {
 
 }

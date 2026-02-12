@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'eva-play-pause',
-  imports: [],
   templateUrl: './play-pause.html',
-  styleUrl: './play-pause.css',
+  styleUrl: './play-pause.scss',
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PlayPause {
+export class EvaPlayPause {
 
 }

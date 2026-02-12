@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { PlayPause } from './play-pause';
+import { EvaPlayPause } from './play-pause';
 
-describe('PlayPause', () => {
-  let component: PlayPause;
-  let fixture: ComponentFixture<PlayPause>;
+describe('EvaPlayPause', () => {
+  let component: EvaPlayPause;
+  let fixture: ComponentFixture<EvaPlayPause>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PlayPause]
+      imports: [EvaPlayPause]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(PlayPause);
+    fixture = TestBed.createComponent(EvaPlayPause);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { QualitySelector } from './quality-selector';
+import { EvaQualitySelector } from './quality-selector';
 
-describe('QualitySelector', () => {
-  let component: QualitySelector;
-  let fixture: ComponentFixture<QualitySelector>;
+describe('EvaQualitySelector', () => {
+  let component: EvaQualitySelector;
+  let fixture: ComponentFixture<EvaQualitySelector>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [QualitySelector]
+      imports: [EvaQualitySelector]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(QualitySelector);
+    fixture = TestBed.createComponent(EvaQualitySelector);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

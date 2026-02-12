@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "buildProd": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -22,22 +23,29 @@
   },
   "private": true,
   "packageManager": "npm@11.7.0",
+  "peerDependencies": {
+    "@angular/common": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/forms": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "@angular/router": "^21.0.0"
+  },
   "dependencies": {
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
     "@angular/common": "^21.0.0",
     "@angular/compiler": "^21.0.0",
     "@angular/core": "^21.0.0",
     "@angular/forms": "^21.0.0",
     "@angular/platform-browser": "^21.0.0",
     "@angular/router": "^21.0.0",
-    "rxjs": "~7.8.0",
-    "tslib": "^2.3.0"
-  },
-  "devDependencies": {
-    "@angular/build": "^21.1.1",
-    "@angular/cli": "^21.0.3",
+    "@angular/build": "^21.0.0",
+    "@angular/cli": "^21.0.0",
     "@angular/compiler-cli": "^21.0.0",
     "jsdom": "^27.1.0",
-    "ng-packagr": "^21.1.0",
+    "ng-packagr": "^21.0.0",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"
   }

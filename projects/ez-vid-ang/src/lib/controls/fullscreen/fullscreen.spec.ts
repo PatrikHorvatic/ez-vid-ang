@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Fullscreen } from './fullscreen';
+import { EvaFullscreen } from './fullscreen';
 
-describe('Fullscreen', () => {
-  let component: Fullscreen;
-  let fixture: ComponentFixture<Fullscreen>;
+describe('EvaFullscreen', () => {
+  let component: EvaFullscreen;
+  let fixture: ComponentFixture<EvaFullscreen>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Fullscreen]
+      imports: [EvaFullscreen]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(Fullscreen);
+    fixture = TestBed.createComponent(EvaFullscreen);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'eva-mute',
-  imports: [],
   templateUrl: './mute.html',
-  styleUrl: './mute.css',
+  styleUrl: './mute.scss',
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Mute {
+export class EvaMute {
 
 }

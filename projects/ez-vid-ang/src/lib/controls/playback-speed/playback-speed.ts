@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'eva-playback-speed',
-  imports: [],
   templateUrl: './playback-speed.html',
-  styleUrl: './playback-speed.css',
+  styleUrl: './playback-speed.scss',
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PlaybackSpeed {
+export class EvaPlaybackSpeed {
 
 }

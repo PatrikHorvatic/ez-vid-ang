@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ScrubBar } from './scrub-bar';
+import { EvaScrubBar } from './scrub-bar';
 
-describe('ScrubBar', () => {
-  let component: ScrubBar;
-  let fixture: ComponentFixture<ScrubBar>;
+describe('EvaScrubBar', () => {
+  let component: EvaScrubBar;
+  let fixture: ComponentFixture<EvaScrubBar>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ScrubBar]
+      imports: [EvaScrubBar]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(ScrubBar);
+    fixture = TestBed.createComponent(EvaScrubBar);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

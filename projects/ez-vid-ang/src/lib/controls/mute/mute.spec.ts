@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Mute } from './mute';
+import { EvaMute } from './mute';
 
-describe('Mute', () => {
-  let component: Mute;
-  let fixture: ComponentFixture<Mute>;
+describe('EvaMute', () => {
+  let component: EvaMute;
+  let fixture: ComponentFixture<EvaMute>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Mute]
+      imports: [EvaMute]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(Mute);
+    fixture = TestBed.createComponent(EvaMute);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TimeDisplay } from './time-display';
+import { EvaTimeDisplay } from './time-display';
 
-describe('TimeDisplay', () => {
-  let component: TimeDisplay;
-  let fixture: ComponentFixture<TimeDisplay>;
+describe('EvaTimeDisplay', () => {
+  let component: EvaTimeDisplay;
+  let fixture: ComponentFixture<EvaTimeDisplay>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TimeDisplay]
+      imports: [EvaTimeDisplay]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(TimeDisplay);
+    fixture = TestBed.createComponent(EvaTimeDisplay);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

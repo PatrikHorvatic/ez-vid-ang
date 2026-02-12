@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'eva-quality-selector',
-  imports: [],
   templateUrl: './quality-selector.html',
-  styleUrl: './quality-selector.css',
+  styleUrl: './quality-selector.scss',
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class QualitySelector {
+export class EvaQualitySelector {
 
 }

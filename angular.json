@@ -32,5 +32,17 @@
         }
       }
     }
+  },
+  "schematics": {
+    "@schematics/angular:component": {
+      "style": "scss",
+      "standalone": false,
+      "type": "component"
+    },
+    "@schematics/angular:directive": {
+      "standalone": false,
+      "type": "directive"
+    },
+    "@schematics/angular:service": {}
   }
 }

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { EzVidAng } from './ez-vid-ang';
+import { EvaPlayer } from './player';
 
-describe('EzVidAng', () => {
-  let component: EzVidAng;
-  let fixture: ComponentFixture<EzVidAng>;
+describe('Player', () => {
+  let component: EvaPlayer;
+  let fixture: ComponentFixture<EvaPlayer>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [EzVidAng]
+      imports: [EvaPlayer]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(EzVidAng);
+    fixture = TestBed.createComponent(EvaPlayer);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

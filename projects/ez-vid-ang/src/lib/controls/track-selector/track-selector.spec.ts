@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TrackSelector } from './track-selector';
+import { EvaTrackSelector } from './track-selector';
 
 describe('TrackSelector', () => {
-  let component: TrackSelector;
-  let fixture: ComponentFixture<TrackSelector>;
+  let component: EvaTrackSelector;
+  let fixture: ComponentFixture<EvaTrackSelector>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TrackSelector]
+      imports: [EvaTrackSelector]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(TrackSelector);
+    fixture = TestBed.createComponent(EvaTrackSelector);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

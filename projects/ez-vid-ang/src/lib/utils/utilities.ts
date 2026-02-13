@@ -25,6 +25,26 @@ export function transformTimeoutDuration(v: number): number {
 	return v;
 }
 
+export function transformDefaultPlaybackSpeed(v: number): number {
+	return v;
+}
+
+export function validateAndTransformPlaybackSpeeds(v: Array<number>): Array<number> {
+	// in case of an empty array, component exists and some value must be provided. Of course the default will be 1.0
+	if (v.length === 0) {
+		return [1.0];
+	}
+
+	// Filter out values outside the valid range [0.25, 4]
+	const filtered = v.filter(speed => speed >= 0.25 && speed <= 4);
+	// If all values were filtered out, return default
+	if (filtered.length === 0) {
+		return [1.0];
+	}
+	return filtered;
+
+}
+
 export function videoConfigurationDefaultSetter(v: EvaVideoElementConfiguration | undefined): EvaVideoElementConfiguration {
 	if (!v) {
 		return {

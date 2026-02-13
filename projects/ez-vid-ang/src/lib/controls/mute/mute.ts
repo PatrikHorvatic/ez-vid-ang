@@ -32,7 +32,6 @@ export class EvaMute implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.videoVolume = signal(this.evaAPI.getVideoVolume());
     this.videoVolumeSub = this.evaAPI.videoVolumeSubject.subscribe(volume => {
-      console.log("VOLUME: " + volume);
       if (volume !== null) {
         this.videoVolume.set(volume);
       }

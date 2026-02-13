@@ -17,6 +17,7 @@ export class EvaApi {
 	/**Used for all the component where video state is important */
 	public videoStateSubject = new BehaviorSubject<EvaState>(EvaState.LOADING);
 	public videoVolumeSubject = new BehaviorSubject<number | null>(null);
+	public playbackRateSubject = new BehaviorSubject<number | null>(null);
 	/**Flag for current value of video state. */
 	private currentVideoState: EvaState = EvaState.LOADING;
 
@@ -78,6 +79,29 @@ export class EvaApi {
 	//Called from event listener
 	public playingVideo() {
 
+	}
+
+	//Called from event listener
+	public playbackRateVideoChanged(e: Event) {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		this.playbackRateSubject.next(this.assignedVideoElement.playbackRate);
+	}
+
+	//Called from event listener
+	public setPlaybackSpeed(speed: number) {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		this.assignedVideoElement.playbackRate = speed;
+	}
+
+	public getPlaybackSpeed(): number {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return 1;
+		}
+		return this.assignedVideoElement.playbackRate;
 	}
 
 

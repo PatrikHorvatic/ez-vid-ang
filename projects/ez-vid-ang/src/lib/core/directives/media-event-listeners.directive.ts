@@ -27,6 +27,7 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
   private play$: Observable<Event> | null = null;
   private playing$: Observable<Event> | null = null;
   private progress$: Observable<Event> | null = null;
+  /**Detect playback speed change */
   private rateChange$: Observable<Event> | null = null;
   private seeked$: Observable<Event> | null = null;
   private seeking$: Observable<Event> | null = null;
@@ -139,7 +140,7 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
 
     });
     this.rateChangeSub = this.rateChange$.subscribe(v => {
-
+      this.evaAPI.playbackRateVideoChanged(v);
     });
     this.seekedSub = this.seeked$.subscribe(v => {
 

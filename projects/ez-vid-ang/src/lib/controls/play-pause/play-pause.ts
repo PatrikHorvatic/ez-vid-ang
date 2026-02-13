@@ -28,7 +28,6 @@ export class EvaPlayPause implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.playingState = signal(this.evaAPI.getCurrentVideoState());
     this.playingStateSub = this.evaAPI.videoStateSubject.subscribe(state => {
-      console.log(state);
       this.playingState.set(state);
     })
   }

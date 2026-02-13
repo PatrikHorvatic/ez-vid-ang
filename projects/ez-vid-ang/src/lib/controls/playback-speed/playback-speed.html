@@ -1,1 +1,41 @@
-<p>playback-speed works!</p>
+<div class="eva-playback-speed-container">
+	<!-- Current Speed Display Button -->
+	<div class="eva-playback-speed-button">
+		<span class="speed-icon">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+				stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+			</svg>
+		</span>
+		<span class="speed-label">{{ formatSpeed(currentSpeed()) }}</span>
+		<span class="dropdown-arrow" [class.rotated]="isOpen()">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+				stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<polyline points="6 9 12 15 18 9"></polyline>
+			</svg>
+		</span>
+	</div>
+
+	<!-- Dropdown Menu -->
+	<div class="eva-playback-speed-dropdown" [class.show]="isOpen()">
+		<div class="dropdown-content">
+			<div class="dropdown-header">Playback Speed</div>
+			<div class="speed-options">
+				@for (speed of playbackSpeeds(); track trackBySpeed($index, speed)) {
+				<button type="button" class="speed-option" [class.active]="speed === currentSpeed()"
+					(click)="selectSpeed(speed, $index)" [attr.aria-selected]="speed === currentSpeed()" role="option">
+					<span class="speed-text">{{ formatSpeed(speed) }}</span>
+					@if (speed === currentSpeed()) {
+					<span class="checkmark">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+							stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<polyline points="20 6 9 17 4 12"></polyline>
+						</svg>
+					</span>
+					}
+				</button>
+				}
+			</div>
+		</div>
+	</div>
+</div>

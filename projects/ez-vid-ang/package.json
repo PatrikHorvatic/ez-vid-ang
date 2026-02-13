@@ -1,6 +1,11 @@
 {
   "name": "ez-vid-ang",
   "version": "0.0.1",
+  "exports": {
+    "./assets/styling.scss": {
+      "style": "./assets/styling.scss"
+    }
+  },
   "peerDependencies": {
     "@angular/common": "^21.1.0",
     "@angular/core": "^21.1.0"

@@ -1,5 +1,8 @@
 export * from "./lib/core/core-module";
-export * from "./lib/core/player/player"
+export * from "./lib/core/player/player";
+export * from "./lib/core/directives/video-configuration.directive";
+export * from "./lib/core/directives/media-event-listeners.directive";
+export * from "./lib/core/directives/user-interaction-events.directive";
 
 export * from "./lib/types";
 

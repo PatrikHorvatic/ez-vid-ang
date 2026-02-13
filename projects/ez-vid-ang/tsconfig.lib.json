@@ -6,6 +6,10 @@
     "outDir": "../../out-tsc/lib",
     "declaration": true,
     "declarationMap": true,
+    "lib": [
+      "es2022",
+      "dom"
+    ],
     "types": []
   },
   "include": [

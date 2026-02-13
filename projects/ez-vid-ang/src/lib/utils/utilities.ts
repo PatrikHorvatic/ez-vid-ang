@@ -15,6 +15,16 @@ export function videoSourceDefaultSetter(v: Array<EvaVideoSource>): EvaVideoSour
 	return v;
 }
 
+export function transformTimeoutDuration(v: number): number {
+	if (!v) {
+		return 0;
+	}
+	if (v < 0) {
+		return 0;
+	}
+	return v;
+}
+
 export function videoConfigurationDefaultSetter(v: EvaVideoElementConfiguration | undefined): EvaVideoElementConfiguration {
 	if (!v) {
 		return {

@@ -1,0 +1,51 @@
+:host {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	display: flex;
+	justify-content: center;
+	height: 50px;
+	width: 100px;
+	cursor: pointer;
+	color: white;
+	line-height: 50px;
+}
+
+:host .volumeBar {
+	position: relative;
+	display: flex;
+	flex-grow: 1;
+	align-items: center;
+}
+:host .volumeBackground {
+	display: flex;
+	flex-grow: 1;
+	height: 5px;
+	pointer-events: none;
+	background-color: #333;
+}
+:host .volumeValue {
+	display: flex;
+	height: 5px;
+	pointer-events: none;
+	background-color: #fff;
+	transition: all 0.2s ease-out;
+}
+:host .volumeKnob {
+	position: absolute;
+	width: 15px;
+	height: 15px;
+	left: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	border-radius: 15px;
+	pointer-events: none;
+	background-color: #fff;
+	transition: all 0.2s ease-out;
+}
+:host .volumeBackground.dragging .volumeValue,
+:host .volumeBackground.dragging .volumeKnob {
+	transition: none;
+}

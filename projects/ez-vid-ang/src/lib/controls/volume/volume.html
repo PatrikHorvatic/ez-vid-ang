@@ -1,1 +1,9 @@
-<p>volume works!</p>
+<div #volumeBar class="volumeBar" tabindex="0" role="slider" aria-label="volume level" aria-live="polite"
+	[attr.aria-valuenow]="ariaValue()" aria-valuemin="0" aria-valuemax="100" aria-orientation="horizontal"
+	[attr.aria-valuetext]="ariaValue() + '%'" (click)="onClick($event)" (mousedown)="onMouseDown($event)"
+	(keydown)="onKeyDown($event)" (touchstart)="onTouchStart($event)">
+	<div class="volumeBackground" [class.dragging]="isDragging()">
+		<div class="volumeValue" [style.width]="videoVolume() * (100 - 15) + '%'"></div>
+		<div class="volumeKnob" [style.left]="videoVolume() * (100 - 15) + '%'"></div>
+	</div>
+</div>

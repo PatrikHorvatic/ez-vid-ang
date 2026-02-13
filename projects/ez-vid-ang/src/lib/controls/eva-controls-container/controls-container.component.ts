@@ -63,7 +63,6 @@ export class EvaControlsContainerComponent implements OnInit, OnDestroy, OnChang
 
   private startListening() {
     this.userInteraction$ = this.evaAPI.triggerUserInteraction.subscribe(e => {
-      console.log(e);
       if (this.hideTimeout) {
         clearTimeout(this.hideTimeout);
       }

@@ -10,7 +10,6 @@ import { EvaVideoElementConfiguration, EvaVideoSource, EvaVideoTrack } from '../
   providers: [EvaApi]
 })
 export class EvaPlayer implements AfterViewInit, OnDestroy {
-
   private playerMainAPI = inject(EvaApi);
 
   readonly id = input.required<string>();
@@ -21,8 +20,8 @@ export class EvaPlayer implements AfterViewInit, OnDestroy {
   readonly notSupportedText = input<string>("I'm sorry; your browser doesn't support HTML video.");
 
   readonly evaVideoElement = viewChild.required<ElementRef<HTMLVideoElement>>('evaVideoElement');
-  readonly evaVideoSources = viewChildren<QueryList<HTMLSourceElement>>("evaVideoSources");
-  readonly evaVideoTracks = viewChildren<QueryList<HTMLTrackElement>>("evaVideoTracks");
+  // readonly evaVideoSources = viewChildren<QueryList<HTMLSourceElement>>("evaVideoSources");
+  // readonly evaVideoTracks = viewChildren<QueryList<HTMLTrackElement>>("evaVideoTracks");
 
 
   ngAfterViewInit(): void {

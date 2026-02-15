@@ -1,4 +1,4 @@
-import { EventEmitter, Injectable } from '@angular/core';
+import { EventEmitter, Injectable, signal, WritableSignal } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { EvaState } from '../types';
 
@@ -13,6 +13,14 @@ export class EvaApi {
 
 	playerReadyEvent: EventEmitter<EvaApi> = new EventEmitter<EvaApi>(true);
 	public isPlayerReady = false;
+
+	protected isMetadataLoaded = false;
+	public isLive: WritableSignal<boolean> = signal(false);
+	public time: WritableSignal<{ current: number, total: number, remaining: number }> = signal({
+		current: 0,
+		remaining: 0,
+		total: 0
+	});
 
 	/**Used for all the component where video state is important */
 	public videoStateSubject = new BehaviorSubject<EvaState>(EvaState.LOADING);
@@ -47,6 +55,61 @@ export class EvaApi {
 		}
 		this.currentVideoState = EvaState.ENDED;
 		this.videoStateSubject.next(this.currentVideoState);
+	}
+
+	//Called from event listener
+	public loadedVideoMetadata(e: Event) {
+		this.isMetadataLoaded = true;
+		this.time.set({
+			current: 0,
+			remaining: this.assignedVideoElement.duration === Infinity
+				? 0
+				: Number.isNaN(this.assignedVideoElement.duration) ? 0 : this.assignedVideoElement.duration,
+			total: this.assignedVideoElement.duration
+		});
+
+		this.isLive.set(this.assignedVideoElement.duration === Infinity);
+	}
+
+	public updateVideoTime() {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		console.log("UPDATING VIDEO TIME");
+
+		const end = this.assignedVideoElement.buffered.length - 1;
+		const crnt = this.assignedVideoElement.currentTime;
+		this.time.update(a => {
+			return {
+				current: crnt,
+				total: a.total,
+				remaining: this.getVideoDuration() - crnt
+			}
+		});
+
+		//TODO - Add buffering
+	}
+
+	public checkIfItIsLiveStram(): boolean {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return false;
+		}
+		return this.isLive();
+	}
+
+	/**It returns:
+	 * 
+	 * - a number in seconds if it has a duration
+	 * - NaN if no media data is available
+	 * - Infinity if it is a live stream  
+	 * 
+	 * https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/duration#value
+	 * */
+	public getVideoDuration(): number {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return NaN;
+		}
+		return this.assignedVideoElement.duration;
 	}
 
 	//Called from event listener

@@ -122,6 +122,8 @@ export type EvaVideoTrackKinds =
 	| 'chapters'
 	| 'metadata';
 
+export type EvaTimeProperty = "current" | "total" | "remaining";
+export type EvaTimeFormating = "HH:mm:ss" | "mm:ss" | "ss";
 
 export const isValidVideoEvent = (event: string): event is EvaVideoEvent => {
 	return Object.values(EvaVideoEvent).includes(event as EvaVideoEvent);

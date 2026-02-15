@@ -13,11 +13,11 @@ export class EvaPlayer implements AfterViewInit, OnDestroy {
   private playerMainAPI = inject(EvaApi);
 
   readonly id = input.required<string>();
-  readonly videoSources = input.required<EvaVideoSource[]>();
-  readonly videoConfiguration = input<EvaVideoElementConfiguration>({});
+  readonly evaVideoSources = input.required<EvaVideoSource[]>();
+  readonly evaVideoConfiguration = input<EvaVideoElementConfiguration>({});
 
-  readonly videoTracks = input<EvaVideoTrack[]>([]);
-  readonly notSupportedText = input<string>("I'm sorry; your browser doesn't support HTML video.");
+  readonly evaVideoTracks = input<EvaVideoTrack[]>([]);
+  readonly evaNotSupportedText = input<string>("I'm sorry; your browser doesn't support HTML video.");
 
   readonly evaVideoElement = viewChild.required<ElementRef<HTMLVideoElement>>('evaVideoElement');
   // readonly evaVideoSources = viewChildren<QueryList<HTMLSourceElement>>("evaVideoSources");

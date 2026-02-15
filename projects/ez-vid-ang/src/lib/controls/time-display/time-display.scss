@@ -1,0 +1,16 @@
+:host {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	display: flex;
+	justify-content: center;
+	height: 50px;
+	min-width: 30px;
+	cursor: pointer;
+	color: white;
+	line-height: 50px;
+	pointer-events: none;
+	padding: 0px 6px;
+}

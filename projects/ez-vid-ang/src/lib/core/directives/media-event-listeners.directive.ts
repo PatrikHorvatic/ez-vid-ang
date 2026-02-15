@@ -101,7 +101,7 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
 
     });
     this.completeSub = this.complete$.subscribe(v => {
-
+      // this.evaAPI.endedVideo();
     });
     this.durationChangeSub = this.durationChange$.subscribe(v => {
 
@@ -122,7 +122,7 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
 
     });
     this.loadedMetadataSub = this.loadedMetadata$.subscribe(v => {
-
+      this.evaAPI.loadedVideoMetadata(v)
     });
     this.loadStartSub = this.loadStart$.subscribe(v => {
 
@@ -155,7 +155,7 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
 
     });
     this.timeUpdateSub = this.timeUpdate$.subscribe(v => {
-
+      this.evaAPI.updateVideoTime();
     });
     this.volumeChangeSub = this.volumeChange$.subscribe(v => {
       console.log("VOLUME CHANGED:");

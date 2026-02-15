@@ -32,11 +32,11 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
    * Those that are not will be removed from the array.
    * In case of an empty array, component exists and some value must be provided and the default will be 1.0
    */
-  readonly playbackSpeeds = input.required<Array<number>, Array<number>>({
+  readonly evaPlaybackSpeeds = input.required<Array<number>, Array<number>>({
     transform: validateAndTransformPlaybackSpeeds
   });
 
-  readonly defaultPlaybackSpeed = input<number, number>(1, {
+  readonly evaDefaultPlaybackSpeed = input<number, number>(1, {
     transform: transformDefaultPlaybackSpeed
   });
 
@@ -49,8 +49,8 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // Set initial speed
-    const speeds = this.playbackSpeeds();
-    const defaultSpeed = this.defaultPlaybackSpeed();
+    const speeds = this.evaPlaybackSpeeds();
+    const defaultSpeed = this.evaDefaultPlaybackSpeed();
     const index = speeds.indexOf(defaultSpeed);
 
     if (index !== -1) {
@@ -78,7 +78,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
 
   protected playbackClickedKeyboard(e: KeyboardEvent) {
     const isOpen = this.isOpen();
-    const speeds = this.playbackSpeeds();
+    const speeds = this.evaPlaybackSpeeds();
     const currentIndex = this.selectedIndex();
 
     switch (e.key) {

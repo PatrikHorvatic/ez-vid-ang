@@ -1,6 +1,6 @@
-import { AfterViewInit, Directive, ElementRef, inject, input, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { EvaVideoElementConfiguration } from '../../types';
+import { AfterViewInit, Directive, ElementRef, inject, input, OnChanges, SimpleChanges } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
+import { EvaVideoElementConfiguration } from '../../types';
 
 @Directive({
   selector: 'video[evaVideoConfiguration]',
@@ -10,7 +10,7 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
   private evaAPI = inject(EvaApi);
   private elementRef = inject(ElementRef<HTMLVideoElement>);
 
-  readonly videoConfig = input.required<EvaVideoElementConfiguration>();
+  readonly evaVideoConfig = input.required<EvaVideoElementConfiguration>();
 
   private isViewInitialized = false;
 
@@ -28,44 +28,44 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
   }
 
   private applyConfiguration(): void {
-    if (!this.videoConfig()) {
+    if (!this.evaVideoConfig()) {
       return;
     }
-    if (this.videoConfig().width) {
-      this.elementRef.nativeElement.width = this.videoConfig().width!;
+    if (this.evaVideoConfig().width) {
+      this.elementRef.nativeElement.width = this.evaVideoConfig().width!;
     }
-    if (this.videoConfig().height) {
-      this.elementRef.nativeElement.height = this.videoConfig().height!;
+    if (this.evaVideoConfig().height) {
+      this.elementRef.nativeElement.height = this.evaVideoConfig().height!;
     }
-    if (this.videoConfig().autoplay) {
-      this.elementRef.nativeElement.autoplay = this.videoConfig().autoplay!;
+    if (this.evaVideoConfig().autoplay) {
+      this.elementRef.nativeElement.autoplay = this.evaVideoConfig().autoplay!;
     }
-    if (this.videoConfig().controls) {
-      this.elementRef.nativeElement.controls = this.videoConfig().controls!;
+    if (this.evaVideoConfig().controls) {
+      this.elementRef.nativeElement.controls = this.evaVideoConfig().controls!;
     }
-    if (this.videoConfig().crossorigin) {
-      this.elementRef.nativeElement.crossOrigin = this.videoConfig().crossorigin!;
+    if (this.evaVideoConfig().crossorigin) {
+      this.elementRef.nativeElement.crossOrigin = this.evaVideoConfig().crossorigin!;
     }
-    if (this.videoConfig().disablePictureInPicture) {
-      this.elementRef.nativeElement.disablePictureInPicture = this.videoConfig().disablePictureInPicture!;
+    if (this.evaVideoConfig().disablePictureInPicture) {
+      this.elementRef.nativeElement.disablePictureInPicture = this.evaVideoConfig().disablePictureInPicture!;
     }
-    if (this.videoConfig().disableRemotePlayback) {
-      this.elementRef.nativeElement.disableRemotePlayback = this.videoConfig().disableRemotePlayback!;
+    if (this.evaVideoConfig().disableRemotePlayback) {
+      this.elementRef.nativeElement.disableRemotePlayback = this.evaVideoConfig().disableRemotePlayback!;
     }
-    if (this.videoConfig().loop) {
-      this.elementRef.nativeElement.loop = this.videoConfig().loop!;
+    if (this.evaVideoConfig().loop) {
+      this.elementRef.nativeElement.loop = this.evaVideoConfig().loop!;
     }
-    if (this.videoConfig().muted) {
-      this.elementRef.nativeElement.muted = this.videoConfig().muted!;
+    if (this.evaVideoConfig().muted) {
+      this.elementRef.nativeElement.muted = this.evaVideoConfig().muted!;
     }
-    if (this.videoConfig().playinline) {
-      this.elementRef.nativeElement.playsInline = this.videoConfig().playinline!;
+    if (this.evaVideoConfig().playinline) {
+      this.elementRef.nativeElement.playsInline = this.evaVideoConfig().playinline!;
     }
-    if (this.videoConfig().poster) {
-      this.elementRef.nativeElement.poster = this.videoConfig().poster!;
+    if (this.evaVideoConfig().poster) {
+      this.elementRef.nativeElement.poster = this.evaVideoConfig().poster!;
     }
-    if (this.videoConfig().preload) {
-      this.elementRef.nativeElement.preload = this.videoConfig().preload!;
+    if (this.evaVideoConfig().preload) {
+      this.elementRef.nativeElement.preload = this.evaVideoConfig().preload!;
     }
   }
 

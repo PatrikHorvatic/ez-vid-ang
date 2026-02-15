@@ -1,14 +1,15 @@
 <ng-content></ng-content>
 
-<video #evaVideoElement [id]="id()" evaMediaEventListeners evaVideoConfiguration [videoConfig]="videoConfiguration()">
-	@for (vs of videoSources(); track $index) {
+<video #evaVideoElement [id]="id()" evaMediaEventListeners evaVideoConfiguration
+	[evaVideoConfig]="evaVideoConfiguration()">
+	@for (vs of evaVideoSources(); track $index) {
 	<source #evaVideoSources [type]="vs.type" [src]="vs.src" />
 	}
-	@if(notSupportedText()){
-	<p>{{notSupportedText()}}</p>
+	@if(evaNotSupportedText()){
+	<p>{{evaNotSupportedText()}}</p>
 	}
 
-	@for (t of videoTracks(); track $index) {
+	@for (t of evaVideoTracks(); track $index) {
 	<track #evaVideoTracks [default]="t.default" [kind]="t.kind" [label]="t.label" [src]="t.src" [srclang]="t.srclang"
 		[ariaLabel]="t.label" />
 	}

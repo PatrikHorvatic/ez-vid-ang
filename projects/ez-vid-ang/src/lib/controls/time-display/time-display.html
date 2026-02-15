@@ -1,1 +1,6 @@
-<p>time-display works!</p>
+@if(evaAPI.isLive()){
+<span>{{evaLiveText()}}</span>
+}
+@else {
+<span>{{evaAPI.time()[evaTimeProperty()] | evaTimeDisplay: evaTimeFormating()}}</span>
+}

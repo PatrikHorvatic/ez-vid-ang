@@ -17,6 +17,7 @@ export * from "./lib/controls/time-display/time-display";
 export * from "./lib/controls/track-selector/track-selector";
 export * from "./lib/controls/volume/volume";
 export * from "./lib/controls/controls-module";
+export * from "./lib/controls/pipes/time-display-pipe";
 
 export * from "./lib/streaming/streaming-module";
 export * from "./lib/buffering/buffering-module";

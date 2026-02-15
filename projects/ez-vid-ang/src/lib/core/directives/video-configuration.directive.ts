@@ -1,6 +1,7 @@
 import { AfterViewInit, Directive, ElementRef, inject, input, OnChanges, SimpleChanges } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
 import { EvaVideoElementConfiguration } from '../../types';
+import { validateAndPrepareStartingVideoVolume } from '../../utils/utilities';
 
 @Directive({
   selector: 'video[evaVideoConfiguration]',
@@ -66,6 +67,9 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
     }
     if (this.evaVideoConfig().preload) {
       this.elementRef.nativeElement.preload = this.evaVideoConfig().preload!;
+    }
+    if (this.evaVideoConfig().startingVolume) {
+      this.elementRef.nativeElement.volume = validateAndPrepareStartingVideoVolume(this.evaVideoConfig().startingVolume);
     }
   }
 

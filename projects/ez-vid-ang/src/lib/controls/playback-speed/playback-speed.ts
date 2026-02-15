@@ -28,8 +28,9 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
    * 
    * It is YOUR responsibility to sort the values. 
    * 
-   * Transformer function only checks if the values are in acceptable range.
-   * Those that are not will be removed from the array.
+   * Transformer function does the next:
+   * - Checks if the values are in acceptable range. Those that are not will be removed from the array.
+   * - Removes duplicate values because of the @for loop's trackby value.
    * In case of an empty array, component exists and some value must be provided and the default will be 1.0
    */
   readonly evaPlaybackSpeeds = input.required<Array<number>, Array<number>>({
@@ -159,7 +160,4 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
     }
   }
 
-  protected trackBySpeed(index: number, speed: number): number {
-    return speed;
-  }
 }

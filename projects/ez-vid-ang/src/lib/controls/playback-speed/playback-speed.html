@@ -21,7 +21,7 @@
 		<div class="dropdown-content">
 			<div class="dropdown-header">Playback Speed</div>
 			<div class="speed-options">
-				@for (speed of evaPlaybackSpeeds(); track trackBySpeed($index, speed)) {
+				@for (speed of evaPlaybackSpeeds(); track speed) {
 				<button type="button" class="speed-option" [class.active]="speed === currentSpeed()"
 					(click)="selectSpeed(speed, $index)" [attr.aria-selected]="speed === currentSpeed()" role="option">
 					<span class="speed-text">{{ formatSpeed(speed) }}</span>

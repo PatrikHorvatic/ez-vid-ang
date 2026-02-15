@@ -12,6 +12,7 @@ export interface EvaVideoElementConfiguration {
 	playinline?: boolean;
 	poster?: string;
 	preload?: 'none' | 'metadata' | 'auto' | '';
+	startingVolume?: number
 }
 
 export interface EvaVideoSource {
@@ -66,62 +67,6 @@ export enum EvaVideoEvent {
 	WAITING_FOR_KEY = 'waitingforkey'
 }
 
-/**
- * According to:
- * https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/track#attributes
- */
-export interface EvaVideoTrack {
-	/**
-	 * Indicates that the track should be enabled unless the user's preferences 
-	 * indicate that another track is more appropriate.
-	 * 
-	 * This may only be used on one track element per media element.
-	 */
-	default?: boolean; // Should be optional
-
-	/**
-	 * How the text track is meant to be used.
-	 * 
-	 * If omitted the default kind is subtitles.
-	 * If the attribute contains an invalid value, it will use metadata.
-	 */
-	kind?: EvaVideoTrackKinds; // Should be optional (defaults to 'subtitles')
-
-	/**
-	 * A user-readable title of the text track which is used by the browser 
-	 * when listing available text tracks.
-	 */
-	label?: string; // Should be optional
-
-	/**
-	 * Address of the track (.vtt file). Must be a valid URL.
-	 * 
-	 * This attribute must be specified and its URL value must have the same 
-	 * origin as the document unless the video parent element of the track 
-	 * element has a crossorigin attribute.
-	 */
-	src: string; // Required
-
-	/**
-	 * Language of the track text data.
-	 * 
-	 * It must be a valid BCP 47 language tag.
-	 * If the kind attribute is set to subtitles, then srclang must be defined.
-	 */
-	srclang?: string; // Should be optional (required only for subtitles)
-}
-
-/**
- * According to:
- * https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/track#kind
- */
-export type EvaVideoTrackKinds =
-	| 'subtitles'
-	| 'captions'
-	| 'descriptions'
-	| 'chapters'
-	| 'metadata';
-
 export type EvaTimeProperty = "current" | "total" | "remaining";
 export type EvaTimeFormating = "HH:mm:ss" | "mm:ss" | "ss";
 
@@ -129,6 +74,82 @@ export const isValidVideoEvent = (event: string): event is EvaVideoEvent => {
 	return Object.values(EvaVideoEvent).includes(event as EvaVideoEvent);
 };
 
-export const isValidTrackKind = (kind: string): kind is EvaVideoTrackKinds => {
+export const isValidTrackKind = (kind: string): kind is EvaTrackKind => {
 	return ['subtitles', 'captions', 'descriptions', 'chapters', 'metadata'].includes(kind);
 };
+
+
+/**
+ * According to:
+ * https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/track#kind
+ */
+export type EvaTrackKind =
+	| 'subtitles'
+	| 'captions'
+	| 'descriptions'
+	| 'chapters'
+	| 'metadata';
+
+/**
+ * Base track interface
+ */
+interface EvaBaseTrack {
+	/** Address of the track (.vtt file). Must be a valid URL. */
+	src: string;
+	/** User-readable title of the text track */
+	label?: string;
+	/** Indicates that the track should be enabled by default */
+	default?: boolean;
+}
+
+/**
+ * Subtitle track - requires srclang
+ */
+interface EvaSubtitleTrack extends EvaBaseTrack {
+	kind: 'subtitles';
+	/** Language of the track (BCP 47). Required for subtitles. */
+	srclang: string;
+}
+
+/**
+ * Caption track - optional srclang
+ */
+interface EvaCaptionTrack extends EvaBaseTrack {
+	kind: 'captions';
+	srclang?: string;
+}
+
+/**
+ * Description track - optional srclang
+ */
+interface EvaDescriptionTrack extends EvaBaseTrack {
+	kind: 'descriptions';
+	srclang?: string;
+}
+
+/**
+ * Chapter track - optional srclang
+ */
+interface EvaChapterTrack extends EvaBaseTrack {
+	kind: 'chapters';
+	srclang?: string;
+}
+
+/**
+ * Metadata track - no srclang needed
+ */
+interface EvaMetadataTrack extends EvaBaseTrack {
+	kind: 'metadata';
+	srclang?: never;
+}
+
+/**
+ * Union type representing any valid track configuration
+ */
+export type EvaTrack =
+	| EvaSubtitleTrack
+	| EvaCaptionTrack
+	| EvaDescriptionTrack
+	| EvaChapterTrack
+	| EvaMetadataTrack;
+

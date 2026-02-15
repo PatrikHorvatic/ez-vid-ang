@@ -158,10 +158,7 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
       this.evaAPI.updateVideoTime();
     });
     this.volumeChangeSub = this.volumeChange$.subscribe(v => {
-      console.log("VOLUME CHANGED:");
-      console.log(v);
       this.evaAPI.volumeChanged(v);
-
     });
     this.waitingSub = this.waiting$.subscribe(v => {
 

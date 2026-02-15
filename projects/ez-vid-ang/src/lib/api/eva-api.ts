@@ -1,6 +1,6 @@
 import { EventEmitter, Injectable, signal, WritableSignal } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { EvaState } from '../types';
+import { EvaState, EvaTrack } from '../types';
 
 @Injectable({
 	providedIn: 'root',
@@ -26,6 +26,7 @@ export class EvaApi {
 	public videoStateSubject = new BehaviorSubject<EvaState>(EvaState.LOADING);
 	public videoVolumeSubject = new BehaviorSubject<number | null>(null);
 	public playbackRateSubject = new BehaviorSubject<number | null>(null);
+	public videoTracksSubject = new BehaviorSubject<EvaTrack[]>([]);
 	/**Flag for current value of video state. */
 	private currentVideoState: EvaState = EvaState.LOADING;
 
@@ -53,7 +54,7 @@ export class EvaApi {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
-		this.currentVideoState = EvaState.ENDED;
+		this.currentVideoState = EvaState.ERROR;
 		this.videoStateSubject.next(this.currentVideoState);
 	}
 
@@ -75,7 +76,6 @@ export class EvaApi {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
-		console.log("UPDATING VIDEO TIME");
 
 		const end = this.assignedVideoElement.buffered.length - 1;
 		const crnt = this.assignedVideoElement.currentTime;
@@ -209,6 +209,10 @@ export class EvaApi {
 
 	public assignElementToApi(element: HTMLVideoElement) {
 		this.assignedVideoElement = element;
+	}
+
+	public setFirstSubtitles() {
+
 	}
 
 	public onPlayerReady() {

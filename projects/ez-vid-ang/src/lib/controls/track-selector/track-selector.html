@@ -1,1 +1,41 @@
-<p>track-selector works!</p>
+<div class="eva-track-selector-container">
+	<!-- Current Speed Display Button -->
+	<div class="eva-track-selector-button">
+		<span class="speed-icon">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+				stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+			</svg>
+		</span>
+		<span class="speed-label">{{ currentTrack() }}</span>
+		<span class="dropdown-arrow" [class.rotated]="isOpen()">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+				stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<polyline points="6 9 12 15 18 9"></polyline>
+			</svg>
+		</span>
+	</div>
+
+	<!-- Dropdown Menu -->
+	<div class="eva-track-selector-dropdown" [class.show]="isOpen()">
+		<div class="dropdown-content">
+			<div class="dropdown-header">{{evaTrackSelectorText()}}</div>
+			<div class="speed-options">
+				@for (tr of localTracks(); track i; let i = $index) {
+				<button type="button" class="speed-option" [class.active]="tr.label === currentTrack()"
+					(click)="selectTrack(tr, $index)" [attr.aria-selected]="tr.label === currentTrack()" role="option">
+					<span class="speed-text">{{ tr.label }}</span>
+					@if (tr.label === currentTrack()) {
+					<span class="checkmark">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+							stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<polyline points="20 6 9 17 4 12"></polyline>
+						</svg>
+					</span>
+					}
+				</button>
+				}
+			</div>
+		</div>
+	</div>
+</div>

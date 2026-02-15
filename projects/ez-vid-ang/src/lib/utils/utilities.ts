@@ -1,15 +1,4 @@
-import { EvaVideoElementConfiguration, EvaVideoSource, EvaVideoTrack } from "../types";
-
-export function videoTrackDefaultSetter(v: Array<EvaVideoTrack>): EvaVideoTrack[] {
-	if (!v) {
-		return [];
-	}
-	let ind = v.findIndex(el => el.default);
-	if (ind === -1) {
-		v[0].default = true;
-	}
-	return v;
-}
+import { EvaTrack, EvaVideoElementConfiguration, EvaVideoSource } from "../types";
 
 export function videoSourceDefaultSetter(v: Array<EvaVideoSource>): EvaVideoSource[] {
 	return v;
@@ -41,8 +30,22 @@ export function validateAndTransformPlaybackSpeeds(v: Array<number>): Array<numb
 	if (filtered.length === 0) {
 		return [1.0];
 	}
-	return filtered;
+	// Remove duplicates using Set. There is maybe a better way to remove duplicates.
+	const unique = Array.from(new Set(filtered));
+	return unique;
+}
 
+export function validateAndPrepareStartingVideoVolume(v: number | undefined): number {
+	if (v === undefined) {
+		return 0.75;
+	}
+	if (v < 0) {
+		return 0;
+	}
+	if (v > 1) {
+		return 1;
+	}
+	return v;
 }
 
 export function videoConfigurationDefaultSetter(v: EvaVideoElementConfiguration | undefined): EvaVideoElementConfiguration {
@@ -61,7 +64,6 @@ export function videoConfigurationDefaultSetter(v: EvaVideoElementConfiguration 
 			playinline: false,
 			poster: "",
 			preload: "auto",
-
 		}
 	}
 	if (!v.width) {
@@ -103,6 +105,46 @@ export function videoConfigurationDefaultSetter(v: EvaVideoElementConfiguration 
 	if (!v.preload) {
 		v.preload = "auto";
 	}
+	if (!v.startingVolume) {
+		v.startingVolume = 0.75;
+	}
 	return v;
 }
 
+/**
+ * Validates and transforms an array of tracks
+ * - Ensures only one track has default=true
+ * - Ensures no duplicate tracks (same kind, srclang, label)
+ * - Validates that subtitles have srclang
+ */
+export function validateTracks(tracks: EvaTrack[]): EvaTrack[] {
+	if (tracks.length === 0) {
+		return [];
+	}
+
+	// Validate: only one default track allowed
+	const defaultTracks = tracks.filter(track => track.default === true);
+	if (defaultTracks.length > 1) {
+		console.warn('Multiple tracks marked as default. Only the first will be used.');
+		// Reset all defaults, then set only the first one
+		tracks = tracks.map(track => ({ ...track, default: false }));
+		const firstDefaultIndex = tracks.findIndex(track => defaultTracks.includes(track));
+		if (firstDefaultIndex !== -1) {
+			tracks[firstDefaultIndex] = { ...tracks[firstDefaultIndex], default: true };
+		}
+	}
+
+	// Remove duplicates based on kind, srclang, and label
+	const seen = new Set<string>();
+	const uniqueTracks = tracks.filter(track => {
+		const key = `${track.kind}-${track.srclang || ''}-${track.label || ''}`;
+		if (seen.has(key)) {
+			console.warn(`Duplicate track found: ${key}. Removing duplicate.`);
+			return false;
+		}
+		seen.add(key);
+		return true;
+	});
+
+	return uniqueTracks;
+}

@@ -92,15 +92,18 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
     this.waitingForKey$ = fromEvent(this.elementRef.nativeElement, EvaVideoEvent.WAITING_FOR_KEY);
 
     this.abortSub = this.abort$.subscribe(v => {
+      console.log("video aborted");
 
     });
     this.canPlaySub = this.canPlay$.subscribe(v => {
+      console.log("vcan playd");
       this.evaAPI.videoCanPlay();
     });
     this.canPlayThroughSub = this.canPlayThrough$.subscribe(v => {
 
     });
     this.completeSub = this.complete$.subscribe(v => {
+      console.log("video complete");
       // this.evaAPI.endedVideo();
     });
     this.durationChangeSub = this.durationChange$.subscribe(v => {
@@ -113,58 +116,75 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
 
     });
     this.endedSub = this.ended$.subscribe(v => {
+      console.log("vendedd");
       this.evaAPI.endedVideo();
     });
     this.errorSub = this.error$.subscribe(v => {
+      console.log("video errored");
       this.evaAPI.erroredVideo();
     });
     this.loadedDataSub = this.loadedData$.subscribe(v => {
+      console.log("video loaded data");
 
     });
     this.loadedMetadataSub = this.loadedMetadata$.subscribe(v => {
+      console.log("video loaded metadata");
       this.evaAPI.loadedVideoMetadata(v)
     });
     this.loadStartSub = this.loadStart$.subscribe(v => {
+      console.log("vload startd");
 
     });
     this.pauseSub = this.pause$.subscribe(v => {
+      console.log("video pause");
       this.evaAPI.pauseVideo();
     });
     this.playSub = this.play$.subscribe(v => {
+      console.log("video play");
       this.evaAPI.playVideo();
     });
     this.playingSub = this.playing$.subscribe(v => {
+      console.log("video playing");
       this.evaAPI.playingVideo();
     });
     this.progressSub = this.progress$.subscribe(v => {
+      console.log("video progressed");
       // this.evaAPI.checkBufferStatus();
     });
     this.rateChangeSub = this.rateChange$.subscribe(v => {
+      console.log("video rate changed");
       this.evaAPI.playbackRateVideoChanged(v);
     });
     this.seekedSub = this.seeked$.subscribe(v => {
+      console.log("vseekedd");
       this.evaAPI.videoSeeked();
     });
     this.seekingSub = this.seeking$.subscribe(v => {
+      console.log("video seeking");
       this.evaAPI.videoSeeking();
     });
     this.stalledSub = this.stalled$.subscribe(v => {
+      console.log("video stalled");
       this.evaAPI.videoStalled();
     });
     this.suspendSub = this.suspend$.subscribe(v => {
+      console.log("video suspended");
 
     });
     this.timeUpdateSub = this.timeUpdate$.subscribe(v => {
+      console.log("video time updated");
       this.evaAPI.updateVideoTime();
     });
     this.volumeChangeSub = this.volumeChange$.subscribe(v => {
       this.evaAPI.volumeChanged(v);
     });
     this.waitingSub = this.waiting$.subscribe(v => {
+      console.log("video waiting");
       this.evaAPI.videoWaiting();
 
     });
     this.waitingForKeySub = this.waitingForKey$.subscribe(v => {
+      console.log("video waiting for key");
 
     });
   }

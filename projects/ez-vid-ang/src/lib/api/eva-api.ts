@@ -13,7 +13,7 @@ export class EvaApi {
 
 	playerReadyEvent: EventEmitter<EvaApi> = new EventEmitter<EvaApi>(true);
 	public isPlayerReady = false;
-	public isBuffering: WritableSignal<boolean> = signal(false);
+	public isBuffering: WritableSignal<boolean> = signal(true);
 
 	protected isMetadataLoaded = false;
 	private hasStartedPlaying = false;

@@ -32,8 +32,6 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
   readonly evaTrackOffText = input<string>("Off");
 
   protected currentTrack = computed<string | null>(() => {
-    console.log("zovem provjeru");
-
     if (!this.localTracks) { return null; }
     if (!this.localTracks()) { return null; }
 
@@ -53,9 +51,6 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
   private videoTracksSub: Subscription | null = null;
 
   ngOnInit(): void {
-    console.log("first tracks value");
-    console.log(this.evaAPI.videoTracksSubject.getValue());
-
     this.localTracks = signal(
       this.extractTracksFromAssignedVideoElement(
         this.evaAPI.videoTracksSubject.getValue()
@@ -63,7 +58,6 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
     );
 
     this.videoTracksSub = this.evaAPI.videoTracksSubject.subscribe(t => {
-      console.log(t);
       this.localTracks.set(this.extractTracksFromAssignedVideoElement(t));
     });
 
@@ -83,26 +77,17 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
   }
 
   protected selectTrack(tr: TrackInternal, i: number) {
-    console.log("SELECT TRACK");
-
-    // Update local tracks - ensure proper mutation
     this.localTracks.update(tracks => {
-      // Create a new array with all tracks set to false
       const updated = tracks.map(track => ({
         ...track,
         selected: false
       }));
-
-      // Set the selected track to true
       updated[i].selected = true;
-
       return updated;
     });
 
     // Update the video element's text tracks
     if (this.evaAPI.assignedVideoElement) {
-      console.log("setting track showing");
-
       Array.from(this.evaAPI.assignedVideoElement.textTracks)
         .forEach(textTrack => {
           if (textTrack.label === tr.label) {
@@ -112,8 +97,6 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
           }
         });
     }
-
-    // Close the dropdown
     this.isOpen.set(false);
   }
 
@@ -147,7 +130,6 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
 
   private extractTracksFromAssignedVideoElement(v: EvaTrack[]): TrackInternal[] {
     if (v.length === 0) {
-      console.log("vraćam prazno");
       return [];
     }
 
@@ -157,9 +139,6 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
         label: a.label || "",
         selected: a.default === true
       }));
-
-    console.log(a);
-
 
     return [
       ...a,

@@ -1,9 +1,10 @@
 import { NgModule } from "@angular/core";
+import { EvaBufferingComponent } from './buffering/buffering.component';
 
 @NgModule({
-	declarations: [],
+	declarations: [EvaBufferingComponent],
 	imports: [],
-	exports: [],
+	exports: [EvaBufferingComponent],
 	providers: []
 })
 export class EvaBufferingModule { }

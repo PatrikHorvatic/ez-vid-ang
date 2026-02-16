@@ -13,8 +13,11 @@ export class EvaApi {
 
 	playerReadyEvent: EventEmitter<EvaApi> = new EventEmitter<EvaApi>(true);
 	public isPlayerReady = false;
+	public isBuffering: WritableSignal<boolean> = signal(false);
 
 	protected isMetadataLoaded = false;
+	private hasStartedPlaying = false;
+
 	public isLive: WritableSignal<boolean> = signal(false);
 	public time: WritableSignal<{ current: number, total: number, remaining: number }> = signal({
 		current: 0,
@@ -31,6 +34,11 @@ export class EvaApi {
 	private currentVideoState: EvaState = EvaState.LOADING;
 
 	public triggerUserInteraction = new Subject<MouseEvent | TouchEvent | PointerEvent>()
+
+	// Add buffering detection variables
+	private bufferingTimeout?: ReturnType<typeof setTimeout>;
+	private lastPlayPos = 0;
+	private currentPlayPos = 0;
 
 	/**Called from play-pause component. */
 	public playOrPauseVideo() {
@@ -56,6 +64,7 @@ export class EvaApi {
 		}
 		this.currentVideoState = EvaState.ERROR;
 		this.videoStateSubject.next(this.currentVideoState);
+		this.isBuffering.set(false); // Stop buffering on error
 	}
 
 	//Called from event listener
@@ -70,6 +79,62 @@ export class EvaApi {
 		});
 
 		this.isLive.set(this.assignedVideoElement.duration === Infinity);
+	}
+
+	// Called from event listener - WAITING event
+	public videoWaiting() {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		// Only show buffering if we've started playing (not initial load)
+		if (this.hasStartedPlaying) {
+			this.isBuffering.set(true);
+		}
+	}
+
+	// Called from event listener - CAN_PLAY event
+	public videoCanPlay() {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		this.isBuffering.set(false);
+	}
+
+	// Called from event listener - PLAYING event
+	public playingVideo() {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		this.hasStartedPlaying = true;
+		this.isBuffering.set(false);
+
+		if (this.bufferingTimeout) {
+			clearTimeout(this.bufferingTimeout);
+		}
+	}
+
+	// Called from event listener - STALLED event
+	public videoStalled() {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		this.isBuffering.set(true);
+	}
+
+	// Called from event listener - SEEKING event
+	public videoSeeking() {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		this.isBuffering.set(true);
+	}
+
+	// Called from event listener - SEEKED event
+	public videoSeeked() {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		this.isBuffering.set(false);
 	}
 
 	public updateVideoTime() {
@@ -87,7 +152,88 @@ export class EvaApi {
 			}
 		});
 
-		//TODO - Add buffering
+		// Advanced buffering detection
+		this.detectBuffering(crnt);
+	}
+
+	/**
+	 * Detect buffering by checking if video playback position is advancing
+	 */
+	private detectBuffering(currentTime: number) {
+		// Don't check buffering if video is paused or ended
+		if (this.assignedVideoElement.paused || this.assignedVideoElement.ended) {
+			this.isBuffering.set(false);
+			if (this.bufferingTimeout) {
+				clearTimeout(this.bufferingTimeout);
+			}
+			return;
+		}
+
+		// Don't check buffering if readyState indicates video can play
+		if (this.assignedVideoElement.readyState >= 3) { // HAVE_FUTURE_DATA or HAVE_ENOUGH_DATA
+			this.isBuffering.set(false);
+		}
+
+		// Update play positions
+		this.currentPlayPos = currentTime;
+
+		// Clear existing timeout
+		if (this.bufferingTimeout) {
+			clearTimeout(this.bufferingTimeout);
+		}
+
+		// Only check for stalling if we've had time to advance
+		this.bufferingTimeout = setTimeout(() => {
+			// If current position hasn't advanced and video should be playing
+			if (this.currentPlayPos === this.lastPlayPos &&
+				!this.assignedVideoElement.paused &&
+				!this.assignedVideoElement.ended &&
+				this.assignedVideoElement.readyState < 3) { // Only if not enough data
+				this.isBuffering.set(true);
+			}
+		}, 500); // Increased from 200ms to 500ms to avoid false positives
+
+		this.lastPlayPos = this.currentPlayPos;
+	}
+
+	/**
+	 * Check buffering status based on buffer ranges
+	 */
+	public checkBufferStatus(): void {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+
+		// Only check if we're currently playing
+		if (this.assignedVideoElement.paused || this.assignedVideoElement.ended) {
+			return;
+		}
+
+		// If readyState is sufficient, we're not buffering
+		if (this.assignedVideoElement.readyState >= 3) {
+			this.isBuffering.set(false);
+			return;
+		}
+
+		const currentTime = this.assignedVideoElement.currentTime;
+		const buffered = this.assignedVideoElement.buffered;
+
+		let hasEnoughBuffer = false;
+
+		// Check if current time is within any buffered range
+		for (let i = 0; i < buffered.length; i++) {
+			if (currentTime >= buffered.start(i) && currentTime <= buffered.end(i)) {
+				// Check if we have enough buffer ahead (at least 1 second)
+				const bufferAhead = buffered.end(i) - currentTime;
+				hasEnoughBuffer = bufferAhead > 1;
+				break;
+			}
+		}
+
+		// Only set to true if we don't have buffer, don't force false
+		if (!hasEnoughBuffer && this.assignedVideoElement.readyState < 3) {
+			this.isBuffering.set(true);
+		}
 	}
 
 	public checkIfItIsLiveStram(): boolean {
@@ -119,6 +265,7 @@ export class EvaApi {
 		}
 		this.currentVideoState = EvaState.ENDED;
 		this.videoStateSubject.next(this.currentVideoState);
+		this.isBuffering.set(false); // Stop buffering when ended
 	}
 
 	//Called from event listener
@@ -128,6 +275,7 @@ export class EvaApi {
 		}
 		this.currentVideoState = EvaState.PAUSED;
 		this.videoStateSubject.next(this.currentVideoState);
+		this.isBuffering.set(false); // Stop buffering when paused
 	}
 
 	//Called from event listener
@@ -137,11 +285,6 @@ export class EvaApi {
 		}
 		this.currentVideoState = EvaState.PLAYING;
 		this.videoStateSubject.next(this.currentVideoState);
-	}
-
-	//Called from event listener
-	public playingVideo() {
-
 	}
 
 	//Called from event listener

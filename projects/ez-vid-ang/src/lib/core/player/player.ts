@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, inject, input, OnChanges, OnDestroy, QueryList, SimpleChanges, viewChild, viewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, input, OnChanges, OnDestroy, SimpleChanges, viewChild } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
 import { EvaTrack, EvaVideoElementConfiguration, EvaVideoSource } from '../../types';
@@ -22,9 +22,11 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
   readonly evaVideoTracks = input<EvaTrack[], EvaTrack[]>([], { transform: validateTracks });
   readonly evaNotSupportedText = input<string>("I'm sorry; your browser doesn't support HTML video.");
 
+  // readonly evaBuffering = viewChild<EvaBufferingComponent>('evaBuffering');
+
   readonly evaVideoElement = viewChild.required<ElementRef<HTMLVideoElement>>('evaVideoElement');
   // readonly evaVideoSources = viewChildren<QueryList<HTMLSourceElement>>("evaVideoSources");
-  readonly evaVideoTrackElements = viewChildren<QueryList<HTMLTrackElement>>("evaVideoTracks");
+  // readonly evaVideoTrackElements = viewChildren<QueryList<HTMLTrackElement>>("evaVideoTracks");
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes["evaVideoTracks"]) {

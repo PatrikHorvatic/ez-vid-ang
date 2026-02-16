@@ -20,6 +20,8 @@ export * from "./lib/controls/controls-module";
 export * from "./lib/controls/pipes/time-display-pipe";
 
 export * from "./lib/streaming/streaming-module";
+
+export * from "./lib/buffering/buffering/buffering.component";
 export * from "./lib/buffering/buffering-module";
 
 

@@ -7,7 +7,6 @@ import { EvaApi } from '../../api/eva-api';
   standalone: false,
 })
 export class EvaUserInteractionEventsDirective implements OnInit, OnDestroy {
-
   private evaAPI = inject(EvaApi);
 
   private destroy$ = new Subject<void>();

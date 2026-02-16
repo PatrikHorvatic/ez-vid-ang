@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, inject, input, OnChanges, OnDestroy, QueryList, SimpleChanges, viewChild, viewChildren } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
+import { EvaFullscreenAPI } from '../../api/fullscreen';
 import { EvaTrack, EvaVideoElementConfiguration, EvaVideoSource } from '../../types';
 import { validateTracks } from '../../utils/utilities';
 
@@ -8,10 +9,11 @@ import { validateTracks } from '../../utils/utilities';
   templateUrl: './player.html',
   styleUrl: './player.scss',
   standalone: false,
-  providers: [EvaApi]
+  providers: [EvaApi, EvaFullscreenAPI]
 })
 export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
   private playerMainAPI = inject(EvaApi);
+  private playerFullscreenAPI = inject(EvaFullscreenAPI);
 
   readonly id = input.required<string>();
   readonly evaVideoSources = input.required<EvaVideoSource[]>();

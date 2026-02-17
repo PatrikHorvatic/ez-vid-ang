@@ -12,6 +12,8 @@ import { EvaState } from '../../types';
   host: {
     "tabindex": "0",
     "role": "button",
+    "[attr.aria-label]": "playingState() === 'playing' ? 'play' : 'pause'",
+    "[attr.aria-valuetext]": "playingState()",
     "[class.eva-icon]": "true",
     "[class.eva-icon-pause]": "playingState() === 'playing'",
     "[class.eva-icon-play_arrow]": "playingState() === 'loading' || playingState() === 'paused' || playingState() === 'ended' || playingState() === 'error'",

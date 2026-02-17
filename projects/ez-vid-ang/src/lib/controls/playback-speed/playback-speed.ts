@@ -11,6 +11,8 @@ import { EvaApi } from '../../api/eva-api';
   host: {
     "tabindex": "0",
     "role": "button",
+    "aria-label": "playback speed",
+    "[attr.aria-valuetext]": "currentSpeed() + 'x'",
     "[class.eva-icon]": "true",
     "[class.open]": "isOpen()",
     "(click)": "playbackClicked()",

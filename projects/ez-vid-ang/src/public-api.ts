@@ -8,6 +8,7 @@ export * from "./lib/types";
 
 export * from "./lib/controls/eva-controls-container/controls-container.component";
 export * from "./lib/controls/fullscreen/fullscreen";
+export * from "./lib/controls/overlay-play/overlay-play.component";
 export * from "./lib/controls/mute/mute";
 export * from "./lib/controls/play-pause/play-pause";
 export * from "./lib/controls/playback-speed/playback-speed";

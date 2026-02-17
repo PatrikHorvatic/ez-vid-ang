@@ -1,9 +1,16 @@
-<div #volumeBar class="volumeBar" tabindex="0" role="slider" aria-label="volume level" aria-live="polite"
+<div #volumeBar class="volumeBar" tabindex="0" role="slider" [attr.aria-label]="'Volume control'"
 	[attr.aria-valuenow]="ariaValue()" aria-valuemin="0" aria-valuemax="100" aria-orientation="horizontal"
-	[attr.aria-valuetext]="ariaValue() + '%'" (click)="onClick($event)" (mousedown)="onMouseDown($event)"
-	(keydown)="onKeyDown($event)" (touchstart)="onTouchStart($event)">
+	[attr.aria-valuetext]="ariaValue() + ' percent'" (click)="onClick($event)" (mousedown)="onMouseDown($event)"
+	(keydown)="onKeyDown($event)" (touchstart)="onTouchStart($event)" (focus)="onFocus()" (blur)="onBlur()">
 	<div class="volumeBackground" [class.dragging]="isDragging()">
-		<div class="volumeValue" [style.width]="videoVolume() * (100 - 15) + '%'"></div>
-		<div class="volumeKnob" [style.left]="videoVolume() * (100 - 15) + '%'"></div>
+		<div class="volumeValue" [style.width]="videoVolume() * (100 - 15) + '%'" aria-hidden="true"></div>
+		<div class="volumeKnob" [style.left]="videoVolume() * (100 - 15) + '%'" aria-hidden="true"></div>
 	</div>
+</div>
+
+<!-- Screen reader announcements for volume changes -->
+<div class="eva-sr-only" role="status" aria-live="polite" aria-atomic="true">
+	@if (shouldAnnounceVolume()) {
+	<span>Volume {{ ariaValue() }} percent</span>
+	}
 </div>

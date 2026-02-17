@@ -1,32 +1,41 @@
 <div class="eva-track-selector-container">
-	<!-- Current Speed Display Button -->
-	<div class="eva-track-selector-button">
-		<span class="speed-icon">
+	<!-- Current Track Display Button -->
+	<button type="button" class="eva-track-selector-button"
+		[attr.aria-label]="evaTrackSelectorText() + ': ' + (currentTrack() || evaTrackOffText())"
+		[attr.aria-expanded]="isOpen()" [attr.aria-haspopup]="'listbox'"
+		[attr.aria-controls]="'track-dropdown-' + uniqueId" (click)="trackSelectorClicked()"
+		(keydown)="playbackClickedKeyboard($event)">
+		<span class="speed-icon" aria-hidden="true">
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
 				stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 				<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
 			</svg>
 		</span>
-		<span class="speed-label">{{ currentTrack() }}</span>
-		<span class="dropdown-arrow" [class.rotated]="isOpen()">
+		<span class="speed-label">{{ currentTrack() || evaTrackOffText() }}</span>
+		<span class="dropdown-arrow" [class.rotated]="isOpen()" aria-hidden="true">
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
 				stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 				<polyline points="6 9 12 15 18 9"></polyline>
 			</svg>
 		</span>
-	</div>
+	</button>
 
 	<!-- Dropdown Menu -->
-	<div class="eva-track-selector-dropdown" [class.show]="isOpen()">
+	<div class="eva-track-selector-dropdown" [class.show]="isOpen()" [attr.id]="'track-dropdown-' + uniqueId"
+		role="listbox" [attr.aria-label]="evaTrackSelectorText()"
+		[attr.aria-activedescendant]="isOpen() ? 'track-option-' + uniqueId + '-' + getActiveIndex() : null">
 		<div class="dropdown-content">
-			<div class="dropdown-header">{{evaTrackSelectorText()}}</div>
-			<div class="speed-options">
-				@for (tr of localTracks(); track i; let i = $index) {
-				<button type="button" class="speed-option" [class.active]="tr.label === currentTrack()"
-					(click)="selectTrack(tr, $index)" [attr.aria-selected]="tr.label === currentTrack()" role="option">
+			<div class="dropdown-header" id="track-header-{{uniqueId}}" role="presentation">
+				{{evaTrackSelectorText()}}
+			</div>
+			<div class="speed-options" role="presentation">
+				@for (tr of localTracks(); track tr.id; let i = $index) {
+				<button type="button" class="speed-option" [class.active]="tr.selected"
+					[attr.id]="'track-option-' + uniqueId + '-' + i" (click)="selectTrack(tr, i)"
+					[attr.aria-selected]="tr.selected" role="option" [attr.tabindex]="isOpen() ? 0 : -1">
 					<span class="speed-text">{{ tr.label }}</span>
-					@if (tr.label === currentTrack()) {
-					<span class="checkmark">
+					@if (tr.selected) {
+					<span class="checkmark" aria-hidden="true">
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
 							stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 							<polyline points="20 6 9 17 4 12"></polyline>

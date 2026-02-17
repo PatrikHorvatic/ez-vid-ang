@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
 import { Subscription } from 'rxjs';
+import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
 
 @Component({
@@ -12,6 +12,7 @@ import { EvaFullscreenAPI } from '../../api/fullscreen';
   host: {
     "tabindex": "0",
     "role": "button",
+    "[attr.aria-label]": "ariaLabel()",
     "[class.eva-icon]": "true",
     "[class.eva-icon-fullscreen]": "true",
     "[class.eva-icon-fullscreen_exit]": "false",

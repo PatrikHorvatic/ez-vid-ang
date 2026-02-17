@@ -322,3 +322,36 @@
 		}
 	}
 }
+
+// Add to the existing SCSS file
+.eva-sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+// Improve focus management for dropdown options
+.speed-option {
+	// ... existing styles ...
+
+	&:focus {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: -2px;
+	}
+
+	&:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: -2px;
+	}
+}
+
+// Ensure dropdown is hidden from screen readers when closed
+.eva-track-selector-dropdown:not(.show) {
+	display: none; // Better for screen readers than visibility: hidden
+}

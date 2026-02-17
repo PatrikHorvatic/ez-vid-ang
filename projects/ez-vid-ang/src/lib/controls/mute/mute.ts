@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
 import { Subscription } from 'rxjs';
 
@@ -12,6 +12,7 @@ import { Subscription } from 'rxjs';
     "tabindex": "0",
     "role": "button",
     "aria-label": "mute",
+    "[attr.aria-valuetext]": "muteAria()",
     "[class.eva-icon]": "true",
     "[class.eva-icon-volume_up]": "videoVolume() >= 0.75",
     "[class.eva-icon-volume_down]": "videoVolume() >= 0.25 && videoVolume() < 0.75",
@@ -28,6 +29,13 @@ export class EvaMute implements OnInit, OnDestroy {
 
   protected videoVolume!: WritableSignal<number>;
   private videoVolumeSub: Subscription | null = null;
+
+  protected muteAria = computed<string>(() => {
+    if (!this.videoVolume) {
+      return "unmuted";
+    }
+    return this.videoVolume() > 0 ? "unmuted" : "muted";
+  });
 
   ngOnInit(): void {
     this.videoVolume = signal(this.evaAPI.getVideoVolume());

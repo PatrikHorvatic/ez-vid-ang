@@ -8,6 +8,10 @@ import { EvaApi } from '../../api/eva-api';
   styleUrl: './volume.scss',
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[attr.aria-label]': '"Volume control"',
+    '[class.eva-volume-focused]': 'isFocused()'
+  }
 })
 export class EvaVolume implements OnInit, OnDestroy {
 
@@ -19,6 +23,8 @@ export class EvaVolume implements OnInit, OnDestroy {
   // Signals
   protected ariaValue = signal("0");
   protected isDragging = signal(false);
+  protected isFocused = signal(false);
+  protected shouldAnnounceVolume = signal(false);
   protected mouseDownPosition: WritableSignal<number> = signal(-1);
   protected videoVolume!: WritableSignal<number>;
 
@@ -26,6 +32,7 @@ export class EvaVolume implements OnInit, OnDestroy {
   private videoVolumeSub: Subscription | null = null;
   private mouseMoveListener?: () => void;
   private mouseUpListener?: () => void;
+  private announceTimeout?: number;
 
   ngOnInit(): void {
     // Initialize volume signal
@@ -48,6 +55,11 @@ export class EvaVolume implements OnInit, OnDestroy {
 
     // Clean up event listeners if component destroyed while dragging
     this.removeDocumentListeners();
+
+    // Clean up announce timeout
+    if (this.announceTimeout) {
+      clearTimeout(this.announceTimeout);
+    }
   }
 
   /**
@@ -59,7 +71,7 @@ export class EvaVolume implements OnInit, OnDestroy {
       return;
     }
 
-    this.setVolume(this.calculateVolume(e.clientX));
+    this.setVolume(this.calculateVolume(e.clientX), true);
   }
 
   /**
@@ -72,7 +84,7 @@ export class EvaVolume implements OnInit, OnDestroy {
     this.isDragging.set(true);
 
     // Set initial volume at mousedown position
-    this.setVolume(this.calculateVolume(e.clientX));
+    this.setVolume(this.calculateVolume(e.clientX), false);
 
     // Attach document-level mousemove listener
     this.mouseMoveListener = this.renderer.listen('document', 'mousemove', (event: MouseEvent) => {
@@ -91,7 +103,7 @@ export class EvaVolume implements OnInit, OnDestroy {
   private onDrag(event: MouseEvent) {
     if (this.isDragging()) {
       event.preventDefault();
-      this.setVolume(this.calculateVolume(event.clientX));
+      this.setVolume(this.calculateVolume(event.clientX), false);
     }
   }
 
@@ -100,8 +112,8 @@ export class EvaVolume implements OnInit, OnDestroy {
    */
   private onStopDrag(event: MouseEvent) {
     if (this.isDragging()) {
-      // Set final volume position
-      this.setVolume(this.calculateVolume(event.clientX));
+      // Set final volume position and announce it
+      this.setVolume(this.calculateVolume(event.clientX), true);
 
       // Reset dragging state
       this.isDragging.set(false);
@@ -128,33 +140,97 @@ export class EvaVolume implements OnInit, OnDestroy {
 
   /**
    * Handle keyboard volume adjustment on the volumeBar element
-   * Arrow Up/Right: increase volume
-   * Arrow Down/Left: decrease volume
-   * Home: max volume, End: mute
-   * PageUp/PageDown: large increments
+   * Arrow Up/Right: increase volume by 5%
+   * Arrow Down/Left: decrease volume by 5%
+   * Home: max volume (100%)
+   * End: mute (0%)
+   * PageUp: increase volume by 10%
+   * PageDown: decrease volume by 10%
    */
   protected onKeyDown(event: KeyboardEvent) {
     const key = event.key;
     const currentVolume = this.videoVolume() * 100;
+    let handled = true;
 
     switch (key) {
+      case 'ArrowUp':
       case 'ArrowRight':
         event.preventDefault();
-        this.setVolume(Math.min(100, currentVolume + 5));
+        this.setVolume(Math.min(100, currentVolume + 5), true);
         break;
 
+      case 'ArrowDown':
       case 'ArrowLeft':
         event.preventDefault();
-        this.setVolume(Math.max(0, currentVolume - 5));
+        this.setVolume(Math.max(0, currentVolume - 5), true);
         break;
+
+      case 'PageUp':
+        event.preventDefault();
+        this.setVolume(Math.min(100, currentVolume + 10), true);
+        break;
+
+      case 'PageDown':
+        event.preventDefault();
+        this.setVolume(Math.max(0, currentVolume - 10), true);
+        break;
+
+      case 'Home':
+        event.preventDefault();
+        this.setVolume(100, true);
+        break;
+
+      case 'End':
+        event.preventDefault();
+        this.setVolume(0, true);
+        break;
+
+      default:
+        handled = false;
+        break;
+    }
+
+    // Announce to screen readers only if key was handled
+    if (handled) {
+      this.announceVolumeChange();
     }
   }
 
-  private setVolume(vol: number) {
+  /**
+   * Set volume and optionally announce to screen readers
+   * @param vol - Volume percentage (0-100)
+   * @param announce - Whether to announce the change to screen readers
+   */
+  private setVolume(vol: number, announce: boolean = false) {
     const clampedVol = Math.max(0, Math.min(100, vol));
     const normalizedVolume = clampedVol / 100;
     this.evaAPI.setVideoVolume(normalizedVolume);
     this.ariaValue.set(String(Math.round(clampedVol)));
+
+    if (announce) {
+      this.announceVolumeChange();
+    }
+  }
+
+  /**
+   * Announce volume change to screen readers using live region
+   * Debounced to avoid excessive announcements during rapid changes
+   */
+  private announceVolumeChange() {
+    // Clear existing timeout
+    if (this.announceTimeout) {
+      clearTimeout(this.announceTimeout);
+    }
+
+    // Debounce announcements by 300ms
+    this.announceTimeout = window.setTimeout(() => {
+      this.shouldAnnounceVolume.set(true);
+
+      // Reset announcement after screen reader has time to read it
+      setTimeout(() => {
+        this.shouldAnnounceVolume.set(false);
+      }, 100);
+    }, 300);
   }
 
   protected calculateVolume(mousePosX: number): number {
@@ -177,18 +253,21 @@ export class EvaVolume implements OnInit, OnDestroy {
     this.isDragging.set(true);
 
     // Set initial volume
-    this.setVolume(this.calculateVolume(touch.clientX));
+    this.setVolume(this.calculateVolume(touch.clientX), false);
 
     this.mouseMoveListener = this.renderer.listen('document', 'touchmove', (event: TouchEvent) => {
       event.preventDefault();
       const touchMove = event.touches[0];
       if (this.isDragging()) {
-        this.setVolume(this.calculateVolume(touchMove.clientX));
+        this.setVolume(this.calculateVolume(touchMove.clientX), false);
       }
     });
 
     this.mouseUpListener = this.renderer.listen('document', 'touchend', () => {
       if (this.isDragging()) {
+        // Announce final volume after touch ends
+        this.announceVolumeChange();
+
         this.isDragging.set(false);
         setTimeout(() => {
           this.mouseDownPosition.set(-1);
@@ -196,5 +275,19 @@ export class EvaVolume implements OnInit, OnDestroy {
         this.removeDocumentListeners();
       }
     });
+  }
+
+  /**
+   * Handle focus events for better visual feedback
+   */
+  protected onFocus() {
+    this.isFocused.set(true);
+  }
+
+  /**
+   * Handle blur events
+   */
+  protected onBlur() {
+    this.isFocused.set(false);
   }
 }

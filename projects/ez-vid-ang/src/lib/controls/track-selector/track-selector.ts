@@ -5,8 +5,8 @@ import { Subscription } from 'rxjs';
 
 interface TrackInternal {
   id: string;
-  label: string,
-  selected: boolean
+  label: string;
+  selected: boolean;
 }
 
 @Component({
@@ -16,13 +16,9 @@ interface TrackInternal {
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "button",
     "[class.eva-icon]": "true",
     "[class.open]": "isOpen()",
-    "(click)": "trackSelectorClicked()",
-    "(keydown)": "playbackClickedKeyboard($event)",
-    "(blur)": "handleBlur($event)"
+    "[attr.aria-label]": "evaTrackSelectorText()"
   }
 })
 export class EvaTrackSelector implements OnInit, OnDestroy {
@@ -31,24 +27,26 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
   readonly evaTrackSelectorText = input<string>("Track selector");
   readonly evaTrackOffText = input<string>("Off");
 
+  // Generate unique ID for ARIA relationships
+  protected readonly uniqueId = `track-selector-${Math.random().toString(36).substr(2, 9)}`;
+
   protected currentTrack = computed<string | null>(() => {
     if (!this.localTracks) { return null; }
     if (!this.localTracks()) { return null; }
 
     let t = this.localTracks().filter(a => a.selected === true);
     if (!t[0]) {
-      return "";
+      return this.evaTrackOffText();
     }
     return t[0].label;
   });
 
   protected localTracks!: WritableSignal<TrackInternal[]>;
-
   protected isOpen = signal(false);
-
 
   private clickOutsideListener?: (event: MouseEvent) => void;
   private videoTracksSub: Subscription | null = null;
+  private keyboardNavigationIndex = signal(0);
 
   ngOnInit(): void {
     this.localTracks = signal(
@@ -97,6 +95,10 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
           }
         });
     }
+
+    // Announce the change to screen readers
+    this.announceTrackChange(tr.label);
+
     this.isOpen.set(false);
   }
 
@@ -105,32 +107,111 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
   }
 
   protected playbackClickedKeyboard(e: KeyboardEvent) {
+    const tracks = this.localTracks();
+    const isDropdownOpen = this.isOpen();
 
+    switch (e.key) {
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        if (!isDropdownOpen) {
+          this.isOpen.set(true);
+          // Reset keyboard navigation to current selection
+          const currentIndex = tracks.findIndex(t => t.selected);
+          this.keyboardNavigationIndex.set(currentIndex >= 0 ? currentIndex : 0);
+        }
+        break;
+
+      case 'Escape':
+        e.preventDefault();
+        if (isDropdownOpen) {
+          this.isOpen.set(false);
+        }
+        break;
+
+      case 'ArrowDown':
+        e.preventDefault();
+        if (!isDropdownOpen) {
+          this.isOpen.set(true);
+          this.keyboardNavigationIndex.set(0);
+        } else {
+          // Navigate down in the list
+          const nextIndex = Math.min(this.keyboardNavigationIndex() + 1, tracks.length - 1);
+          this.keyboardNavigationIndex.set(nextIndex);
+          this.selectTrack(tracks[nextIndex], nextIndex);
+        }
+        break;
+
+      case 'ArrowUp':
+        e.preventDefault();
+        if (!isDropdownOpen) {
+          this.isOpen.set(true);
+          this.keyboardNavigationIndex.set(tracks.length - 1);
+        } else {
+          // Navigate up in the list
+          const prevIndex = Math.max(this.keyboardNavigationIndex() - 1, 0);
+          this.keyboardNavigationIndex.set(prevIndex);
+          this.selectTrack(tracks[prevIndex], prevIndex);
+        }
+        break;
+
+      case 'Home':
+        e.preventDefault();
+        if (isDropdownOpen) {
+          this.keyboardNavigationIndex.set(0);
+          this.selectTrack(tracks[0], 0);
+        }
+        break;
+
+      case 'End':
+        e.preventDefault();
+        if (isDropdownOpen) {
+          const lastIndex = tracks.length - 1;
+          this.keyboardNavigationIndex.set(lastIndex);
+          this.selectTrack(tracks[lastIndex], lastIndex);
+        }
+        break;
+    }
   }
 
   protected handleBlur(event: FocusEvent) {
     // Close dropdown when focus moves outside the component
     const relatedTarget = event.relatedTarget as HTMLElement;
-    if (!relatedTarget || !relatedTarget.closest('eva-track-selector')) { // Changed from 'eva-playback-speed'
+    if (!relatedTarget || !relatedTarget.closest('eva-track-selector')) {
       this.isOpen.set(false);
     }
+  }
+
+  protected getActiveIndex(): number {
+    const tracks = this.localTracks();
+    const activeIndex = tracks.findIndex(t => t.selected);
+    return activeIndex >= 0 ? activeIndex : 0;
   }
 
   private handleClickOutside(event: MouseEvent) {
     const target = event.target as HTMLElement;
-    if (!target.closest('eva-track-selector')) { // Changed from 'eva-playback-speed'
+    if (!target.closest('eva-track-selector')) {
       this.isOpen.set(false);
     }
   }
 
-
   private toggleDropdown() {
     this.isOpen.update(open => !open);
+
+    if (this.isOpen()) {
+      // Set keyboard navigation to current selection when opening
+      const currentIndex = this.localTracks().findIndex(t => t.selected);
+      this.keyboardNavigationIndex.set(currentIndex >= 0 ? currentIndex : 0);
+    }
   }
 
   private extractTracksFromAssignedVideoElement(v: EvaTrack[]): TrackInternal[] {
     if (v.length === 0) {
-      return [];
+      return [{
+        id: "off",
+        label: this.evaTrackOffText(),
+        selected: true
+      }];
     }
 
     let a = v.filter(a => a.kind === "subtitles")
@@ -140,13 +221,34 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
         selected: a.default === true
       }));
 
+    const hasSelected = a.some(i => i.selected === true);
+
     return [
       ...a,
       {
-        id: "",
+        id: "off",
         label: this.evaTrackOffText(),
-        selected: a.every(i => i.selected === false)
+        selected: !hasSelected
       }
     ];
+  }
+
+  /**
+   * Announce track changes to screen readers
+   */
+  private announceTrackChange(trackLabel: string): void {
+    const announcement = document.createElement('div');
+    announcement.setAttribute('role', 'status');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-atomic', 'true');
+    announcement.className = 'eva-sr-only';
+    announcement.textContent = `${this.evaTrackSelectorText()}: ${trackLabel}`;
+
+    document.body.appendChild(announcement);
+
+    // Remove after announcement
+    setTimeout(() => {
+      document.body.removeChild(announcement);
+    }, 1000);
   }
 }

@@ -11,6 +11,7 @@ import { EvaTimeDisplay } from "./time-display/time-display";
 import { EvaTrackSelector } from "./track-selector/track-selector";
 import { EvaVolume } from "./volume/volume";
 import { EvaTimeDisplayPipe } from "./pipes/time-display-pipe";
+import { EvaOverlayPlay } from './overlay-play/overlay-play.component';
 
 
 @NgModule({
@@ -18,12 +19,13 @@ import { EvaTimeDisplayPipe } from "./pipes/time-display-pipe";
 		EvaPlaybackSpeed, EvaQualitySelector, EvaScrubBar,
 		EvaTimeDisplay, EvaTrackSelector, EvaVolume,
 		EvaTimeDisplayPipe,
-		EvaControlsContainerComponent],
+		EvaControlsContainerComponent,
+		EvaOverlayPlay],
 	imports: [CommonModule],
 	exports: [EvaFullscreen, EvaMute, EvaPlayPause,
 		EvaPlaybackSpeed, EvaQualitySelector, EvaScrubBar,
 		EvaControlsContainerComponent,
-		EvaTimeDisplayPipe,
+		EvaTimeDisplayPipe, EvaOverlayPlay,
 		EvaTimeDisplay, EvaTrackSelector, EvaVolume],
 	providers: []
 })

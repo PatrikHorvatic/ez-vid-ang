@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { EvaApi } from '../../api/eva-api';
 import { EvaState } from '../../types';
+import { EvaPlayPauseAria, EvaPlayPauseAriaTransformed, transformEvaPlayPauseAria } from '../../utils/aria-utilities';
 
 @Component({
   selector: 'eva-play-pause',
@@ -12,8 +13,8 @@ import { EvaState } from '../../types';
   host: {
     "tabindex": "0",
     "role": "button",
-    "[attr.aria-label]": "playingState() === 'playing' ? 'play' : 'pause'",
-    "[attr.aria-valuetext]": "playingState()",
+    "[attr.aria-label]": "ariaLabel()",
+    "[attr.aria-valuetext]": "ariaValueText()",
     "[class.eva-icon]": "true",
     "[class.eva-icon-pause]": "playingState() === 'playing'",
     "[class.eva-icon-play_arrow]": "playingState() === 'loading' || playingState() === 'paused' || playingState() === 'ended' || playingState() === 'error'",
@@ -23,6 +24,37 @@ import { EvaState } from '../../types';
 })
 export class EvaPlayPause implements OnInit, OnDestroy {
   private evaAPI = inject(EvaApi);
+
+  // TODO - not the coolest solution, try to utilize type inference. these 2 transform functions are ugly
+  readonly evaPlayPauseAria = input<EvaPlayPauseAriaTransformed, EvaPlayPauseAria | undefined>(
+    transformEvaPlayPauseAria(undefined),
+    { transform: transformEvaPlayPauseAria }
+  );
+
+  protected ariaLabel = computed<string>(() => {
+    return this.playingState() === 'playing' ? this.evaPlayPauseAria().ariaLabel!.play! : this.evaPlayPauseAria().ariaLabel?.pause!;
+  });
+
+  protected ariaValueText = computed<string>(() => {
+    if (this.playingState() === "loading") {
+      return this.evaPlayPauseAria().ariaValueText?.loading!;
+    }
+    else if (this.playingState() === "playing") {
+      return this.evaPlayPauseAria().ariaValueText?.playing!;
+    }
+    else if (this.playingState() === "paused") {
+      return this.evaPlayPauseAria().ariaValueText?.paused!;
+    }
+    else if (this.playingState() === "ended") {
+      return this.evaPlayPauseAria().ariaValueText?.ended!;
+    }
+    else if (this.playingState() === "error") {
+      return this.evaPlayPauseAria().ariaValueText?.errored!;
+    }
+    else {
+      return "loading";
+    }
+  })
 
   protected playingState!: WritableSignal<EvaState>;
   private playingStateSub: Subscription | null = null;

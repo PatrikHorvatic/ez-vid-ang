@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, OnInit, signal, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, OnInit, signal, effect, computed } from '@angular/core';
 import { transformDefaultPlaybackSpeed, validateAndTransformPlaybackSpeeds } from '../../utils/utilities';
 import { EvaApi } from '../../api/eva-api';
+import { EvaPlaybackSpeedAria, EvaPlaybackSpeedAriaTransformed, transformEvaPlaybackSpeedAria } from '../../utils/aria-utilities';
 
 @Component({
   selector: 'eva-playback-speed',
@@ -11,7 +12,7 @@ import { EvaApi } from '../../api/eva-api';
   host: {
     "tabindex": "0",
     "role": "button",
-    "aria-label": "playback speed",
+    "[attr.aria-label]": "ariaLabel()",
     "[attr.aria-valuetext]": "currentSpeed() + 'x'",
     "[class.eva-icon]": "true",
     "[class.open]": "isOpen()",
@@ -42,6 +43,13 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
   readonly evaDefaultPlaybackSpeed = input<number, number>(1, {
     transform: transformDefaultPlaybackSpeed
   });
+
+  readonly evaAria = input<EvaPlaybackSpeedAria, EvaPlaybackSpeedAriaTransformed>({}, { transform: transformEvaPlaybackSpeedAria });
+
+  protected ariaLabel = computed<string>(() => {
+    return this.evaAria().ariaLabel!;
+  });
+
 
   // Component state
   protected isOpen = signal(false);

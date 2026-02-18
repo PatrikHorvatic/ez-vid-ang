@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, OnDestroy, OnInit, Renderer2, signal, viewChild, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, input, OnDestroy, OnInit, Renderer2, signal, viewChild, WritableSignal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
+import { EvaVolumeAria } from '../../utils/aria-utilities';
 
 @Component({
   selector: 'eva-volume',
@@ -9,8 +10,15 @@ import { EvaApi } from '../../api/eva-api';
   standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '[attr.aria-label]': '"Volume control"',
-    '[class.eva-volume-focused]': 'isFocused()'
+    "tabindex": "0",
+    "role": "slider",
+    "aria-level": "polite",
+    "aria-orientation": "horizontal",
+    "aria-valuemin": "0",
+    "aria-valuemax": "100",
+    "[attr.aria-label]": "ariaLabel()",
+    "[attr.aria-valuetext]": "ariaValue()",
+    "[class.eva-volume-focused]": "isFocused()"
   }
 })
 export class EvaVolume implements OnInit, OnDestroy {
@@ -19,6 +27,12 @@ export class EvaVolume implements OnInit, OnDestroy {
   private renderer = inject(Renderer2);
 
   readonly volumeBar = viewChild.required<ElementRef<HTMLDivElement>>('volumeBar');
+
+  readonly evaAria = input<EvaVolumeAria>({ ariaLabel: "Volume control" });
+
+  protected ariaLabel = computed<string>(() => {
+    return this.evaAria() && this.evaAria().ariaLabel ? this.evaAria().ariaLabel! : "Volume control";
+  });
 
   // Signals
   protected ariaValue = signal("0");

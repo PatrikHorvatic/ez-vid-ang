@@ -24,7 +24,7 @@ export class EvaControlsContainerComponent implements OnInit, OnDestroy, OnChang
   private userInteraction$: Subscription | null = null;
 
   //TODO - Add a timeout type!
-  /**This is NodeJS.TImeout type! */
+  /**This is NodeJS.Timeout type! */
   private hideTimeout: any;
 
 

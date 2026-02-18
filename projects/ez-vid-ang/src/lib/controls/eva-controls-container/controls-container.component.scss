@@ -17,3 +17,18 @@
 	bottom: -50px;
 	opacity: 0;
 }
+
+:host eva-scrub-bar {
+	position: relative;
+	bottom: 0;
+	background: transparent;
+	height: 50px;
+	flex-grow: 1;
+	flex-basis: 0;
+	margin: 0px 10px;
+	-webkit-transition: initial;
+	-khtml-transition: initial;
+	-moz-transition: initial;
+	-ms-transition: initial;
+	transition: initial;
+}

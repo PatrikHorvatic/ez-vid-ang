@@ -4,6 +4,7 @@ export * from "./lib/core/directives/video-configuration.directive";
 export * from "./lib/core/directives/media-event-listeners.directive";
 export * from "./lib/core/directives/user-interaction-events.directive";
 
+export * from "./lib/aria";
 export * from "./lib/types";
 
 export * from "./lib/controls/eva-controls-container/controls-container.component";

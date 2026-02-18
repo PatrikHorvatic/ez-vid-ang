@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
+import { EvaFullscreenAria, EvaFullscreenAriaTransformed, transformEvaFullscreenAria } from '../../utils/aria-utilities';
 
 @Component({
   selector: 'eva-fullscreen',
@@ -24,10 +25,13 @@ export class EvaFullscreen implements OnInit, OnDestroy {
   private evaAPI = inject(EvaApi);
   private fullscreenService = inject(EvaFullscreenAPI);
 
+  readonly evaAria = input<EvaFullscreenAria, EvaFullscreenAriaTransformed>({}, { transform: transformEvaFullscreenAria });
+
   protected isFullscreen: WritableSignal<boolean> = signal(false);
-  protected ariaLabel = computed(() =>
-    this.isFullscreen() ? 'Exit fullscreen' : 'Enter fullscreen'
-  );
+
+  protected ariaLabel = computed(() => {
+    return this.isFullscreen() ? this.evaAria().exitFullscreen : this.evaAria().enterFullscreen;
+  });
 
   private fullscreenSubscription: Subscription | null = null;
 

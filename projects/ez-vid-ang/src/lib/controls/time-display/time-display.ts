@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
 import { EvaTimeFormating, EvaTimeProperty } from '../../types';
+import { EvaTimeDisplayAria } from '../../utils/aria-utilities';
 
 @Component({
   selector: 'eva-time-display',
@@ -24,16 +25,21 @@ export class EvaTimeDisplay {
   readonly evaTimeFormating = input.required<EvaTimeFormating>();
   readonly evaLiveText = input<string>("LIVE");
 
+  readonly evaAria = input<EvaTimeDisplayAria>({});
+
+
   // Computed aria-label
   protected ariaLabel = computed(() => {
     const property = this.evaTimeProperty();
-    const propertyLabel = property === 'current'
-      ? 'Current time'
-      : property === 'total'
-        ? 'Duration'
-        : 'Remaining time';
-
-    return `${propertyLabel} display`;
+    if (property === "current") {
+      return this.evaAria().ariaLabelCurrent ? this.evaAria().ariaLabelCurrent : "Current time display"
+    }
+    else if (property === "total") {
+      return this.evaAria().ariaLabelTotal ? this.evaAria().ariaLabelTotal : "Duration display"
+    }
+    else {
+      return this.evaAria().ariaLabelRemaining ? this.evaAria().ariaLabelRemaining : "Remaining time display"
+    }
   });
 
   // Computed display text (same logic as template)

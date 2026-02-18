@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
 import { Subscription } from 'rxjs';
+import { EvaMuteAria } from '../../utils/aria-utilities';
 
 @Component({
   selector: 'eva-mute',
@@ -11,8 +12,8 @@ import { Subscription } from 'rxjs';
   host: {
     "tabindex": "0",
     "role": "button",
-    "aria-label": "mute",
-    "[attr.aria-valuetext]": "muteAria()",
+    "[attr.aria-label]": "muteAriaLabel()",
+    "[attr.aria-valuetext]": "muteAriaValueText()",
     "[class.eva-icon]": "true",
     "[class.eva-icon-volume_up]": "videoVolume() >= 0.75",
     "[class.eva-icon-volume_down]": "videoVolume() >= 0.25 && videoVolume() < 0.75",
@@ -24,18 +25,37 @@ import { Subscription } from 'rxjs';
   }
 })
 export class EvaMute implements OnInit, OnDestroy {
-
   private evaAPI = inject(EvaApi);
+  readonly evaAria = input<EvaMuteAria>();
+
+
+  protected muteAriaLabel = computed<string>(() => {
+    if (!this.evaAria()) {
+      return "mute";
+    }
+    return this.evaAria()!.ariaLabel ? this.evaAria()!.ariaLabel! : 'mute';
+  });
+
+  protected muteAriaValueText = computed<string>(() => {
+    if (this.evaAria()) {
+      if (!this.videoVolume) {
+        return this.evaAria()!.ariaValueTextUnmuted ? this.evaAria()!.ariaValueTextUnmuted! : "unmuted";
+      }
+      return this.videoVolume() > 0
+        ? this.evaAria()!.ariaValueTextUnmuted ? this.evaAria()!.ariaValueTextUnmuted! : "unmuted"
+        : this.evaAria()!.ariaValueTextMuted ? this.evaAria()!.ariaValueTextMuted! : "muted";
+    }
+    else {
+      if (!this.videoVolume) {
+        return this.evaAria()?.ariaValueTextUnmuted ? this.evaAria()!.ariaValueTextUnmuted! : "unmuted";
+      }
+      return this.videoVolume() > 0 ? "unmuted" : "muted";
+    }
+  });
+
 
   protected videoVolume!: WritableSignal<number>;
   private videoVolumeSub: Subscription | null = null;
-
-  protected muteAria = computed<string>(() => {
-    if (!this.videoVolume) {
-      return "unmuted";
-    }
-    return this.videoVolume() > 0 ? "unmuted" : "muted";
-  });
 
   ngOnInit(): void {
     this.videoVolume = signal(this.evaAPI.getVideoVolume());

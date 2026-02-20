@@ -1,23 +1,44 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaState } from '../../types';
 import { EvaApi } from '../../api/eva-api';
+import { EvaOverlayPlayAria } from '../../utils/aria-utilities';
 
 @Component({
   selector: 'eva-overlay-play',
   standalone: false,
   templateUrl: './overlay-play.component.html',
   styleUrl: './overlay-play.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    "tabindex": "0",
+    "[attr.aria-label]": "ariaLabel()",
+    "[class.eva-icon]": "!evaCustomIcon()",
+    "[class.eva-icon-play_arrow]": "!evaCustomIcon() && evaIconPlay()",
+    "[class.eva-display-overlay-play]": "evaIconPlay() && !evaAPI.isBuffering()",
+    "(click)": "playClicked()",
+    "(keydown)": "playClickedKeyboard($event)"
+  }
 })
 export class EvaOverlayPlay implements OnInit, OnDestroy {
-  private evaAPI = inject(EvaApi);
+  protected evaAPI = inject(EvaApi);
 
-  protected playingState!: WritableSignal<EvaState>;
+  readonly evaOvelayPlayAria = input<EvaOverlayPlayAria>({ ariaLabel: "Overlay play" });
+  readonly evaCustomIcon = input<boolean>(false);
+
+  protected ariaLabel = computed<string>(() => {
+    return this.evaOvelayPlayAria().ariaLabel ? this.evaOvelayPlayAria().ariaLabel! : "Overlay play";
+  });
+
+  protected evaIconPlay = computed<boolean>(() => {
+    return !this.evaCustomIcon() && (this.playingState() === 'loading' || this.playingState() === 'paused' || this.playingState() === 'ended' || this.playingState() === 'error');
+  })
+
+
+  protected playingState: WritableSignal<EvaState> = signal(this.evaAPI.getCurrentVideoState());
   private playingStateSub: Subscription | null = null;
 
   ngOnInit(): void {
-    this.playingState = signal(this.evaAPI.getCurrentVideoState());
     this.playingStateSub = this.evaAPI.videoStateSubject.subscribe(state => {
       this.playingState.set(state);
     })
@@ -26,5 +47,17 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.playingStateSub?.unsubscribe();
   }
-  
+
+  protected playClicked() {
+    this.evaAPI.playOrPauseVideo();
+  }
+
+  protected playClickedKeyboard(k: KeyboardEvent) {
+    // On press Enter (13) or Space (32)
+    if (k.keyCode === 13 || k.keyCode === 32) {
+      k.preventDefault();
+      this.playClicked();
+    }
+  }
+
 }

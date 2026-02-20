@@ -24,7 +24,7 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
 
   // readonly evaBuffering = viewChild<EvaBufferingComponent>('evaBuffering');
 
-  readonly evaVideoElement = viewChild.required<ElementRef<HTMLVideoElement>>('evaVideoElement');
+  private readonly evaVideoElement = viewChild.required<ElementRef<HTMLVideoElement>>('evaVideoElement');
   // readonly evaVideoSources = viewChildren<QueryList<HTMLSourceElement>>("evaVideoSources");
   // readonly evaVideoTrackElements = viewChildren<QueryList<HTMLTrackElement>>("evaVideoTracks");
 

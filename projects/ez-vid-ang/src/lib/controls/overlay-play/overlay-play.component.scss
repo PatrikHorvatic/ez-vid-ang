@@ -1,2 +1,33 @@
 :host {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: calc(100% - var(--eva-element-height));
+	cursor: pointer;
+	color: white;
+	line-height: 50px;
+	user-select: none;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+
+	position: absolute;
+	top: 0;
+	left: 0;
+	transition:
+		visibility var(--eva-transition-duration) linear,
+		background-color var(--eva-transition-duration) linear,
+		opacity var(--eva-transition-duration) linear;
+
+	background-color: rgba(0, 0, 0, 0);
+	z-index: 301;
+	visibility: visible;
+	opacity: 1;
+}
+
+:host(.eva-display-overlay-play) {
+	background-color: rgba(0, 0, 0, 0.7) !important;
 }

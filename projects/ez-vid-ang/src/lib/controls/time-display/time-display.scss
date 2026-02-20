@@ -6,11 +6,15 @@
 	user-select: none;
 	display: flex;
 	justify-content: center;
-	height: 50px;
+	height: var(--eva-element-height);
 	min-width: 30px;
 	cursor: pointer;
 	color: white;
 	line-height: 50px;
 	pointer-events: none;
 	padding: 0px 6px;
+}
+
+:host > span {
+	font-family: var(--eva-font-family);
 }

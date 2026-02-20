@@ -1,0 +1,17 @@
+:host {
+	display: flex;
+	width: 100%;
+	height: var(--eva-scrub-bar-heights);
+
+	pointer-events: none;
+
+	position: absolute;
+	left: 0;
+	top: 0;
+	border-radius: 2px;
+}
+
+div.current-time-container {
+	height: var(--eva-scrub-bar-heights);
+	background-color: var(--eva-scrub-bar-current-time-background);
+}

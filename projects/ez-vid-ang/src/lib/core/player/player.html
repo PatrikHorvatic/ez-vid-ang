@@ -1,6 +1,6 @@
 <ng-content></ng-content>
 
-<video #evaVideoElement [id]="id()" evaMediaEventListeners evaVideoConfiguration
+<video #evaVideoElement [id]="id()" evaVideoConfiguration evaMediaEventListeners
 	[evaVideoConfig]="evaVideoConfiguration()">
 	@for (vs of evaVideoSources(); track $index) {
 	<source #evaVideoSources [type]="vs.type" [src]="vs.src" />

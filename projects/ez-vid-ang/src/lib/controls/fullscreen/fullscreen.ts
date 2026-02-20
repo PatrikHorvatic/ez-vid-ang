@@ -14,9 +14,8 @@ import { EvaFullscreenAria, EvaFullscreenAriaTransformed, transformEvaFullscreen
     "tabindex": "0",
     "role": "button",
     "[attr.aria-label]": "ariaLabel()",
-    "[class.eva-icon]": "true",
-    "[class.eva-icon-fullscreen]": "true",
-    "[class.eva-icon-fullscreen_exit]": "false",
+    "[class.eva-icon]": "!evaCustomIcon()",
+    "[class.eva-icon-fullscreen]": "!evaCustomIcon()",
     "(click)": "fullscreenClicked()",
     "(keydown)": "fullscreenClickedKeyboard($event)"
   }
@@ -24,6 +23,8 @@ import { EvaFullscreenAria, EvaFullscreenAriaTransformed, transformEvaFullscreen
 export class EvaFullscreen implements OnInit, OnDestroy {
   private evaAPI = inject(EvaApi);
   private fullscreenService = inject(EvaFullscreenAPI);
+
+  readonly evaCustomIcon = input<boolean>(false);
 
   readonly evaAria = input<EvaFullscreenAria, EvaFullscreenAriaTransformed>({}, { transform: transformEvaFullscreenAria });
 

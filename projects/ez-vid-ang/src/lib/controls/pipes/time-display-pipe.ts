@@ -1,5 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { EvaTimeFormating } from '../../types';
+import { EvaTimeFormating, EvaTimeProperty } from '../../types';
 
 @Pipe({
   name: 'evaTimeDisplay',
@@ -8,8 +8,8 @@ import { EvaTimeFormating } from '../../types';
 })
 export class EvaTimeDisplayPipe implements PipeTransform {
 
-  transform(value: number, formating: EvaTimeFormating): string {
-    const totalSeconds = Math.max(0, Math.floor(value));
+  transform(value: number, formating: EvaTimeFormating, timeProperty: EvaTimeProperty): string {
+    let totalSeconds: number = timeProperty === "remaining" ? Math.max(0, Math.ceil(value)) : Math.max(0, Math.floor(value));
 
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);

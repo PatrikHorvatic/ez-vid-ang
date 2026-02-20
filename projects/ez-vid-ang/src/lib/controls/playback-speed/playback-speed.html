@@ -19,7 +19,7 @@
 	<!-- Dropdown Menu -->
 	<div class="eva-playback-speed-dropdown" [class.show]="isOpen()">
 		<div class="dropdown-content">
-			<div class="dropdown-header">Playback Speed</div>
+			<div class="dropdown-header">{{evaAria().ariaLabel}}</div>
 			<div class="speed-options">
 				@for (speed of evaPlaybackSpeeds(); track speed) {
 				<button type="button" class="speed-option" [class.active]="speed === currentSpeed()"

@@ -1,3 +1,13 @@
+:root {
+	--eva-element-height: 50px;
+	--eva-transition-duration: 0.2s;
+	--eva-font-family: Arial;
+	--eva-scrub-bar-heights: 5px;
+	--eva-scrub-bar-background: rgb(54, 54, 54);
+	--eva-scrub-bar-buffering-background: gray;
+	--eva-scrub-bar-current-time-background: green;
+}
+
 /* Modern font-face with only necessary formats */
 @font-face {
 	font-family: "videogular";
@@ -74,10 +84,10 @@
 .eva-icon-volume_up::before {
 	content: "\e033";
 }
-.eva-icon-volume_down::before {
+.eva-icon-volume_middle::before {
 	content: "\e030";
 }
-.eva-icon-volume_mute::before {
+.eva-icon-volume_low::before {
 	content: "\e031";
 }
 .eva-icon-volume_off::before {

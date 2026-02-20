@@ -52,8 +52,9 @@
 	}
 
 	.speed-label {
+		font-family: var(--eva-font-family);
 		font-size: 12px;
-		font-weight: 600;
+		// font-weight: 600;
 		color: rgba(255, 255, 255, 0.95);
 		white-space: nowrap;
 		line-height: 1;
@@ -65,7 +66,7 @@
 		width: 10px;
 		height: 10px;
 		color: rgba(255, 255, 255, 0.6);
-		transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		transition: transform var(--eva-transition-duration) cubic-bezier(0.4, 0, 0.2, 1);
 
 		svg {
 			width: 100%;
@@ -91,9 +92,9 @@
 	pointer-events: none;
 
 	transition:
-		opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-		visibility 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-		transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+		opacity var(--eva-transition-duration) cubic-bezier(0.4, 0, 0.2, 1),
+		visibility var(--eva-transition-duration) cubic-bezier(0.4, 0, 0.2, 1),
+		transform var(--eva-transition-duration) cubic-bezier(0.4, 0, 0.2, 1);
 
 	transform: translateX(-50%) translateY(0px) scale(0.95);
 	transform-origin: bottom center;
@@ -147,7 +148,7 @@
 		0 0 0 1px rgba(255, 255, 255, 0.1);
 	overflow: hidden;
 	min-width: 180px;
-	animation: slideIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+	animation: slideIn var(--eva-transition-duration) cubic-bezier(0.4, 0, 0.2, 1);
 
 	@media (max-width: 768px) {
 		min-width: 150px;
@@ -167,6 +168,7 @@
 
 .dropdown-header {
 	padding: 10px 14px 8px;
+	font-family: var(--eva-font-family);
 	font-size: 11px;
 	font-weight: 600;
 	text-transform: uppercase;
@@ -237,10 +239,11 @@
 	}
 
 	.speed-text {
+		font-family: var(--eva-font-family);
 		font-size: 14px;
 		font-weight: 500;
 		color: rgba(255, 255, 255, 0.95);
-		transition: color 0.15s ease;
+		transition: color var(--eva-transition-duration) ease;
 	}
 
 	.checkmark {

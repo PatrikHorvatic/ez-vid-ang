@@ -15,6 +15,9 @@ export function transformTimeoutDuration(v: number): number {
 }
 
 export function transformDefaultPlaybackSpeed(v: number): number {
+	if (!v) { return 1; }
+	if (v < 0.25) { return 1; }
+	if (v > 4) { return 1; }
 	return v;
 }
 

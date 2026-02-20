@@ -14,7 +14,6 @@ import { EvaPlaybackSpeedAria, EvaPlaybackSpeedAriaTransformed, transformEvaPlay
     "role": "button",
     "[attr.aria-label]": "ariaLabel()",
     "[attr.aria-valuetext]": "currentSpeed() + 'x'",
-    "[class.eva-icon]": "true",
     "[class.open]": "isOpen()",
     "(click)": "playbackClicked()",
     "(keydown)": "playbackClickedKeyboard($event)",
@@ -44,7 +43,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
     transform: transformDefaultPlaybackSpeed
   });
 
-  readonly evaAria = input<EvaPlaybackSpeedAria, EvaPlaybackSpeedAriaTransformed>({}, { transform: transformEvaPlaybackSpeedAria });
+  readonly evaAria = input<EvaPlaybackSpeedAria, EvaPlaybackSpeedAriaTransformed>({ ariaLabel: "Playback speed" }, { transform: transformEvaPlaybackSpeedAria });
 
   protected ariaLabel = computed<string>(() => {
     return this.evaAria().ariaLabel!;

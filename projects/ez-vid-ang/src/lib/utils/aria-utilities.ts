@@ -113,12 +113,12 @@ export type EvaPlaybackSpeedAriaTransformed = Required<EvaPlaybackSpeedAria>;
 export function transformEvaPlaybackSpeedAria(v: EvaPlaybackSpeedAria | undefined): EvaPlaybackSpeedAriaTransformed {
 	if (!v) {
 		return {
-			ariaLabel: "playback speed"
+			ariaLabel: "Playback speed"
 		}
 	}
 
 	return {
-		ariaLabel: v.ariaLabel ? v.ariaLabel : "playback speed"
+		ariaLabel: v.ariaLabel ? v.ariaLabel : "Playback speed"
 	}
 }
 
@@ -139,4 +139,12 @@ export type EvaTimeDisplayAria = {
 
 export type EvaVolumeAria = {
 	ariaLabel?: string
+}
+
+export type EvaQualityAria = {
+	ariaLabel?: string
+}
+
+export type EvaOverlayPlayAria = {
+	ariaLabel?: string;
 }

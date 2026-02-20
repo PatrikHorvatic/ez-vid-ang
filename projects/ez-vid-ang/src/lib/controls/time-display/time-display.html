@@ -2,5 +2,5 @@
 <span>{{evaLiveText()}}</span>
 }
 @else {
-<span>{{evaAPI.time()[evaTimeProperty()] | evaTimeDisplay: evaTimeFormating()}}</span>
+<span>{{evaAPI.time()[evaTimeProperty()] | evaTimeDisplay: evaTimeFormating(): evaTimeProperty()}}</span>
 }

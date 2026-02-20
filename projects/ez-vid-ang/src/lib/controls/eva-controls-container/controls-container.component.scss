@@ -1,8 +1,9 @@
 :host {
 	position: absolute;
 	display: flex;
+	align-items: center;
 	width: 100%;
-	height: 50px;
+	height: var(--eva-element-height);
 	z-index: 302;
 	bottom: 0;
 	left: 0;
@@ -16,19 +17,4 @@
 :host(.hide) {
 	bottom: -50px;
 	opacity: 0;
-}
-
-:host eva-scrub-bar {
-	position: relative;
-	bottom: 0;
-	background: transparent;
-	height: 50px;
-	flex-grow: 1;
-	flex-basis: 0;
-	margin: 0px 10px;
-	-webkit-transition: initial;
-	-khtml-transition: initial;
-	-moz-transition: initial;
-	-ms-transition: initial;
-	transition: initial;
 }

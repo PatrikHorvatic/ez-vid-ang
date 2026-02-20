@@ -15,9 +15,9 @@ import { EvaPlayPauseAria, EvaPlayPauseAriaTransformed, transformEvaPlayPauseAri
     "role": "button",
     "[attr.aria-label]": "ariaLabel()",
     "[attr.aria-valuetext]": "ariaValueText()",
-    "[class.eva-icon]": "true",
-    "[class.eva-icon-pause]": "playingState() === 'playing'",
-    "[class.eva-icon-play_arrow]": "playingState() === 'loading' || playingState() === 'paused' || playingState() === 'ended' || playingState() === 'error'",
+    "[class.eva-icon]": "!evaCustomIcon()",
+    "[class.eva-icon-pause]": "!evaCustomIcon() && evaIconPause()",
+    "[class.eva-icon-play_arrow]": "!evaCustomIcon() && evaIconPlay()",
     "(click)": "playPauseClicked()",
     "(keydown)": "playPauseClickedKeyboard($event)"
   }
@@ -30,11 +30,11 @@ export class EvaPlayPause implements OnInit, OnDestroy {
     transformEvaPlayPauseAria(undefined),
     { transform: transformEvaPlayPauseAria }
   );
+  readonly evaCustomIcon = input<boolean>(false);
 
   protected ariaLabel = computed<string>(() => {
     return this.playingState() === 'playing' ? this.evaPlayPauseAria().ariaLabel!.play! : this.evaPlayPauseAria().ariaLabel?.pause!;
   });
-
   protected ariaValueText = computed<string>(() => {
     if (this.playingState() === "loading") {
       return this.evaPlayPauseAria().ariaValueText?.loading!;
@@ -54,13 +54,18 @@ export class EvaPlayPause implements OnInit, OnDestroy {
     else {
       return "loading";
     }
+  });
+  protected evaIconPause = computed<boolean>(() => {
+    return this.playingState() === 'playing';
+  });
+  protected evaIconPlay = computed<boolean>(() => {
+    return this.playingState() === 'loading' || this.playingState() === 'paused' || this.playingState() === 'ended' || this.playingState() === 'error';
   })
 
-  protected playingState!: WritableSignal<EvaState>;
+  protected playingState: WritableSignal<EvaState> = signal(this.evaAPI.getCurrentVideoState());
   private playingStateSub: Subscription | null = null;
 
   ngOnInit(): void {
-    this.playingState = signal(this.evaAPI.getCurrentVideoState());
     this.playingStateSub = this.evaAPI.videoStateSubject.subscribe(state => {
       this.playingState.set(state);
     })

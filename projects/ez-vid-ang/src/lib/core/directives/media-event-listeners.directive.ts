@@ -149,7 +149,7 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
     });
     this.progressSub = this.progress$.subscribe(v => {
       console.log("video progressed");
-      // this.evaAPI.checkBufferStatus();
+      this.evaAPI.checkBufferStatus();
     });
     this.rateChangeSub = this.rateChange$.subscribe(v => {
       console.log("video rate changed");

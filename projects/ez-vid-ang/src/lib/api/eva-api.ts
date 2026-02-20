@@ -11,12 +11,15 @@ export class EvaApi {
 	/**Very important! */
 	public assignedVideoElement!: HTMLVideoElement;
 
-	playerReadyEvent: EventEmitter<EvaApi> = new EventEmitter<EvaApi>(true);
+	public playerReadyEvent: EventEmitter<EvaApi> = new EventEmitter<EvaApi>(true);
 	public isPlayerReady = false;
 	public isBuffering: WritableSignal<boolean> = signal(true);
+	public canPlay: WritableSignal<boolean> = signal(false);
+	public isSeeking: WritableSignal<boolean> = signal(false);
 
 	protected isMetadataLoaded = false;
 	private hasStartedPlaying = false;
+	public pendingPlayAfterSeek: boolean = false;
 
 	public isLive: WritableSignal<boolean> = signal(false);
 	public time: WritableSignal<{ current: number, total: number, remaining: number }> = signal({
@@ -30,6 +33,8 @@ export class EvaApi {
 	public videoVolumeSubject = new BehaviorSubject<number | null>(null);
 	public playbackRateSubject = new BehaviorSubject<number | null>(null);
 	public videoTracksSubject = new BehaviorSubject<EvaTrack[]>([]);
+	public videoBufferSubject = new BehaviorSubject<TimeRanges | null>(null);
+	public videoTimeChangeSubject = new BehaviorSubject<null>(null);
 	/**Flag for current value of video state. */
 	private currentVideoState: EvaState = EvaState.LOADING;
 
@@ -97,6 +102,7 @@ export class EvaApi {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
+		this.canPlay.set(true);
 		this.isBuffering.set(false);
 	}
 
@@ -121,20 +127,48 @@ export class EvaApi {
 		this.isBuffering.set(true);
 	}
 
+	public seekOnScrubEvent(e: MouseEvent) {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		if (this.isLive() || !this.canPlay()) {
+			return;
+		}
+		this.isSeeking.set(true);
+	}
+
 	// Called from event listener - SEEKING event
 	public videoSeeking() {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
+		this.isSeeking.set(true);
 		this.isBuffering.set(true);
 	}
 
 	// Called from event listener - SEEKED event
 	public videoSeeked() {
-		if (!this.validateVideoAndPlayerBeforeAction()) {
-			return;
+		if (!this.validateVideoAndPlayerBeforeAction()) return;
+		this.isSeeking.set(false);
+
+		if (this.pendingPlayAfterSeek) {
+			this.pendingPlayAfterSeek = false;
+			this.assignedVideoElement.play().catch(e => {
+				if (e.name !== 'AbortError') throw e;
+			});
 		}
-		this.isBuffering.set(false);
+	}
+
+	public seekForward() {
+		const newTime = Math.min(this.time().current + 5, this.time().total);
+		this.assignedVideoElement.currentTime = newTime;
+		this.time.update(a => ({ ...a, current: newTime, remaining: a.total - newTime }));
+	}
+
+	public seekBack() {
+		const newTime = Math.min(this.time().current - 5, this.time().total);
+		this.assignedVideoElement.currentTime = newTime;
+		this.time.update(a => ({ ...a, current: newTime, remaining: a.total - newTime }));
 	}
 
 	public updateVideoTime() {
@@ -142,7 +176,8 @@ export class EvaApi {
 			return;
 		}
 
-		const end = this.assignedVideoElement.buffered.length - 1;
+		this.videoTimeChangeSubject.next(null);
+
 		const crnt = this.assignedVideoElement.currentTime;
 		this.time.update(a => {
 			return {
@@ -203,6 +238,7 @@ export class EvaApi {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
+		this.videoBufferSubject.next(this.assignedVideoElement.buffered);
 
 		// Only check if we're currently playing
 		if (this.assignedVideoElement.paused || this.assignedVideoElement.ended) {
@@ -320,6 +356,7 @@ export class EvaApi {
 		return this.assignedVideoElement.volume;
 	}
 
+
 	// called from component
 	public muteOrUnmuteVideo() {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
@@ -335,8 +372,23 @@ export class EvaApi {
 		}
 	}
 
+	/** Value must fall between 0 and 1, where 0 is effectively muted and 1 is the loudest possible value. 
+	 * 
+	 * Function will check the provided value and set appropriate volume.
+	*/
 	public setVideoVolume(volume: number) {
-		this.assignedVideoElement.volume = volume;
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		if (volume < 0) {
+			this.assignedVideoElement.volume = 0;
+		}
+		else if (volume > 1) {
+			this.assignedVideoElement.volume = 1;
+		}
+		else {
+			this.assignedVideoElement.volume = volume;
+		}
 	}
 
 	//Called from event listener
@@ -363,7 +415,7 @@ export class EvaApi {
 		this.playerReadyEvent.emit(this);
 	}
 
-	private validateVideoAndPlayerBeforeAction(): boolean {
+	public validateVideoAndPlayerBeforeAction(): boolean {
 		if (!this.isPlayerReady) {
 			return false;
 		}

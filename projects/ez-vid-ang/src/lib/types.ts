@@ -153,3 +153,38 @@ export type EvaTrack =
 	| EvaChapterTrack
 	| EvaMetadataTrack;
 
+
+
+/**
+ * Represents a single quality/bitrate level available in the stream.
+ *
+ * Compatible with both HLS and DASH:
+ *  - HLS  → populated from hls.js `levels[]`
+ *  - DASH → populated from dash.js `getBitrateInfoListFor('video')`
+ *
+ * `qualityIndex` is the raw index used by the underlying player library to
+ * switch levels.  Pass -1 (or leave `isAuto` true) for the "Auto" sentinel.
+ */
+export interface EvaQualityLevel {
+	/** Raw index used by hls.js / dash.js to switch to this level. -1 = Auto */
+	qualityIndex: number;
+	/** Human-readable label shown in the UI, e.g. "1080p", "720p", "Auto" */
+	label: string;
+	/** Video frame width in pixels (0 when unknown / Auto) */
+	width: number;
+	/** Video frame height in pixels (0 when unknown / Auto).
+	 *  This is the value most commonly displayed to users ("720p" → height 720). */
+	height: number;
+	/** Bitrate in bits-per-second (0 when unknown / Auto) */
+	bitrate: number;
+	/** "video" | "audio" – mirrors the DASH mediaType concept */
+	mediaType: 'video' | 'audio';
+	/** True for the synthetic "Auto / ABR" option */
+	isAuto?: boolean;
+	/** Whether this level is currently selected in the UI */
+	selected?: boolean;
+	/** Optional codec string, e.g. "avc1.640028" */
+	codec?: string;
+	/** Optional frame-rate, e.g. 29.97 */
+	frameRate?: number;
+}

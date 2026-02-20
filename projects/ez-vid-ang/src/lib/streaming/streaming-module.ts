@@ -1,9 +1,11 @@
 import { NgModule } from "@angular/core";
+import { EvaHlsDirective } from "./hls.directive";
+import { EvaDashDirective } from "./dash.directive";
 
 @NgModule({
-	declarations: [],
+	declarations: [EvaHlsDirective, EvaDashDirective],
 	imports: [],
-	exports: [],
+	exports: [EvaHlsDirective, EvaDashDirective],
 	providers: []
 })
 export class EvaStreamingModule { }

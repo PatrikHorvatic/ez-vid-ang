@@ -69,6 +69,11 @@ export enum EvaVideoEvent {
 
 export type EvaTimeProperty = "current" | "total" | "remaining";
 export type EvaTimeFormating = "HH:mm:ss" | "mm:ss" | "ss";
+export type EvaChapterMarker = {
+	startTime: number;
+	endTime: number;
+	title: string;
+}
 
 export const isValidVideoEvent = (event: string): event is EvaVideoEvent => {
 	return Object.values(EvaVideoEvent).includes(event as EvaVideoEvent);

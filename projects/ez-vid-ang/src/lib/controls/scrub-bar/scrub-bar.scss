@@ -14,6 +14,9 @@
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
+	transition:
+		bottom var(--eva-transition-duration) ease-in-out,
+		opacity var(--eva-transition-duration) ease-in-out;
 }
 
 :host-context(eva-controls-container) {
@@ -24,31 +27,73 @@
 	flex-grow: 1;
 	flex-basis: 0;
 	margin: 0px 10px;
-	transition: initial;
 	-webkit-transition: initial;
 	-khtml-transition: initial;
 	-moz-transition: initial;
 	-ms-transition: initial;
+	transition: initial;
 }
 
 :host(.hide) {
-	bottom: -var(--eva-element-height);
-	opacity: 0;
+	// bottom: calc(-1 * var(--eva-element-height) + var(--eva-scrub-bar-heights));
+	bottom: 0 !important;
+	opacity: 1;
+}
+
+.eva-chapter-markers {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+.eva-chapter-marker {
+	position: absolute;
+	top: 0;
+	height: 100%;
+	border-right: 3px solid var(--eva-scrub-bar-chapter-marker-color);
+	box-sizing: border-box;
+
+	&:last-child {
+		border-right: none;
+	}
+}
+
+.eva-hover-tooltip {
+	position: absolute;
+	bottom: calc(100% + 8px);
+	transform: translateX(-50%);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+	pointer-events: none;
+	z-index: 400;
+	will-change: left;
+}
+
+.eva-hover-chapter {
+	background-color: rgba(0, 0, 0, 0.85);
+	color: #fff;
+	padding: 3px 8px;
+	border-radius: 4px;
+	font-size: 11px;
+	white-space: nowrap;
+	text-align: center;
+	max-width: 160px;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .eva-hover-time {
-	position: absolute;
-	bottom: 100%;
-	transform: translateX(-50%);
 	background-color: rgba(0, 0, 0, 0.75);
 	color: #fff;
 	padding: 4px 8px;
 	border-radius: 4px;
-	font-size: 12px;
+	font-size: 14px;
+	font-family: var(--eva-font-family);
 	white-space: nowrap;
-	pointer-events: none;
-	margin-bottom: 6px;
-	z-index: 400;
-	will-change: left;
 	text-align: center;
 }

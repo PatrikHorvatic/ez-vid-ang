@@ -3,6 +3,8 @@ import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
 import { EvaTrack, EvaVideoElementConfiguration, EvaVideoSource } from '../../types';
 import { validateTracks } from '../../utils/utilities';
+import { EvaHlsDirective } from '../../streaming/hls.directive';
+import { EvaDashDirective } from '../../streaming/dash.directive';
 
 @Component({
   selector: 'eva-player',
@@ -14,6 +16,9 @@ import { validateTracks } from '../../utils/utilities';
 export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
   private playerMainAPI = inject(EvaApi);
   private playerFullscreenAPI = inject(EvaFullscreenAPI);
+
+  private hlsDirective = inject(EvaHlsDirective, { optional: true });
+  private dashDirective = inject(EvaDashDirective, { optional: true });
 
   readonly id = input.required<string>();
   readonly evaVideoSources = input.required<EvaVideoSource[]>();
@@ -37,6 +42,9 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
   ngAfterViewInit(): void {
     this.playerMainAPI.assignElementToApi(this.evaVideoElement().nativeElement);
     this.playerMainAPI.onPlayerReady();
+    console.log(this.hlsDirective);
+    console.log(this.dashDirective);
+
   }
 
   ngOnDestroy(): void {

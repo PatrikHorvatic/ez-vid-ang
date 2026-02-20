@@ -10,8 +10,8 @@
 	background-color: rgb(0 0 0);
 	opacity: 1;
 	transition:
-		bottom 1s ease-in-out,
-		opacity 0.5s ease-in-out;
+		bottom var(--eva-transition-duration) ease-in-out,
+		opacity var(--eva-transition-duration) ease-in-out;
 }
 
 :host(.hide) {

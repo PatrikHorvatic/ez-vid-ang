@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy,
 import { Subscription } from 'rxjs';
 import { EvaState } from '../../types';
 import { EvaApi } from '../../api/eva-api';
-import { EvaOverlayPlayAria } from '../../utils/aria-utilities';
+import { EvaOverlayPlayAria, EvaOverlayPlayAriaTransformed, transformEvaOverlayPlayAria } from '../../utils/aria-utilities';
 
 @Component({
   selector: 'eva-overlay-play',
@@ -23,17 +23,18 @@ import { EvaOverlayPlayAria } from '../../utils/aria-utilities';
 export class EvaOverlayPlay implements OnInit, OnDestroy {
   protected evaAPI = inject(EvaApi);
 
-  readonly evaOvelayPlayAria = input<EvaOverlayPlayAria>({ ariaLabel: "Overlay play" });
+  readonly evaOvelayPlayAria = input<EvaOverlayPlayAriaTransformed, EvaOverlayPlayAria>(transformEvaOverlayPlayAria(undefined), { transform: transformEvaOverlayPlayAria });
   readonly evaCustomIcon = input<boolean>(false);
 
   protected ariaLabel = computed<string>(() => {
-    return this.evaOvelayPlayAria().ariaLabel ? this.evaOvelayPlayAria().ariaLabel! : "Overlay play";
+    return this.evaOvelayPlayAria().ariaLabel;
   });
 
   protected evaIconPlay = computed<boolean>(() => {
     return !this.evaCustomIcon() && (this.playingState() === 'loading' || this.playingState() === 'paused' || this.playingState() === 'ended' || this.playingState() === 'error');
   })
 
+  readonly test = input.required<string, number>({ transform: (v) => { return "a" } });
 
   protected playingState: WritableSignal<EvaState> = signal(this.evaAPI.getCurrentVideoState());
   private playingStateSub: Subscription | null = null;

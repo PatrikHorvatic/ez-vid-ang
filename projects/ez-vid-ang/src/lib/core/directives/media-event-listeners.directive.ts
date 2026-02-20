@@ -3,6 +3,46 @@ import { fromEvent, Observable, Subscription } from 'rxjs';
 import { EvaVideoEvent } from '../../types';
 import { EvaApi } from '../../api/eva-api';
 
+/**
+ * Directive that bridges native `HTMLVideoElement` media events to the `EvaApi` layer.
+ *
+ * Applied as an attribute on a `<video>` element:
+ * ```html
+ * <video evaMediaEventListeners />
+ * ```
+ *
+ * On `ngOnInit`, all supported media events are wrapped in RxJS `fromEvent` observables
+ * and subscribed to. Each subscription delegates to the corresponding `EvaApi` method,
+ * which updates internal player state (playback state, buffering, time, volume, etc.).
+ * All subscriptions are cleaned up in `ngOnDestroy`.
+ *
+ * Events and their `EvaApi` side effects:
+ * | Event             | `EvaApi` call                        |
+ * |-------------------|--------------------------------------|
+ * | `canplay`         | `videoCanPlay()`                     |
+ * | `ended`           | `endedVideo()`                       |
+ * | `error`           | `erroredVideo()`                     |
+ * | `loadedmetadata`  | `loadedVideoMetadata(event)`         |
+ * | `pause`           | `pauseVideo()`                       |
+ * | `play`            | `playVideo()`                        |
+ * | `playing`         | `playingVideo()`                     |
+ * | `progress`        | `checkBufferStatus()`                |
+ * | `ratechange`      | `playbackRateVideoChanged(event)`    |
+ * | `seeked`          | `videoSeeked()`                      |
+ * | `seeking`         | `videoSeeking()`                     |
+ * | `stalled`         | `videoStalled()`                     |
+ * | `timeupdate`      | `updateVideoTime()`                  |
+ * | `volumechange`    | `volumeChanged(event)`               |
+ * | `waiting`         | `videoWaiting()`                     |
+ *
+ * The following events are subscribed but currently have no `EvaApi` side effect
+ * (stubs for future implementation):
+ * `abort`, `canplaythrough`, `complete`, `durationchange`, `emptied`,
+ * `encrypted`, `loadeddata`, `loadstart`, `suspend`, `waitingforkey`.
+ *
+ * @example
+ * <video evaMediaEventListeners [evaVideoConfig]="config" />
+ */
 @Directive({
   selector: 'video[evaMediaEventListeners]',
   standalone: false,
@@ -10,6 +50,10 @@ import { EvaApi } from '../../api/eva-api';
 export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
   private evaAPI = inject(EvaApi);
   private elementRef = inject(ElementRef<HTMLVideoElement>);
+
+  // ─── Event Observables ────────────────────────────────────────────────────
+  // Each observable wraps a native media event via `fromEvent`.
+  // Initialized in `ngOnInit` once the native element is available.
 
   private abort$: Observable<Event> | null = null;
   private canPlay$: Observable<Event> | null = null;
@@ -27,7 +71,7 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
   private play$: Observable<Event> | null = null;
   private playing$: Observable<Event> | null = null;
   private progress$: Observable<Event> | null = null;
-  /**Detect playback speed change */
+  /** Fires when the playback rate changes (e.g. speed selector). */
   private rateChange$: Observable<Event> | null = null;
   private seeked$: Observable<Event> | null = null;
   private seeking$: Observable<Event> | null = null;
@@ -37,6 +81,9 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
   private volumeChange$: Observable<Event> | null = null;
   private waiting$: Observable<Event> | null = null;
   private waitingForKey$: Observable<Event> | null = null;
+
+  // ─── Subscriptions ────────────────────────────────────────────────────────
+  // One subscription per event observable. All are unsubscribed in `ngOnDestroy`.
 
   private abortSub: Subscription | null = null;
   private canPlaySub: Subscription | null = null;
@@ -64,6 +111,10 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
   private waitingSub: Subscription | null = null;
   private waitingForKeySub: Subscription | null = null;
 
+  /**
+   * Initializes all event observables from the native video element using `fromEvent`,
+   * then subscribes each one and delegates to the appropriate `EvaApi` method.
+   */
   ngOnInit(): void {
     this.abort$ = fromEvent(this.elementRef.nativeElement, EvaVideoEvent.ABORT);
     this.canPlay$ = fromEvent(this.elementRef.nativeElement, EvaVideoEvent.CAN_PLAY);
@@ -91,104 +142,144 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
     this.waiting$ = fromEvent(this.elementRef.nativeElement, EvaVideoEvent.WAITING);
     this.waitingForKey$ = fromEvent(this.elementRef.nativeElement, EvaVideoEvent.WAITING_FOR_KEY);
 
+    /** Stub — no `EvaApi` side effect yet. */
     this.abortSub = this.abort$.subscribe(v => {
       console.log("video aborted");
-
     });
+
+    /** Notifies `EvaApi` that the video is ready to begin playback. */
     this.canPlaySub = this.canPlay$.subscribe(v => {
       console.log("vcan playd");
       this.evaAPI.videoCanPlay();
     });
-    this.canPlayThroughSub = this.canPlayThrough$.subscribe(v => {
 
+    /** Stub — no `EvaApi` side effect yet. */
+    this.canPlayThroughSub = this.canPlayThrough$.subscribe(v => {
     });
+
+    /** Stub — no `EvaApi` side effect yet. */
     this.completeSub = this.complete$.subscribe(v => {
       console.log("video complete");
       // this.evaAPI.endedVideo();
     });
+
+    /** Stub — no `EvaApi` side effect yet. */
     this.durationChangeSub = this.durationChange$.subscribe(v => {
-
     });
+
+    /** Stub — no `EvaApi` side effect yet. */
     this.emptiedSub = this.emptied$.subscribe(v => {
-
     });
+
+    /** Stub — no `EvaApi` side effect yet. */
     this.encryptedSub = this.encrypted$.subscribe(v => {
-
     });
+
+    /** Notifies `EvaApi` that video playback has ended. */
     this.endedSub = this.ended$.subscribe(v => {
       console.log("vendedd");
       this.evaAPI.endedVideo();
     });
+
+    /** Notifies `EvaApi` that the video has encountered an error. */
     this.errorSub = this.error$.subscribe(v => {
       console.log("video errored");
       this.evaAPI.erroredVideo();
     });
+
+    /** Stub — no `EvaApi` side effect yet. */
     this.loadedDataSub = this.loadedData$.subscribe(v => {
       console.log("video loaded data");
-
     });
+
+    /** Notifies `EvaApi` that video metadata (duration, dimensions, tracks) has loaded. */
     this.loadedMetadataSub = this.loadedMetadata$.subscribe(v => {
       console.log("video loaded metadata");
       this.evaAPI.loadedVideoMetadata(v)
     });
+
+    /** Stub — no `EvaApi` side effect yet. */
     this.loadStartSub = this.loadStart$.subscribe(v => {
       console.log("vload startd");
-
     });
+
+    /** Notifies `EvaApi` that the video has been paused. */
     this.pauseSub = this.pause$.subscribe(v => {
       console.log("video pause");
       this.evaAPI.pauseVideo();
     });
+
+    /** Notifies `EvaApi` that the video has started playing (the `play` event, before frames render). */
     this.playSub = this.play$.subscribe(v => {
       console.log("video play");
       this.evaAPI.playVideo();
     });
+
+    /** Notifies `EvaApi` that the video is actively playing and rendering frames. */
     this.playingSub = this.playing$.subscribe(v => {
       console.log("video playing");
       this.evaAPI.playingVideo();
     });
+
+    /** Notifies `EvaApi` to check the current buffer status. */
     this.progressSub = this.progress$.subscribe(v => {
       console.log("video progressed");
       this.evaAPI.checkBufferStatus();
     });
+
+    /** Notifies `EvaApi` that the playback rate has changed. */
     this.rateChangeSub = this.rateChange$.subscribe(v => {
       console.log("video rate changed");
       this.evaAPI.playbackRateVideoChanged(v);
     });
+
+    /** Notifies `EvaApi` that a seek operation has completed. */
     this.seekedSub = this.seeked$.subscribe(v => {
       console.log("vseekedd");
       this.evaAPI.videoSeeked();
     });
+
+    /** Notifies `EvaApi` that a seek operation has begun. */
     this.seekingSub = this.seeking$.subscribe(v => {
       console.log("video seeking");
       this.evaAPI.videoSeeking();
     });
+
+    /** Notifies `EvaApi` that the browser has stalled while fetching media data. */
     this.stalledSub = this.stalled$.subscribe(v => {
       console.log("video stalled");
       this.evaAPI.videoStalled();
     });
+
+    /** Stub — no `EvaApi` side effect yet. */
     this.suspendSub = this.suspend$.subscribe(v => {
       console.log("video suspended");
-
     });
+
+    /** Notifies `EvaApi` to update the tracked current playback time. */
     this.timeUpdateSub = this.timeUpdate$.subscribe(v => {
       console.log("video time updated");
       this.evaAPI.updateVideoTime();
     });
+
+    /** Notifies `EvaApi` that the volume or mute state has changed. */
     this.volumeChangeSub = this.volumeChange$.subscribe(v => {
       this.evaAPI.volumeChanged(v);
     });
+
+    /** Notifies `EvaApi` that the video is waiting for data before it can continue playback. */
     this.waitingSub = this.waiting$.subscribe(v => {
       console.log("video waiting");
       this.evaAPI.videoWaiting();
-
     });
+
+    /** Stub — no `EvaApi` side effect yet. */
     this.waitingForKeySub = this.waitingForKey$.subscribe(v => {
       console.log("video waiting for key");
-
     });
   }
 
+  /** Unsubscribes all event subscriptions to prevent memory leaks. */
   ngOnDestroy(): void {
     this.abortSub?.unsubscribe();
     this.canPlaySub?.unsubscribe();
@@ -216,5 +307,4 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
     this.waitingSub?.unsubscribe();
     this.waitingForKeySub?.unsubscribe();
   }
-
 }

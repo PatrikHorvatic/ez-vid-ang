@@ -3,12 +3,62 @@ import { EvaTrack } from '../../types';
 import { EvaApi } from '../../api/eva-api';
 import { Subscription } from 'rxjs';
 
+/**
+ * Internal representation of a text track option within the dropdown.
+ * Derived from `EvaTrack` with a simplified structure for local state management.
+ */
 interface TrackInternal {
+  /** Language code or `"off"` for the disabled option. */
   id: string;
+  /** Display label shown in the dropdown. */
   label: string;
+  /** Whether this track is currently active. Only one track can be selected at a time. */
   selected: boolean;
 }
 
+/**
+ * Subtitle/text track selector component for the Eva video player.
+ *
+ * Renders a dropdown button that lists all available subtitle tracks extracted from
+ * the video element's text tracks, plus an "Off" option to disable subtitles.
+ * Selecting a track sets its `mode` to `"showing"` on the native `HTMLVideoElement`
+ * and hides all others.
+ *
+ * Track list sources:
+ * - Populated from `EvaApi.videoTracksSubject`, filtered to `kind === "subtitles"`.
+ * - If no tracks are available, only the "Off" option is shown.
+ * - The "Off" option is auto-selected when no track has `default === true`.
+ *
+ * The dropdown closes when:
+ * - A track is selected
+ * - Focus moves outside the component (`blur`)
+ * - A click is detected outside the component
+ * - `Escape` is pressed
+ *
+ * Screen reader support:
+ * - Track changes are announced via a dynamically injected `role="status"` live region
+ *   that is removed from the DOM after 1 second.
+ * - A unique `id` is generated per instance for ARIA relationships.
+ *
+ * Keyboard support:
+ * - `Enter` / `Space` — open the dropdown
+ * - `ArrowDown` — open dropdown or select the next track
+ * - `ArrowUp` — open dropdown or select the previous track
+ * - `Home` — select the first track
+ * - `End` — select the last track
+ * - `Escape` — close the dropdown
+ *
+ * @example
+ * // Minimal usage
+ * <eva-track-selector />
+ *
+ * @example
+ * // Custom labels
+ * <eva-track-selector
+ *   evaTrackSelectorText="Subtitles"
+ *   evaTrackOffText="Disabled"
+ * />
+ */
 @Component({
   selector: 'eva-track-selector',
   templateUrl: './track-selector.html',
@@ -24,12 +74,31 @@ interface TrackInternal {
 export class EvaTrackSelector implements OnInit, OnDestroy {
   private evaAPI = inject(EvaApi);
 
+  /**
+   * The `aria-label` applied to the host element and used as the prefix
+   * in screen reader announcements when a track is selected.
+   *
+   * @default "Track selector"
+   */
   readonly evaTrackSelectorText = input<string>("Track selector");
+
+  /**
+   * The label used for the "Off" option that disables all subtitle tracks.
+   *
+   * @default "Off"
+   */
   readonly evaTrackOffText = input<string>("Off");
 
-  // Generate unique ID for ARIA relationships
+  /**
+   * A unique ID generated per component instance for use in ARIA relationships
+   * (e.g. `aria-controls`, `aria-labelledby`) in the template.
+   */
   protected readonly uniqueId = `track-selector-${Math.random().toString(36).substr(2, 9)}`;
 
+  /**
+   * The label of the currently selected track, or `evaTrackOffText` if no track is selected.
+   * Returns `null` if `localTracks` is not yet initialized.
+   */
   protected currentTrack = computed<string | null>(() => {
     if (!this.localTracks) { return null; }
     if (!this.localTracks()) { return null; }
@@ -41,13 +110,29 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
     return t[0].label;
   });
 
+  /** The local list of track options rendered in the dropdown, including the "Off" option. */
   protected localTracks!: WritableSignal<TrackInternal[]>;
+
+  /** Whether the track dropdown is currently open. Applies the `open` class to the host. */
   protected isOpen = signal(false);
 
+  /** Bound reference to the click-outside handler, stored for removal in `ngOnDestroy`. */
   private clickOutsideListener?: (event: MouseEvent) => void;
+
+  /** Subscription to track list changes from `EvaApi`. Cleaned up in `ngOnDestroy`. */
   private videoTracksSub: Subscription | null = null;
+
+  /**
+   * Tracks the index of the currently focused option during keyboard navigation.
+   * Updated on `ArrowUp`, `ArrowDown`, `Home`, and `End` key events.
+   */
   private keyboardNavigationIndex = signal(0);
 
+  /**
+   * Initializes `localTracks` from the current value of `EvaApi.videoTracksSubject`,
+   * subscribes to future track changes, and attaches a document-level click listener
+   * to close the dropdown when clicking outside.
+   */
   ngOnInit(): void {
     this.localTracks = signal(
       this.extractTracksFromAssignedVideoElement(
@@ -64,6 +149,7 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
     document.addEventListener('click', this.clickOutsideListener, true);
   }
 
+  /** Unsubscribes from track changes and removes the document-level click listener. */
   ngOnDestroy(): void {
     if (this.videoTracksSub) {
       this.videoTracksSub.unsubscribe();
@@ -74,6 +160,14 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Selects a track, updates `localTracks` so only the chosen track is marked as selected,
+   * sets the corresponding `HTMLTextTrack.mode` to `"showing"` (and all others to `"hidden"`),
+   * announces the change to screen readers, and closes the dropdown.
+   *
+   * @param tr - The track to select.
+   * @param i - The index of the track within `localTracks`.
+   */
   protected selectTrack(tr: TrackInternal, i: number) {
     this.localTracks.update(tracks => {
       const updated = tracks.map(track => ({
@@ -102,10 +196,21 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
     this.isOpen.set(false);
   }
 
+  /** Toggles the dropdown open/closed on click. */
   protected trackSelectorClicked() {
     this.toggleDropdown();
   }
 
+  /**
+   * Handles keyboard navigation for the dropdown.
+   *
+   * - `Enter` / `Space` — open the dropdown and restore focus to the current selection
+   * - `Escape` — close the dropdown
+   * - `ArrowDown` — open the dropdown or select the next track
+   * - `ArrowUp` — open the dropdown or select the previous track
+   * - `Home` — select the first track (only when open)
+   * - `End` — select the last track (only when open)
+   */
   protected playbackClickedKeyboard(e: KeyboardEvent) {
     const tracks = this.localTracks();
     const isDropdownOpen = this.isOpen();
@@ -174,6 +279,10 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Closes the dropdown when focus moves outside the `eva-track-selector` element.
+   * Uses `relatedTarget` to detect where focus is moving to.
+   */
   protected handleBlur(event: FocusEvent) {
     // Close dropdown when focus moves outside the component
     const relatedTarget = event.relatedTarget as HTMLElement;
@@ -182,12 +291,22 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Returns the index of the currently selected track within `localTracks`.
+   * Falls back to `0` if no track is marked as selected.
+   */
   protected getActiveIndex(): number {
     const tracks = this.localTracks();
     const activeIndex = tracks.findIndex(t => t.selected);
     return activeIndex >= 0 ? activeIndex : 0;
   }
 
+  /**
+   * Document-level click handler that closes the dropdown when a click
+   * is detected outside the `eva-track-selector` element.
+   *
+   * @param event - The native `MouseEvent` from the document listener.
+   */
   private handleClickOutside(event: MouseEvent) {
     const target = event.target as HTMLElement;
     if (!target.closest('eva-track-selector')) {
@@ -195,6 +314,10 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Toggles the `isOpen` signal between `true` and `false`.
+   * When opening, resets `keyboardNavigationIndex` to the currently selected track.
+   */
   private toggleDropdown() {
     this.isOpen.update(open => !open);
 
@@ -205,6 +328,15 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Converts an array of `EvaTrack` objects into the internal `TrackInternal` format
+   * used by the dropdown, filtered to `kind === "subtitles"`.
+   *
+   * - If no tracks are provided, returns a single "Off" option marked as selected.
+   * - Appends an "Off" option at the end, selected when no track has `default === true`.
+   *
+   * @param v - The raw track list from `EvaApi.videoTracksSubject`.
+   */
   private extractTracksFromAssignedVideoElement(v: EvaTrack[]): TrackInternal[] {
     if (v.length === 0) {
       return [{
@@ -234,7 +366,13 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
   }
 
   /**
-   * Announce track changes to screen readers
+   * Announces a track selection change to screen readers by injecting a temporary
+   * `role="status"` live region into the document body.
+   *
+   * The announcement reads as `"{evaTrackSelectorText}: {trackLabel}"` and the element
+   * is removed from the DOM after 1 second.
+   *
+   * @param trackLabel - The label of the newly selected track.
    */
   private announceTrackChange(trackLabel: string): void {
     const announcement = document.createElement('div');

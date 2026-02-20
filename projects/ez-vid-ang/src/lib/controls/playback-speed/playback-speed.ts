@@ -3,6 +3,38 @@ import { transformDefaultPlaybackSpeed, validateAndTransformPlaybackSpeeds } fro
 import { EvaApi } from '../../api/eva-api';
 import { EvaPlaybackSpeedAria, EvaPlaybackSpeedAriaTransformed, transformEvaPlaybackSpeedAria } from '../../utils/aria-utilities';
 
+/**
+ * Playback speed selector component for the Eva video player.
+ *
+ * Renders as a `role="button"` element with `tabindex="0"` that opens a dropdown
+ * of available playback speeds when clicked. The current speed is reflected in
+ * `aria-valuetext` as e.g. `"1x"`.
+ *
+ * The dropdown closes when:
+ * - A speed is selected
+ * - Focus moves outside the component (`blur`)
+ * - A click is detected outside the component
+ * - `Escape` is pressed
+ *
+ * Keyboard support:
+ * - `Enter` / `Space` — open/close the dropdown
+ * - `ArrowUp` / `ArrowDown` — navigate and select speeds
+ * - `Home` — jump to the first speed
+ * - `End` — jump to the last speed
+ * - `Escape` — close the dropdown
+ *
+ * @example
+ * // Minimal usage — speeds are required
+ * <eva-playback-speed [evaPlaybackSpeeds]="[0.5, 1, 1.5, 2]" />
+ *
+ * @example
+ * // With a default speed and custom ARIA label
+ * <eva-playback-speed
+ *   [evaPlaybackSpeeds]="[0.5, 1, 1.5, 2]"
+ *   [evaDefaultPlaybackSpeed]="1.5"
+ *   [evaAria]="{ ariaLabel: 'Video speed' }"
+ * />
+ */
 @Component({
   selector: 'eva-playback-speed',
   templateUrl: './playback-speed.html',
@@ -24,39 +56,62 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
 
   private evaAPI = inject(EvaApi);
 
-
   /**
-   * Playback speeds are validated. Minimal value is 0.25 and maximum value is 4
-   * 
-   * It is YOUR responsibility to sort the values. 
-   * 
-   * Transformer function does the next:
-   * - Checks if the values are in acceptable range. Those that are not will be removed from the array.
-   * - Removes duplicate values because of the @for loop's trackby value.
-   * In case of an empty array, component exists and some value must be provided and the default will be 1.0
+   * The list of available playback speeds to display in the dropdown.
+   *
+   * **Required.** Values are validated and transformed via `validateAndTransformPlaybackSpeeds`:
+   * - Accepted range: `0.25` to `4`. Values outside this range are removed.
+   * - Duplicate values are removed to ensure stable `@for` loop tracking.
+   * - If the resulting array is empty, the component falls back to `1.0`.
+   *
+   * **It is your responsibility to sort the values** in the desired display order.
    */
   readonly evaPlaybackSpeeds = input.required<Array<number>, Array<number>>({
     transform: validateAndTransformPlaybackSpeeds
   });
 
+  /**
+   * The speed that should be pre-selected when the component initializes.
+   * Must be present in `evaPlaybackSpeeds` to take effect — if not found,
+   * the first speed in the array is selected instead.
+   *
+   * Transformed via `transformDefaultPlaybackSpeed`.
+   *
+   * @default 1
+   */
   readonly evaDefaultPlaybackSpeed = input<number, number>(1, {
     transform: transformDefaultPlaybackSpeed
   });
 
-  readonly evaAria = input<EvaPlaybackSpeedAria, EvaPlaybackSpeedAriaTransformed>({ ariaLabel: "Playback speed" }, { transform: transformEvaPlaybackSpeedAria });
+  /**
+   * ARIA label for the playback speed button.
+   *
+   * All properties are optional — default values are applied via `transformEvaPlaybackSpeedAria`:
+   * - `ariaLabel` → `"Playback speed"`
+   */
+  readonly evaAria = input<EvaPlaybackSpeedAriaTransformed, EvaPlaybackSpeedAria>(transformEvaPlaybackSpeedAria(undefined), { transform: transformEvaPlaybackSpeedAria });
 
+  /** Resolves the `aria-label` from the transformed aria input. */
   protected ariaLabel = computed<string>(() => {
-    return this.evaAria().ariaLabel!;
+    return this.evaAria().ariaLabel;
   });
 
-
-  // Component state
+  /** Whether the speed dropdown is currently open. Applies the `open` class to the host. */
   protected isOpen = signal(false);
+
+  /** The currently selected playback speed. Reflected in `aria-valuetext` as e.g. `"1.5x"`. */
   protected currentSpeed = signal(1);
+
+  /** The index of the currently selected speed within `evaPlaybackSpeeds`. Used for keyboard navigation. */
   protected selectedIndex = signal(0);
 
+  /** Bound reference to the click-outside handler, stored for removal in `ngOnDestroy`. */
   private clickOutsideListener?: (event: MouseEvent) => void;
 
+  /**
+   * Sets the initial playback speed based on `evaDefaultPlaybackSpeed` and `evaPlaybackSpeeds`,
+   * then attaches a document-level click listener to close the dropdown when clicking outside.
+   */
   ngOnInit(): void {
     // Set initial speed
     const speeds = this.evaPlaybackSpeeds();
@@ -76,16 +131,28 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
     document.addEventListener('click', this.clickOutsideListener, true);
   }
 
+  /** Removes the document-level click-outside listener to prevent memory leaks. */
   ngOnDestroy(): void {
     if (this.clickOutsideListener) {
       document.removeEventListener('click', this.clickOutsideListener, true);
     }
   }
 
+  /** Toggles the dropdown open/closed on click. */
   protected playbackClicked() {
     this.toggleDropdown();
   }
 
+  /**
+   * Handles keyboard navigation for the dropdown.
+   *
+   * - `Enter` / `Space` — toggle the dropdown
+   * - `ArrowUp` — select the previous speed (or open if closed)
+   * - `ArrowDown` — select the next speed (or open if closed)
+   * - `Escape` — close the dropdown
+   * - `Home` — select the first speed (only when open)
+   * - `End` — select the last speed (only when open)
+   */
   protected playbackClickedKeyboard(e: KeyboardEvent) {
     const isOpen = this.isOpen();
     const speeds = this.evaPlaybackSpeeds();
@@ -138,6 +205,10 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Closes the dropdown when focus moves outside the `eva-playback-speed` element.
+   * Uses `relatedTarget` to detect where focus is moving to.
+   */
   protected handleBlur(event: FocusEvent) {
     // Close dropdown when focus moves outside the component
     const relatedTarget = event.relatedTarget as HTMLElement;
@@ -146,6 +217,13 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Selects a playback speed, updates `currentSpeed` and `selectedIndex`,
+   * closes the dropdown, and notifies `EvaApi` of the change.
+   *
+   * @param speed - The speed value to select.
+   * @param index - The index of the speed within `evaPlaybackSpeeds`.
+   */
   protected selectSpeed(speed: number, index: number) {
     this.currentSpeed.set(speed);
     this.selectedIndex.set(index);
@@ -154,19 +232,31 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
     this.evaAPI.setPlaybackSpeed(speed);
   }
 
+  /**
+   * Formats a speed value for display in the dropdown.
+   * Returns `"Normal"` for `1`, otherwise returns e.g. `"1.5x"`.
+   *
+   * @param speed - The speed value to format.
+   */
   protected formatSpeed(speed: number): string {
     return speed === 1 ? 'Normal' : `${speed}x`;
   }
 
+  /** Toggles the `isOpen` signal between `true` and `false`. */
   private toggleDropdown() {
     this.isOpen.update(open => !open);
   }
 
+  /**
+   * Document-level click handler that closes the dropdown when a click
+   * is detected outside the `eva-playback-speed` element.
+   *
+   * @param event - The native `MouseEvent` from the document listener.
+   */
   private handleClickOutside(event: MouseEvent) {
     const target = event.target as HTMLElement;
     if (!target.closest('eva-playback-speed')) {
       this.isOpen.set(false);
     }
   }
-
 }

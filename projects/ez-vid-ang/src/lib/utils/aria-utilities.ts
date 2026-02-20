@@ -1,10 +1,21 @@
+/**Contains aria values fullscreen component works with. */
 export type EvaFullscreenAria = {
 	exitFullscreen?: string,
 	enterFullscreen?: string,
 }
 
-export type EvaFullscreenAriaTransformed = Required<EvaFullscreenAria>;
+/**Transforms all properties to required */
+export type EvaFullscreenAriaTransformed = {
+	exitFullscreen: string,
+	enterFullscreen: string,
+}
 
+/**Transforms aria input to an object with all the values.
+ * 
+ * Default values:
+ * - enterFullscreen: 'Enter fullscreen',
+ * - exitFullscreen: 'Exit fullscreen'
+ */
 export function transformEvaFullscreenAria(v: EvaFullscreenAria | undefined): EvaFullscreenAriaTransformed {
 	if (!v) {
 		return {
@@ -19,6 +30,7 @@ export function transformEvaFullscreenAria(v: EvaFullscreenAria | undefined): Ev
 }
 
 
+/**Contains aria values mute component works with */
 export type EvaMuteAria = {
 	/**Default value is mute*/
 	ariaLabel?: string,
@@ -26,22 +38,42 @@ export type EvaMuteAria = {
 	ariaValueTextMuted?: string
 	ariaValueTextUnmuted?: string
 }
-export type EvaMuteAriaTransformed = Required<EvaMuteAria>;
 
+/**Transform all properties to required */
+export type EvaMuteAriaTransformed = {
+	ariaLabel: string,
+	ariaValueTextMuted: string,
+	ariaValueTextUnmuted: string,
+}
+
+/**Transforms aria input to an object with all the values */
 export function transformEvaMuteAria(v: EvaMuteAria | undefined): EvaMuteAriaTransformed {
 	if (!v) {
 		return {
-			ariaLabel: "",
-			ariaValueTextMuted: "",
-			ariaValueTextUnmuted: "",
+			ariaLabel: "mute",
+			ariaValueTextMuted: "Muted",
+			ariaValueTextUnmuted: "Unmuted",
 		}
 	}
 
 	return {
-		ariaLabel: "",
-		ariaValueTextMuted: "",
-		ariaValueTextUnmuted: "",
+		ariaLabel: v.ariaLabel ? v.ariaLabel : "mute",
+		ariaValueTextMuted: v.ariaValueTextMuted ? v.ariaValueTextMuted : "Muted",
+		ariaValueTextUnmuted: v.ariaValueTextUnmuted ? v.ariaValueTextUnmuted : "Unmuted",
 	}
+}
+
+export function validateAndTransformVolumeRange(v: number): number {
+	if (!v) {
+		return 0;
+	}
+	if (v < 0) {
+		return 0;
+	}
+	if (v > 1) {
+		return 1;
+	}
+	return v;
 }
 
 export type EvaPlayPauseAria = {
@@ -108,7 +140,10 @@ export function transformEvaPlayPauseAria(v: EvaPlayPauseAria | undefined): EvaP
 export type EvaPlaybackSpeedAria = {
 	ariaLabel?: string,
 }
-export type EvaPlaybackSpeedAriaTransformed = Required<EvaPlaybackSpeedAria>;
+
+export type EvaPlaybackSpeedAriaTransformed = {
+	ariaLabel: string,
+}
 
 export function transformEvaPlaybackSpeedAria(v: EvaPlaybackSpeedAria | undefined): EvaPlaybackSpeedAriaTransformed {
 	if (!v) {
@@ -137,9 +172,68 @@ export type EvaTimeDisplayAria = {
 	ariaLabelRemaining?: string
 }
 
+export type EvaTimeDisplayAriaTransformed = {
+	ariaLabelCurrent: string,
+	ariaLabelTotal: string,
+	ariaLabelRemaining: string
+}
+
+export function transformEvaTimeDisplayAria(v: EvaTimeDisplayAria | undefined): EvaTimeDisplayAriaTransformed {
+	if (!v) {
+		return {
+			ariaLabelCurrent: "Current time display",
+			ariaLabelTotal: "Duration display",
+			ariaLabelRemaining: "Remaining time display"
+		}
+	}
+
+	return {
+		ariaLabelCurrent: v.ariaLabelCurrent ? v.ariaLabelCurrent : "Current time display",
+		ariaLabelTotal: v.ariaLabelTotal ? v.ariaLabelTotal : "Duration display",
+		ariaLabelRemaining: v.ariaLabelRemaining ? v.ariaLabelRemaining : "Remaining time display"
+	}
+}
+
+export type EvaScrubBarAria = {
+	ariaLabel?: string
+}
+
+export type EvaScrubBarAriaTransformed = {
+	ariaLabel: string
+}
+
+export function transformEvaScrubBarAria(v: EvaScrubBarAria | undefined): EvaScrubBarAriaTransformed {
+	if (!v) {
+		return {
+			ariaLabel: "Scrub bar"
+		}
+	}
+
+	return {
+		ariaLabel: v.ariaLabel ? v.ariaLabel : "Scrub bar"
+	}
+}
+
 export type EvaVolumeAria = {
 	ariaLabel?: string
 }
+
+export type EvaVolumeAriaTransformed = {
+	ariaLabel: string
+}
+
+export function transformEvaVolumeAria(v: EvaVolumeAria | undefined): EvaVolumeAriaTransformed {
+	if (!v) {
+		return {
+			ariaLabel: "Volume control"
+		}
+	}
+
+	return {
+		ariaLabel: v.ariaLabel ? v.ariaLabel : "Volume control"
+	}
+}
+
 
 export type EvaQualityAria = {
 	ariaLabel?: string
@@ -147,4 +241,20 @@ export type EvaQualityAria = {
 
 export type EvaOverlayPlayAria = {
 	ariaLabel?: string;
+}
+
+export type EvaOverlayPlayAriaTransformed = {
+	ariaLabel: string;
+}
+
+export function transformEvaOverlayPlayAria(v: EvaOverlayPlayAria | undefined): EvaOverlayPlayAriaTransformed {
+	if (!v) {
+		return {
+			ariaLabel: "Overlay play"
+		};
+	}
+
+	return {
+		ariaLabel: v.ariaLabel ? v.ariaLabel : "Overlay play"
+	};
 }

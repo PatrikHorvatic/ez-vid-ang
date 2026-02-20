@@ -2,50 +2,154 @@ import { EventEmitter, Injectable, signal, WritableSignal } from '@angular/core'
 import { BehaviorSubject, Subject } from 'rxjs';
 import { EvaState, EvaTrack } from '../types';
 
+/**
+ * Core API service for the Eva video player.
+ *
+ * `EvaApi` is the central state and command hub of the player. It is provided at the
+ * component level by `EvaPlayer`, giving each player instance its own scoped service.
+ * All player components and directives communicate through this service rather than
+ * directly with the native `<video>` element.
+ *
+ * Responsibilities:
+ * - Holds a reference to the assigned `HTMLVideoElement`.
+ * - Tracks and broadcasts playback state, volume, buffering, time, and tracks.
+ * - Exposes commands for play/pause, seek, volume, mute, and playback speed.
+ * - Provides a user interaction subject for auto-hide coordination.
+ * - Implements buffering detection via both native events and a position-polling fallback.
+ *
+ * All public methods that operate on the video element are guarded by
+ * `validateVideoAndPlayerBeforeAction()`, which returns early if the player is not
+ * yet ready or the video element has not been assigned.
+ *
+ * Buffering detection uses two complementary strategies:
+ * 1. **Event-based** — reacts to `waiting`, `canplay`, `playing`, `stalled`, and `progress` events.
+ * 2. **Position-polling** — on each `timeupdate`, checks whether the playback position has
+ *    advanced within 500ms. If not, and `readyState < 3`, buffering is set to `true`.
+ */
 @Injectable({
 	providedIn: 'root',
 })
 export class EvaApi {
+
+	/** Unique numeric identifier for this service instance. Useful for debugging multiple players. */
 	public id = Math.random();
 
-	/**Very important! */
+	/**
+	 * Reference to the native `<video>` element managed by this player instance.
+	 * Assigned via `assignElementToApi()` in `EvaPlayer.ngAfterViewInit`.
+	 *
+	 * **Important:** Do not access this before `isPlayerReady` is `true`.
+	 */
 	public assignedVideoElement!: HTMLVideoElement;
 
+	/**
+	 * Emits this `EvaApi` instance when the player is fully initialized and the
+	 * video element has been assigned. Components that need to defer setup until
+	 * the player is ready should subscribe to this event.
+	 */
 	public playerReadyEvent: EventEmitter<EvaApi> = new EventEmitter<EvaApi>(true);
+
+	/** Whether the player has been fully initialized and the video element assigned. */
 	public isPlayerReady = false;
+
+	/** Whether the video is currently buffering. Updated by event handlers and position-polling. */
 	public isBuffering: WritableSignal<boolean> = signal(true);
+
+	/** Whether the video has enough data to begin playback (`canplay` event has fired). */
 	public canPlay: WritableSignal<boolean> = signal(false);
+
+	/** Whether a seek operation is currently in progress. */
 	public isSeeking: WritableSignal<boolean> = signal(false);
 
+	/** Whether the video metadata (`duration`, `dimensions`, tracks) has been loaded. */
 	protected isMetadataLoaded = false;
+
+	/** Whether the video has started playing at least once. Used to suppress buffering indicators during initial load. */
 	private hasStartedPlaying = false;
+
+	/**
+	 * When `true`, the video will resume playback after the current seek operation completes.
+	 * Set by `EvaScrubBar` when the user releases a drag seek while the video was playing.
+	 */
 	public pendingPlayAfterSeek: boolean = false;
 
+	/** Whether the current source is a live stream (`duration === Infinity`). Set from `loadedmetadata`. */
 	public isLive: WritableSignal<boolean> = signal(false);
+
+	/**
+	 * Current playback time state. Updated on every `timeupdate` event.
+	 * - `current` — current playback position in seconds
+	 * - `total` — total video duration in seconds (`Infinity` for live streams)
+	 * - `remaining` — seconds remaining until end
+	 */
 	public time: WritableSignal<{ current: number, total: number, remaining: number }> = signal({
 		current: 0,
 		remaining: 0,
 		total: 0
 	});
 
-	/**Used for all the component where video state is important */
+	/**
+	 * Broadcasts the current `EvaState` to all subscribed components.
+	 * Initial value is `EvaState.LOADING`.
+	 */
 	public videoStateSubject = new BehaviorSubject<EvaState>(EvaState.LOADING);
+
+	/**
+	 * Broadcasts the current video volume as a normalized value (`0` to `1`).
+	 * Emits `null` until the first volume change occurs.
+	 */
 	public videoVolumeSubject = new BehaviorSubject<number | null>(null);
+
+	/**
+	 * Broadcasts the current playback rate (e.g. `1`, `1.5`, `2`).
+	 * Emits `null` until the first rate change occurs.
+	 */
 	public playbackRateSubject = new BehaviorSubject<number | null>(null);
+
+	/** Broadcasts the current list of available `EvaTrack` objects. Updated by `EvaPlayer` on input changes. */
 	public videoTracksSubject = new BehaviorSubject<EvaTrack[]>([]);
+
+	/**
+	 * Broadcasts the video element's `TimeRanges` buffer object on each `progress` event.
+	 * Subscribed to by `EvaScrubBarBufferingTimeComponent`.
+	 */
 	public videoBufferSubject = new BehaviorSubject<TimeRanges | null>(null);
+
+	/**
+	 * Emits `null` on every `timeupdate` event.
+	 * Subscribed to by components that need to react to time changes (e.g. buffering time display),
+	 * typically with throttling applied.
+	 */
 	public videoTimeChangeSubject = new BehaviorSubject<null>(null);
-	/**Flag for current value of video state. */
+
+	/** The current `EvaState` value, mirrored as a plain field for synchronous reads. */
 	private currentVideoState: EvaState = EvaState.LOADING;
 
-	public triggerUserInteraction = new Subject<MouseEvent | TouchEvent | PointerEvent>()
+	/**
+	 * Subject that emits on user interaction events (mouse move, click, touch).
+	 * Subscribed to by `EvaControlsContainerComponent` and `EvaScrubBar` for auto-hide.
+	 * Published to by `EvaUserInteractionEventsDirective`.
+	 */
+	public triggerUserInteraction = new Subject<MouseEvent | TouchEvent | PointerEvent>();
 
-	// Add buffering detection variables
+	// ─── Buffering Detection ──────────────────────────────────────────────────
+
+	/** Timeout reference used by the position-polling buffering detection. Cleared on each `timeupdate`. */
 	private bufferingTimeout?: ReturnType<typeof setTimeout>;
+
+	/** The playback position recorded at the end of the previous `timeupdate` cycle. */
 	private lastPlayPos = 0;
+
+	/** The playback position recorded at the start of the current `timeupdate` cycle. */
 	private currentPlayPos = 0;
 
-	/**Called from play-pause component. */
+	// ─── Playback Commands ────────────────────────────────────────────────────
+
+	/**
+	 * Toggles play/pause on the video element.
+	 * Updates `currentVideoState` and `videoStateSubject` accordingly.
+	 * Called from `EvaPlayPause` and `EvaOverlayPlay`.
+	 */
 	public playOrPauseVideo() {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
@@ -62,17 +166,125 @@ export class EvaApi {
 		}
 	}
 
-	//Called from event listener
+	/**
+	 * Seeks forward by 5 seconds, clamped to the total duration.
+	 * Updates `time` signal immediately for responsive UI feedback.
+	 * Called from `EvaScrubBar` keyboard handler.
+	 */
+	public seekForward() {
+		const newTime = Math.min(this.time().current + 5, this.time().total);
+		this.assignedVideoElement.currentTime = newTime;
+		this.time.update(a => ({ ...a, current: newTime, remaining: a.total - newTime }));
+	}
+
+	/**
+	 * Seeks backward by 5 seconds, clamped to a minimum of `0`.
+	 * Updates `time` signal immediately for responsive UI feedback.
+	 * Called from `EvaScrubBar` keyboard handler.
+	 */
+	public seekBack() {
+		const newTime = Math.min(this.time().current - 5, this.time().total);
+		this.assignedVideoElement.currentTime = newTime;
+		this.time.update(a => ({ ...a, current: newTime, remaining: a.total - newTime }));
+	}
+
+	/**
+	 * Sets the video playback rate.
+	 * Called from `EvaPlaybackSpeed` when the user selects a speed.
+	 *
+	 * @param speed - The desired playback rate (e.g. `0.5`, `1`, `1.5`, `2`).
+	 */
+	public setPlaybackSpeed(speed: number) {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		this.assignedVideoElement.playbackRate = speed;
+	}
+
+	/**
+	 * Returns the current playback rate.
+	 * Falls back to `1` if the player is not yet ready.
+	 */
+	public getPlaybackSpeed(): number {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return 1;
+		}
+		return this.assignedVideoElement.playbackRate;
+	}
+
+	/**
+	 * Returns the current video volume as a normalized value (`0` to `1`).
+	 * Falls back to `0.75` (the default initial volume) if the player is not yet ready.
+	 * Called from `EvaMute` and `EvaVolume` on initialization.
+	 */
+	public getVideoVolume(): number {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return 0.75;
+		}
+		return this.assignedVideoElement.volume;
+	}
+
+	/**
+	 * Toggles mute/unmute by setting volume to `0` if currently audible,
+	 * or restoring it to `0.75` if currently muted.
+	 * Called from `EvaMute`.
+	 */
+	public muteOrUnmuteVideo() {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+
+		if (this.assignedVideoElement.volume > 0) {
+			this.assignedVideoElement.volume = 0;
+		}
+		else {
+			this.assignedVideoElement.volume = 0.75;
+		}
+	}
+
+	/**
+	 * Sets the video volume, clamping the value to `[0, 1]`.
+	 * Called from `EvaVolume` during drag and keyboard interactions.
+	 *
+	 * @param volume - The desired volume as a normalized value (`0`–`1`).
+	 */
+	public setVideoVolume(volume: number) {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		if (volume < 0) {
+			this.assignedVideoElement.volume = 0;
+		}
+		else if (volume > 1) {
+			this.assignedVideoElement.volume = 1;
+		}
+		else {
+			this.assignedVideoElement.volume = volume;
+		}
+	}
+
+	// ─── Event Listener Callbacks ─────────────────────────────────────────────
+
+	/**
+	 * Called from `EvaMediaEventListenersDirective` on the `error` event.
+	 * Sets state to `EvaState.ERROR` and clears the buffering indicator.
+	 */
 	public erroredVideo() {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
 		this.currentVideoState = EvaState.ERROR;
 		this.videoStateSubject.next(this.currentVideoState);
-		this.isBuffering.set(false); // Stop buffering on error
+		this.isBuffering.set(false);
 	}
 
-	//Called from event listener
+	/**
+	 * Called from `EvaMediaEventListenersDirective` on the `loadedmetadata` event.
+	 * Initializes the `time` signal with the video duration and sets `isLive` if
+	 * the duration is `Infinity`.
+	 *
+	 * @param e - The native `loadedmetadata` event.
+	 */
 	public loadedVideoMetadata(e: Event) {
 		this.isMetadataLoaded = true;
 		this.time.set({
@@ -86,18 +298,24 @@ export class EvaApi {
 		this.isLive.set(this.assignedVideoElement.duration === Infinity);
 	}
 
-	// Called from event listener - WAITING event
+	/**
+	 * Called from `EvaMediaEventListenersDirective` on the `waiting` event.
+	 * Shows the buffering indicator only if playback has already started,
+	 * to avoid showing it during the initial load.
+	 */
 	public videoWaiting() {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
-		// Only show buffering if we've started playing (not initial load)
 		if (this.hasStartedPlaying) {
 			this.isBuffering.set(true);
 		}
 	}
 
-	// Called from event listener - CAN_PLAY event
+	/**
+	 * Called from `EvaMediaEventListenersDirective` on the `canplay` event.
+	 * Marks the video as ready to play and clears the buffering indicator.
+	 */
 	public videoCanPlay() {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
@@ -106,7 +324,10 @@ export class EvaApi {
 		this.isBuffering.set(false);
 	}
 
-	// Called from event listener - PLAYING event
+	/**
+	 * Called from `EvaMediaEventListenersDirective` on the `playing` event.
+	 * Marks `hasStartedPlaying`, clears buffering, and cancels any pending buffering timeout.
+	 */
 	public playingVideo() {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
@@ -119,7 +340,10 @@ export class EvaApi {
 		}
 	}
 
-	// Called from event listener - STALLED event
+	/**
+	 * Called from `EvaMediaEventListenersDirective` on the `stalled` event.
+	 * Sets buffering to `true` to reflect that the browser has stalled while fetching data.
+	 */
 	public videoStalled() {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
@@ -127,6 +351,12 @@ export class EvaApi {
 		this.isBuffering.set(true);
 	}
 
+	/**
+	 * Called from `EvaScrubBar` on mouse interaction.
+	 * Sets `isSeeking` to `true` if the video is not live and is ready to play.
+	 *
+	 * @param e - The native `MouseEvent` from the scrub bar.
+	 */
 	public seekOnScrubEvent(e: MouseEvent) {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
@@ -137,7 +367,10 @@ export class EvaApi {
 		this.isSeeking.set(true);
 	}
 
-	// Called from event listener - SEEKING event
+	/**
+	 * Called from `EvaMediaEventListenersDirective` on the `seeking` event.
+	 * Sets both `isSeeking` and `isBuffering` to `true`.
+	 */
 	public videoSeeking() {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
@@ -146,7 +379,11 @@ export class EvaApi {
 		this.isBuffering.set(true);
 	}
 
-	// Called from event listener - SEEKED event
+	/**
+	 * Called from `EvaMediaEventListenersDirective` on the `seeked` event.
+	 * Clears `isSeeking` and resumes playback if `pendingPlayAfterSeek` is set.
+	 * Ignores `AbortError` which can occur if another seek interrupts the play call.
+	 */
 	public videoSeeked() {
 		if (!this.validateVideoAndPlayerBeforeAction()) return;
 		this.isSeeking.set(false);
@@ -159,18 +396,11 @@ export class EvaApi {
 		}
 	}
 
-	public seekForward() {
-		const newTime = Math.min(this.time().current + 5, this.time().total);
-		this.assignedVideoElement.currentTime = newTime;
-		this.time.update(a => ({ ...a, current: newTime, remaining: a.total - newTime }));
-	}
-
-	public seekBack() {
-		const newTime = Math.min(this.time().current - 5, this.time().total);
-		this.assignedVideoElement.currentTime = newTime;
-		this.time.update(a => ({ ...a, current: newTime, remaining: a.total - newTime }));
-	}
-
+	/**
+	 * Called from `EvaMediaEventListenersDirective` on the `timeupdate` event.
+	 * Updates `time`, emits `videoTimeChangeSubject`, and runs the position-polling
+	 * buffering detection check.
+	 */
 	public updateVideoTime() {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
@@ -187,15 +417,88 @@ export class EvaApi {
 			}
 		});
 
-		// Advanced buffering detection
 		this.detectBuffering(crnt);
 	}
 
 	/**
-	 * Detect buffering by checking if video playback position is advancing
+	 * Called from `EvaMediaEventListenersDirective` on the `ended` event.
+	 * Sets state to `EvaState.ENDED` and clears the buffering indicator.
+	 */
+	public endedVideo() {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		this.currentVideoState = EvaState.ENDED;
+		this.videoStateSubject.next(this.currentVideoState);
+		this.isBuffering.set(false);
+	}
+
+	/**
+	 * Called from `EvaMediaEventListenersDirective` on the `pause` event.
+	 * Sets state to `EvaState.PAUSED` and clears the buffering indicator.
+	 */
+	public pauseVideo() {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		this.currentVideoState = EvaState.PAUSED;
+		this.videoStateSubject.next(this.currentVideoState);
+		this.isBuffering.set(false);
+	}
+
+	/**
+	 * Called from `EvaMediaEventListenersDirective` on the `play` event.
+	 * Sets state to `EvaState.PLAYING`.
+	 */
+	public playVideo() {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		this.currentVideoState = EvaState.PLAYING;
+		this.videoStateSubject.next(this.currentVideoState);
+	}
+
+	/**
+	 * Called from `EvaMediaEventListenersDirective` on the `ratechange` event.
+	 * Broadcasts the new playback rate to `playbackRateSubject`.
+	 *
+	 * @param e - The native `ratechange` event.
+	 */
+	public playbackRateVideoChanged(e: Event) {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		this.playbackRateSubject.next(this.assignedVideoElement.playbackRate);
+	}
+
+	/**
+	 * Called from `EvaMediaEventListenersDirective` on the `volumechange` event.
+	 * Broadcasts the new volume to `videoVolumeSubject`.
+	 *
+	 * @param e - The native `volumechange` event.
+	 */
+	public volumeChanged(e: Event) {
+		this.videoVolumeSubject.next(
+			this.assignedVideoElement.volume
+		);
+	}
+
+	// ─── Buffering Detection ──────────────────────────────────────────────────
+
+	/**
+	 * Position-polling buffering detection. Called on every `timeupdate`.
+	 *
+	 * Clears buffering immediately if:
+	 * - The video is paused or ended.
+	 * - `readyState >= 3` (HAVE_FUTURE_DATA or HAVE_ENOUGH_DATA).
+	 *
+	 * Otherwise, schedules a 500ms timeout. If the playback position has not advanced
+	 * and `readyState < 3`, sets buffering to `true`. The 500ms delay reduces false
+	 * positives from brief network hiccups.
+	 *
+	 * @param currentTime - The current playback position in seconds.
 	 */
 	private detectBuffering(currentTime: number) {
-		// Don't check buffering if video is paused or ended
 		if (this.assignedVideoElement.paused || this.assignedVideoElement.ended) {
 			this.isBuffering.set(false);
 			if (this.bufferingTimeout) {
@@ -209,30 +512,34 @@ export class EvaApi {
 			this.isBuffering.set(false);
 		}
 
-		// Update play positions
 		this.currentPlayPos = currentTime;
 
-		// Clear existing timeout
 		if (this.bufferingTimeout) {
 			clearTimeout(this.bufferingTimeout);
 		}
 
-		// Only check for stalling if we've had time to advance
 		this.bufferingTimeout = setTimeout(() => {
-			// If current position hasn't advanced and video should be playing
 			if (this.currentPlayPos === this.lastPlayPos &&
 				!this.assignedVideoElement.paused &&
 				!this.assignedVideoElement.ended &&
-				this.assignedVideoElement.readyState < 3) { // Only if not enough data
+				this.assignedVideoElement.readyState < 3) {
 				this.isBuffering.set(true);
 			}
-		}, 500); // Increased from 200ms to 500ms to avoid false positives
+		}, 500); // 500ms to avoid false positives from brief stalls
 
 		this.lastPlayPos = this.currentPlayPos;
 	}
 
 	/**
-	 * Check buffering status based on buffer ranges
+	 * Buffer range-based buffering detection. Called from `EvaMediaEventListenersDirective`
+	 * on the `progress` event.
+	 *
+	 * Emits the current `TimeRanges` to `videoBufferSubject`, then checks whether the
+	 * current playback position has at least 1 second of buffer ahead. If not, and
+	 * `readyState < 3`, sets buffering to `true`. Does not force buffering to `false`
+	 * to avoid conflicting with other detection strategies.
+	 *
+	 * No-ops if the video is paused, ended, or `readyState >= 3`.
 	 */
 	public checkBufferStatus(): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
@@ -240,12 +547,10 @@ export class EvaApi {
 		}
 		this.videoBufferSubject.next(this.assignedVideoElement.buffered);
 
-		// Only check if we're currently playing
 		if (this.assignedVideoElement.paused || this.assignedVideoElement.ended) {
 			return;
 		}
 
-		// If readyState is sufficient, we're not buffering
 		if (this.assignedVideoElement.readyState >= 3) {
 			this.isBuffering.set(false);
 			return;
@@ -256,22 +561,26 @@ export class EvaApi {
 
 		let hasEnoughBuffer = false;
 
-		// Check if current time is within any buffered range
 		for (let i = 0; i < buffered.length; i++) {
 			if (currentTime >= buffered.start(i) && currentTime <= buffered.end(i)) {
-				// Check if we have enough buffer ahead (at least 1 second)
 				const bufferAhead = buffered.end(i) - currentTime;
 				hasEnoughBuffer = bufferAhead > 1;
 				break;
 			}
 		}
 
-		// Only set to true if we don't have buffer, don't force false
 		if (!hasEnoughBuffer && this.assignedVideoElement.readyState < 3) {
 			this.isBuffering.set(true);
 		}
 	}
 
+	// ─── Utilities ────────────────────────────────────────────────────────────
+
+	/**
+	 * Returns whether the current source is a live stream.
+	 * Equivalent to reading `isLive()` but with a player readiness guard.
+	 * Returns `false` if the player is not yet ready.
+	 */
 	public checkIfItIsLiveStram(): boolean {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return false;
@@ -279,14 +588,18 @@ export class EvaApi {
 		return this.isLive();
 	}
 
-	/**It returns:
-	 * 
-	 * - a number in seconds if it has a duration
-	 * - NaN if no media data is available
-	 * - Infinity if it is a live stream  
-	 * 
-	 * https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/duration#value
-	 * */
+	/**
+	 * Returns the video duration in seconds.
+	 *
+	 * Possible return values:
+	 * - A positive number — the duration in seconds for VOD content.
+	 * - `NaN` — no media data is available yet.
+	 * - `Infinity` — the source is a live stream.
+	 *
+	 * Returns `NaN` if the player is not yet ready.
+	 *
+	 * @see https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/duration#value
+	 */
 	public getVideoDuration(): number {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return NaN;
@@ -294,127 +607,42 @@ export class EvaApi {
 		return this.assignedVideoElement.duration;
 	}
 
-	//Called from event listener
-	public endedVideo() {
-		if (!this.validateVideoAndPlayerBeforeAction()) {
-			return;
-		}
-		this.currentVideoState = EvaState.ENDED;
-		this.videoStateSubject.next(this.currentVideoState);
-		this.isBuffering.set(false); // Stop buffering when ended
-	}
-
-	//Called from event listener
-	public pauseVideo() {
-		if (!this.validateVideoAndPlayerBeforeAction()) {
-			return;
-		}
-		this.currentVideoState = EvaState.PAUSED;
-		this.videoStateSubject.next(this.currentVideoState);
-		this.isBuffering.set(false); // Stop buffering when paused
-	}
-
-	//Called from event listener
-	public playVideo() {
-		if (!this.validateVideoAndPlayerBeforeAction()) {
-			return;
-		}
-		this.currentVideoState = EvaState.PLAYING;
-		this.videoStateSubject.next(this.currentVideoState);
-	}
-
-	//Called from event listener
-	public playbackRateVideoChanged(e: Event) {
-		if (!this.validateVideoAndPlayerBeforeAction()) {
-			return;
-		}
-		this.playbackRateSubject.next(this.assignedVideoElement.playbackRate);
-	}
-
-	//Called from event listener
-	public setPlaybackSpeed(speed: number) {
-		if (!this.validateVideoAndPlayerBeforeAction()) {
-			return;
-		}
-		this.assignedVideoElement.playbackRate = speed;
-	}
-
-	public getPlaybackSpeed(): number {
-		if (!this.validateVideoAndPlayerBeforeAction()) {
-			return 1;
-		}
-		return this.assignedVideoElement.playbackRate;
-	}
-
-
-	// called from component
-	public getVideoVolume(): number {
-		if (!this.validateVideoAndPlayerBeforeAction()) {
-			// this value is default on init
-			return 0.75;
-		}
-		return this.assignedVideoElement.volume;
-	}
-
-
-	// called from component
-	public muteOrUnmuteVideo() {
-		if (!this.validateVideoAndPlayerBeforeAction()) {
-			return;
-		}
-
-		// if there is any sound mute it
-		if (this.assignedVideoElement.volume > 0) {
-			this.assignedVideoElement.volume = 0;
-		}
-		else {
-			this.assignedVideoElement.volume = 0.75;
-		}
-	}
-
-	/** Value must fall between 0 and 1, where 0 is effectively muted and 1 is the loudest possible value. 
-	 * 
-	 * Function will check the provided value and set appropriate volume.
-	*/
-	public setVideoVolume(volume: number) {
-		if (!this.validateVideoAndPlayerBeforeAction()) {
-			return;
-		}
-		if (volume < 0) {
-			this.assignedVideoElement.volume = 0;
-		}
-		else if (volume > 1) {
-			this.assignedVideoElement.volume = 1;
-		}
-		else {
-			this.assignedVideoElement.volume = volume;
-		}
-	}
-
-	//Called from event listener
-	public volumeChanged(e: Event) {
-		this.videoVolumeSubject.next(
-			this.assignedVideoElement.volume
-		);
-	}
-
+	/** Returns the current `EvaState` synchronously. */
 	public getCurrentVideoState(): EvaState {
 		return this.currentVideoState;
 	}
 
+	/**
+	 * Assigns the native `<video>` element to this service instance.
+	 * Called from `EvaPlayer.ngAfterViewInit`.
+	 *
+	 * @param element - The native `HTMLVideoElement` rendered by `EvaPlayer`.
+	 */
 	public assignElementToApi(element: HTMLVideoElement) {
 		this.assignedVideoElement = element;
 	}
 
+	/** Reserved for future subtitle initialization logic. */
 	public setFirstSubtitles() {
-
 	}
 
+	/**
+	 * Marks the player as ready and emits `playerReadyEvent`.
+	 * Called from `EvaPlayer.ngAfterViewInit` after `assignElementToApi`.
+	 * Components that deferred setup (e.g. `EvaUserInteractionEventsDirective`)
+	 * will receive this event and complete their initialization.
+	 */
 	public onPlayerReady() {
 		this.isPlayerReady = true;
 		this.playerReadyEvent.emit(this);
 	}
 
+	/**
+	 * Guards all video operations by verifying that the player is ready
+	 * and the video element has been assigned.
+	 *
+	 * @returns `true` if it is safe to operate on the video element, `false` otherwise.
+	 */
 	public validateVideoAndPlayerBeforeAction(): boolean {
 		if (!this.isPlayerReady) {
 			return false;
@@ -425,5 +653,4 @@ export class EvaApi {
 
 		return true;
 	}
-
 }

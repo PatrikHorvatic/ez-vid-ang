@@ -1,8 +1,44 @@
 import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, input, OnDestroy, OnInit, Renderer2, signal, viewChild, WritableSignal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
-import { EvaVolumeAria } from '../../utils/aria-utilities';
+import { EvaVolumeAria, EvaVolumeAriaTransformed, transformEvaVolumeAria } from '../../utils/aria-utilities';
 
+/**
+ * Volume slider component for the Eva video player.
+ *
+ * Renders as a `role="slider"` element with `tabindex="0"`, exposing the current
+ * volume as a percentage integer via `aria-valuetext` (e.g. `"72"`). The range is
+ * always `0` to `100` with horizontal orientation.
+ *
+ * Interaction modes:
+ * - **Click** — sets volume to the clicked position on the bar.
+ * - **Click and drag** — attaches document-level `mousemove`/`mouseup` listeners via
+ *   `Renderer2` for smooth dragging. Listeners are cleaned up on `mouseup` or `ngOnDestroy`.
+ * - **Touch** — equivalent drag behaviour using `touchmove`/`touchend`.
+ * - **Keyboard** — fine and coarse volume adjustment (see below).
+ *
+ * Screen reader support:
+ * - Volume changes are announced via `shouldAnnounceVolume`, debounced at 300ms to
+ *   avoid excessive announcements during rapid input. The signal resets after 100ms.
+ * - `eva-volume-focused` class is applied to the host when the element has focus,
+ *   enabling focus-visible styling.
+ *
+ * Keyboard support (when focused):
+ * - `ArrowUp` / `ArrowRight` — increase volume by 5%
+ * - `ArrowDown` / `ArrowLeft` — decrease volume by 5%
+ * - `PageUp` — increase volume by 10%
+ * - `PageDown` — decrease volume by 10%
+ * - `Home` — set volume to 100%
+ * - `End` — mute (set volume to 0%)
+ *
+ * @example
+ * // Minimal usage
+ * <eva-volume />
+ *
+ * @example
+ * // Custom ARIA label
+ * <eva-volume [evaAria]="{ ariaLabel: 'Video volume' }" />
+ */
 @Component({
   selector: 'eva-volume',
   templateUrl: './volume.html',
@@ -24,30 +60,67 @@ import { EvaVolumeAria } from '../../utils/aria-utilities';
 export class EvaVolume implements OnInit, OnDestroy {
 
   private evaAPI = inject(EvaApi);
+
+  /** Used to attach and detach document-level `mousemove`, `mouseup`, `touchmove`, and `touchend` listeners. */
   private renderer = inject(Renderer2);
 
+  /** Reference to the volume bar element used to calculate click/drag position relative to the bar's bounds. */
   readonly volumeBar = viewChild.required<ElementRef<HTMLDivElement>>('volumeBar');
 
-  readonly evaAria = input<EvaVolumeAria>({ ariaLabel: "Volume control" });
+  /**
+   * ARIA label for the volume slider.
+   *
+   * All properties are optional — default values are applied via `transformEvaVolumeAria`.
+   */
+  readonly evaAria = input<EvaVolumeAriaTransformed, EvaVolumeAria>(transformEvaVolumeAria(undefined), { transform: transformEvaVolumeAria });
 
+  /** Resolves the `aria-label` from the transformed aria input. */
   protected ariaLabel = computed<string>(() => {
-    return this.evaAria() && this.evaAria().ariaLabel ? this.evaAria().ariaLabel! : "Volume control";
+    return this.evaAria().ariaLabel;
   });
 
-  // Signals
+  /** The current volume as a percentage integer string (e.g. `"72"`). Bound to `aria-valuetext`. */
   protected ariaValue = signal("0");
+
+  /** Whether the user is currently dragging the volume bar. */
   protected isDragging = signal(false);
+
+  /** Whether the volume slider currently has keyboard focus. Applies `eva-volume-focused` to the host. */
   protected isFocused = signal(false);
+
+  /**
+   * Controls the screen reader live region announcement for volume changes.
+   * Set to `true` briefly after a debounced volume change, then reset to `false` after 100ms.
+   */
   protected shouldAnnounceVolume = signal(false);
+
+  /**
+   * The `clientX` position recorded on `mousedown` or `touchstart`.
+   * Used to distinguish a click (no movement) from a drag (position changed).
+   * Reset to `-1` after drag ends.
+   */
   protected mouseDownPosition: WritableSignal<number> = signal(-1);
+
+  /** Reactive signal holding the current video volume as a normalized value (`0` to `1`). Initialized in `ngOnInit`. */
   protected videoVolume!: WritableSignal<number>;
 
-  // Subscription and listener cleanup
+  /** Subscription to volume changes from `EvaApi`. Cleaned up in `ngOnDestroy`. */
   private videoVolumeSub: Subscription | null = null;
+
+  /** Cleanup function returned by `Renderer2.listen` for the `mousemove`/`touchmove` document listener. */
   private mouseMoveListener?: () => void;
+
+  /** Cleanup function returned by `Renderer2.listen` for the `mouseup`/`touchend` document listener. */
   private mouseUpListener?: () => void;
+
+  /** Reference to the debounce timeout for `announceVolumeChange`. Cleared on each new volume change. */
   private announceTimeout?: number;
 
+  /**
+   * Initializes `videoVolume` from `EvaApi.getVideoVolume()` and subscribes to
+   * `EvaApi.videoVolumeSubject` to keep the signal and `ariaValue` in sync with
+   * external volume changes (e.g. from the mute button).
+   */
   ngOnInit(): void {
     // Initialize volume signal
     const initialVolume = this.evaAPI.getVideoVolume();
@@ -63,6 +136,10 @@ export class EvaVolume implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Cleans up the volume subscription, removes any active document-level drag listeners,
+   * and clears the announcement debounce timeout.
+   */
   ngOnDestroy(): void {
     // Clean up subscription
     this.videoVolumeSub?.unsubscribe();
@@ -77,7 +154,10 @@ export class EvaVolume implements OnInit, OnDestroy {
   }
 
   /**
-   * Handle click on volume bar (when not dragging)
+   * Handles a click on the volume bar.
+   * Ignored if the event is the tail of a drag operation (i.e. `clientX` changed since `mousedown`).
+   *
+   * @param e - The native `MouseEvent` from the click.
    */
   protected onClick(e: MouseEvent) {
     // Prevent click event if this was actually a drag operation
@@ -89,7 +169,11 @@ export class EvaVolume implements OnInit, OnDestroy {
   }
 
   /**
-   * Start dragging - attach document listeners
+   * Begins a mouse drag on the volume bar.
+   * Records the initial `clientX`, sets the volume at the pressed position, and attaches
+   * document-level `mousemove` and `mouseup` listeners via `Renderer2`.
+   *
+   * @param e - The native `MouseEvent` from `mousedown`.
    */
   protected onMouseDown(e: MouseEvent) {
     e.preventDefault(); // Prevent text selection while dragging
@@ -112,7 +196,10 @@ export class EvaVolume implements OnInit, OnDestroy {
   }
 
   /**
-   * Handle dragging - only active when isDragging is true
+   * Updates volume continuously while the user drags.
+   * Only active when `isDragging` is `true`.
+   *
+   * @param event - The native `MouseEvent` from the document `mousemove` listener.
    */
   private onDrag(event: MouseEvent) {
     if (this.isDragging()) {
@@ -122,7 +209,11 @@ export class EvaVolume implements OnInit, OnDestroy {
   }
 
   /**
-   * Stop dragging - remove document listeners
+   * Finalizes a drag operation on `mouseup`.
+   * Sets the final volume, resets dragging state, delays `mouseDownPosition` reset by 10ms
+   * to prevent the subsequent `click` event from re-triggering a seek, then removes document listeners.
+   *
+   * @param event - The native `MouseEvent` from the document `mouseup` listener.
    */
   private onStopDrag(event: MouseEvent) {
     if (this.isDragging()) {
@@ -143,7 +234,8 @@ export class EvaVolume implements OnInit, OnDestroy {
   }
 
   /**
-   * Remove document-level event listeners
+   * Calls the cleanup functions returned by `Renderer2.listen` to detach
+   * the document-level `mousemove`/`mouseup` (or `touchmove`/`touchend`) listeners.
    */
   private removeDocumentListeners() {
     this.mouseMoveListener?.();
@@ -153,13 +245,19 @@ export class EvaVolume implements OnInit, OnDestroy {
   }
 
   /**
-   * Handle keyboard volume adjustment on the volumeBar element
-   * Arrow Up/Right: increase volume by 5%
-   * Arrow Down/Left: decrease volume by 5%
-   * Home: max volume (100%)
-   * End: mute (0%)
-   * PageUp: increase volume by 10%
-   * PageDown: decrease volume by 10%
+   * Handles keyboard volume adjustment when the slider is focused.
+   *
+   * - `ArrowUp` / `ArrowRight` — increase volume by 5%
+   * - `ArrowDown` / `ArrowLeft` — decrease volume by 5%
+   * - `PageUp` — increase volume by 10%
+   * - `PageDown` — decrease volume by 10%
+   * - `Home` — set volume to 100%
+   * - `End` — mute (set volume to 0%)
+   *
+   * A screen reader announcement is triggered via `announceVolumeChange()` only if
+   * the key was handled.
+   *
+   * @param event - The native `KeyboardEvent` from the host `keydown` listener.
    */
   protected onKeyDown(event: KeyboardEvent) {
     const key = event.key;
@@ -211,9 +309,11 @@ export class EvaVolume implements OnInit, OnDestroy {
   }
 
   /**
-   * Set volume and optionally announce to screen readers
-   * @param vol - Volume percentage (0-100)
-   * @param announce - Whether to announce the change to screen readers
+   * Sets the video volume, clamping the input to `[0, 100]`, normalizing it to `[0, 1]`
+   * for `EvaApi`, and updating `ariaValue`. Optionally triggers a debounced screen reader announcement.
+   *
+   * @param vol - Volume as a percentage (`0`–`100`).
+   * @param announce - When `true`, triggers `announceVolumeChange()` after setting the volume.
    */
   private setVolume(vol: number, announce: boolean = false) {
     const clampedVol = Math.max(0, Math.min(100, vol));
@@ -227,8 +327,13 @@ export class EvaVolume implements OnInit, OnDestroy {
   }
 
   /**
-   * Announce volume change to screen readers using live region
-   * Debounced to avoid excessive announcements during rapid changes
+   * Triggers a debounced screen reader announcement of the current volume.
+   *
+   * Sets `shouldAnnounceVolume` to `true` after a 300ms debounce, then resets it to
+   * `false` after 100ms — giving the live region enough time to be read without
+   * remaining active indefinitely.
+   *
+   * Any pending announcement is cancelled when a new volume change arrives within the debounce window.
    */
   private announceVolumeChange() {
     // Clear existing timeout
@@ -247,6 +352,15 @@ export class EvaVolume implements OnInit, OnDestroy {
     }, 300);
   }
 
+  /**
+   * Calculates the volume percentage from a horizontal mouse or touch position
+   * relative to the volume bar's bounding rect.
+   *
+   * The result is clamped to `[0, 100]`.
+   *
+   * @param mousePosX - The `clientX` value from a `MouseEvent` or `TouchEvent`.
+   * @returns Volume as a percentage (`0`–`100`).
+   */
   protected calculateVolume(mousePosX: number): number {
     const recObj = this.volumeBar().nativeElement.getBoundingClientRect();
     const volumeBarOffsetLeft = recObj.left;
@@ -259,6 +373,13 @@ export class EvaVolume implements OnInit, OnDestroy {
     return Math.max(0, Math.min(100, percentage));
   }
 
+  /**
+   * Begins a touch drag on the volume bar.
+   * Equivalent to `onMouseDown` but for touch events. Attaches document-level
+   * `touchmove` and `touchend` listeners via `Renderer2`.
+   *
+   * @param e - The native `TouchEvent` from `touchstart`.
+   */
   protected onTouchStart(e: TouchEvent) {
     e.preventDefault();
     const touch = e.touches[0];
@@ -291,16 +412,12 @@ export class EvaVolume implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Handle focus events for better visual feedback
-   */
+  /** Sets `isFocused` to `true` when the slider receives focus, enabling `eva-volume-focused` styling. */
   protected onFocus() {
     this.isFocused.set(true);
   }
 
-  /**
-   * Handle blur events
-   */
+  /** Sets `isFocused` to `false` when the slider loses focus, removing `eva-volume-focused` styling. */
   protected onBlur() {
     this.isFocused.set(false);
   }

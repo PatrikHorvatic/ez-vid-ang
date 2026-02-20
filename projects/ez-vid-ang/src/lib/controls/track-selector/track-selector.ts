@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
-import { EvaTrack } from '../../types';
-import { EvaApi } from '../../api/eva-api';
 import { Subscription } from 'rxjs';
+import { EvaApi } from '../../api/eva-api';
+import { EvaTrack } from '../../types';
 
 /**
  * Internal representation of a text track option within the dropdown.

@@ -1,6 +1,6 @@
 import { NgModule } from "@angular/core";
-import { EvaHlsDirective } from "./hls.directive";
 import { EvaDashDirective } from "./dash.directive";
+import { EvaHlsDirective } from "./hls.directive";
 
 @NgModule({
 	declarations: [EvaHlsDirective, EvaDashDirective],

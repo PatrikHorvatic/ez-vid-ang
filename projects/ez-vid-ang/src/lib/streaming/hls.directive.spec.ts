@@ -1,8 +1,8 @@
-import { HlsDirective } from './hls.directive';
+import { EvaHlsDirective } from './hls.directive';
 
 describe('HlsDirective', () => {
   it('should create an instance', () => {
-    const directive = new HlsDirective();
+    const directive = new EvaHlsDirective();
     expect(directive).toBeTruthy();
   });
 });

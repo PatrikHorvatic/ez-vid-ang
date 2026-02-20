@@ -1,4 +1,3 @@
-import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { EvaControlsContainerComponent } from './eva-controls-container/controls-container.component';
 import { EvaFullscreen } from "./fullscreen/fullscreen";
@@ -25,7 +24,7 @@ import { EvaVolume } from "./volume/volume";
 		EvaOverlayPlay,
 		EvaScrubBarBufferingTimeComponent,
 		EvaScrubBarCurrentTimeComponent],
-	imports: [CommonModule],
+	imports: [],
 	exports: [EvaFullscreen, EvaMute, EvaPlayPause,
 		EvaPlaybackSpeed, EvaQualitySelector, EvaScrubBar,
 		EvaControlsContainerComponent,

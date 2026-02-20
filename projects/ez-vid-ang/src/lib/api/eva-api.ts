@@ -285,7 +285,7 @@ export class EvaApi {
 	 *
 	 * @param e - The native `loadedmetadata` event.
 	 */
-	public loadedVideoMetadata(e: Event) {
+	public loadedVideoMetadata(_e: Event) {
 		this.isMetadataLoaded = true;
 		this.time.set({
 			current: 0,
@@ -357,7 +357,7 @@ export class EvaApi {
 	 *
 	 * @param e - The native `MouseEvent` from the scrub bar.
 	 */
-	public seekOnScrubEvent(e: MouseEvent) {
+	public seekOnScrubEvent(_e: MouseEvent) {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -464,7 +464,7 @@ export class EvaApi {
 	 *
 	 * @param e - The native `ratechange` event.
 	 */
-	public playbackRateVideoChanged(e: Event) {
+	public playbackRateVideoChanged(_e: Event) {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -477,7 +477,7 @@ export class EvaApi {
 	 *
 	 * @param e - The native `volumechange` event.
 	 */
-	public volumeChanged(e: Event) {
+	public volumeChanged(_e: Event) {
 		this.videoVolumeSubject.next(
 			this.assignedVideoElement.volume
 		);

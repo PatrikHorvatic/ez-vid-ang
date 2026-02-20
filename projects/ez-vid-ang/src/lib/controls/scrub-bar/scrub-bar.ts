@@ -300,7 +300,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    * No-ops for live streams.
    */
   @HostListener('touchstart', ['$event'])
-  protected touchStartScrub(e: TouchEvent) {
+  protected touchStartScrub(_e: TouchEvent) {
     if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) return;
     if (this.evaAPI.isLive()) return;
 
@@ -317,7 +317,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    * No-ops for live streams.
    */
   @HostListener('document:touchcancel', ['$event'])
-  protected touchCancelScrub(e: TouchEvent) {
+  protected touchCancelScrub(_e: TouchEvent) {
     if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) return;
     if (this.evaAPI.isLive()) return;
 
@@ -332,7 +332,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    * No-ops for live streams.
    */
   @HostListener('document:touchend', ['$event'])
-  protected touchEndScrub(e: TouchEvent) {
+  protected touchEndScrub(_e: TouchEvent) {
     if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) return;
     if (this.evaAPI.isLive()) return;
 

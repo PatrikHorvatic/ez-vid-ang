@@ -55,7 +55,7 @@ export class EvaUserInteractionEventsDirective implements OnInit, OnDestroy {
       this.prepareListeners();
     }
     else {
-      this.playerReady$ = this.evaAPI.playerReadyEvent.subscribe(v => {
+      this.playerReady$ = this.evaAPI.playerReadyEvent.subscribe(() => {
         this.prepareListeners();
       });
     }

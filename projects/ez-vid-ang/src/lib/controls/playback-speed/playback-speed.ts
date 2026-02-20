@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, OnInit, signal, effect, computed } from '@angular/core';
-import { transformDefaultPlaybackSpeed, validateAndTransformPlaybackSpeeds } from '../../utils/utilities';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
 import { EvaPlaybackSpeedAria, EvaPlaybackSpeedAriaTransformed, transformEvaPlaybackSpeedAria } from '../../utils/aria-utilities';
+import { transformDefaultPlaybackSpeed, validateAndTransformPlaybackSpeeds } from '../../utils/utilities';
 
 /**
  * Playback speed selector component for the Eva video player.

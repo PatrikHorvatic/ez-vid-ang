@@ -108,10 +108,10 @@ export class EvaVolume implements OnInit, OnDestroy {
   private videoVolumeSub: Subscription | null = null;
 
   /** Cleanup function returned by `Renderer2.listen` for the `mousemove`/`touchmove` document listener. */
-  private mouseMoveListener?: () => void;
+  private mouseMoveListener?: (() => void) | undefined;
 
   /** Cleanup function returned by `Renderer2.listen` for the `mouseup`/`touchend` document listener. */
-  private mouseUpListener?: () => void;
+  private mouseUpListener?: (() => void) | undefined;
 
   /** Reference to the debounce timeout for `announceVolumeChange`. Cleared on each new volume change. */
   private announceTimeout?: number;

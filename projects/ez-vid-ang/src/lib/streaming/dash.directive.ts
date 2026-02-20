@@ -7,7 +7,7 @@ import { Directive, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular
 export class EvaDashDirective implements OnInit, OnDestroy, OnChanges {
 
 
-  ngOnChanges(changes: SimpleChanges): void {
+  ngOnChanges(_changes: SimpleChanges): void {
 
   }
 

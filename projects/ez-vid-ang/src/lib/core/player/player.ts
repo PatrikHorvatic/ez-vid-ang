@@ -1,10 +1,10 @@
 import { AfterViewInit, Component, ElementRef, inject, input, OnChanges, OnDestroy, QueryList, SimpleChanges, viewChild, viewChildren } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
+import { EvaDashDirective } from '../../streaming/dash.directive';
+import { EvaHlsDirective } from '../../streaming/hls.directive';
 import { EvaTrack, EvaVideoElementConfiguration, EvaVideoSource } from '../../types';
 import { validateTracks } from '../../utils/utilities';
-import { EvaHlsDirective } from '../../streaming/hls.directive';
-import { EvaDashDirective } from '../../streaming/dash.directive';
 
 /**
  * Root player component for the Eva video player.
@@ -43,7 +43,7 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
   private playerMainAPI = inject(EvaApi);
 
   /** The scoped `EvaFullscreenAPI` instance provided to this player's component subtree. */
-  private playerFullscreenAPI = inject(EvaFullscreenAPI);
+  protected playerFullscreenAPI = inject(EvaFullscreenAPI);
 
   /**
    * Optionally injected HLS streaming directive.

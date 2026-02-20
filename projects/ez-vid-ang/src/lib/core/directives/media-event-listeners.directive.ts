@@ -1,7 +1,7 @@
 import { Directive, ElementRef, inject, OnDestroy, OnInit } from '@angular/core';
 import { fromEvent, Observable, Subscription } from 'rxjs';
-import { EvaVideoEvent } from '../../types';
 import { EvaApi } from '../../api/eva-api';
+import { EvaVideoEvent } from '../../types';
 
 /**
  * Directive that bridges native `HTMLVideoElement` media events to the `EvaApi` layer.
@@ -143,52 +143,52 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
     this.waitingForKey$ = fromEvent(this.elementRef.nativeElement, EvaVideoEvent.WAITING_FOR_KEY);
 
     /** Stub — no `EvaApi` side effect yet. */
-    this.abortSub = this.abort$.subscribe(v => {
+    this.abortSub = this.abort$.subscribe(() => {
       console.log("video aborted");
     });
 
     /** Notifies `EvaApi` that the video is ready to begin playback. */
-    this.canPlaySub = this.canPlay$.subscribe(v => {
+    this.canPlaySub = this.canPlay$.subscribe(() => {
       console.log("vcan playd");
       this.evaAPI.videoCanPlay();
     });
 
     /** Stub — no `EvaApi` side effect yet. */
-    this.canPlayThroughSub = this.canPlayThrough$.subscribe(v => {
+    this.canPlayThroughSub = this.canPlayThrough$.subscribe(() => {
     });
 
     /** Stub — no `EvaApi` side effect yet. */
-    this.completeSub = this.complete$.subscribe(v => {
+    this.completeSub = this.complete$.subscribe(() => {
       console.log("video complete");
       // this.evaAPI.endedVideo();
     });
 
     /** Stub — no `EvaApi` side effect yet. */
-    this.durationChangeSub = this.durationChange$.subscribe(v => {
+    this.durationChangeSub = this.durationChange$.subscribe(() => {
     });
 
     /** Stub — no `EvaApi` side effect yet. */
-    this.emptiedSub = this.emptied$.subscribe(v => {
+    this.emptiedSub = this.emptied$.subscribe(() => {
     });
 
     /** Stub — no `EvaApi` side effect yet. */
-    this.encryptedSub = this.encrypted$.subscribe(v => {
+    this.encryptedSub = this.encrypted$.subscribe(() => {
     });
 
     /** Notifies `EvaApi` that video playback has ended. */
-    this.endedSub = this.ended$.subscribe(v => {
+    this.endedSub = this.ended$.subscribe(() => {
       console.log("vendedd");
       this.evaAPI.endedVideo();
     });
 
     /** Notifies `EvaApi` that the video has encountered an error. */
-    this.errorSub = this.error$.subscribe(v => {
+    this.errorSub = this.error$.subscribe(() => {
       console.log("video errored");
       this.evaAPI.erroredVideo();
     });
 
     /** Stub — no `EvaApi` side effect yet. */
-    this.loadedDataSub = this.loadedData$.subscribe(v => {
+    this.loadedDataSub = this.loadedData$.subscribe(() => {
       console.log("video loaded data");
     });
 
@@ -199,30 +199,30 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
     });
 
     /** Stub — no `EvaApi` side effect yet. */
-    this.loadStartSub = this.loadStart$.subscribe(v => {
+    this.loadStartSub = this.loadStart$.subscribe(() => {
       console.log("vload startd");
     });
 
     /** Notifies `EvaApi` that the video has been paused. */
-    this.pauseSub = this.pause$.subscribe(v => {
+    this.pauseSub = this.pause$.subscribe(() => {
       console.log("video pause");
       this.evaAPI.pauseVideo();
     });
 
     /** Notifies `EvaApi` that the video has started playing (the `play` event, before frames render). */
-    this.playSub = this.play$.subscribe(v => {
+    this.playSub = this.play$.subscribe(() => {
       console.log("video play");
       this.evaAPI.playVideo();
     });
 
     /** Notifies `EvaApi` that the video is actively playing and rendering frames. */
-    this.playingSub = this.playing$.subscribe(v => {
+    this.playingSub = this.playing$.subscribe(() => {
       console.log("video playing");
       this.evaAPI.playingVideo();
     });
 
     /** Notifies `EvaApi` to check the current buffer status. */
-    this.progressSub = this.progress$.subscribe(v => {
+    this.progressSub = this.progress$.subscribe(() => {
       console.log("video progressed");
       this.evaAPI.checkBufferStatus();
     });
@@ -234,30 +234,30 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
     });
 
     /** Notifies `EvaApi` that a seek operation has completed. */
-    this.seekedSub = this.seeked$.subscribe(v => {
+    this.seekedSub = this.seeked$.subscribe(() => {
       console.log("vseekedd");
       this.evaAPI.videoSeeked();
     });
 
     /** Notifies `EvaApi` that a seek operation has begun. */
-    this.seekingSub = this.seeking$.subscribe(v => {
+    this.seekingSub = this.seeking$.subscribe(() => {
       console.log("video seeking");
       this.evaAPI.videoSeeking();
     });
 
     /** Notifies `EvaApi` that the browser has stalled while fetching media data. */
-    this.stalledSub = this.stalled$.subscribe(v => {
+    this.stalledSub = this.stalled$.subscribe(() => {
       console.log("video stalled");
       this.evaAPI.videoStalled();
     });
 
     /** Stub — no `EvaApi` side effect yet. */
-    this.suspendSub = this.suspend$.subscribe(v => {
+    this.suspendSub = this.suspend$.subscribe(() => {
       console.log("video suspended");
     });
 
     /** Notifies `EvaApi` to update the tracked current playback time. */
-    this.timeUpdateSub = this.timeUpdate$.subscribe(v => {
+    this.timeUpdateSub = this.timeUpdate$.subscribe(() => {
       console.log("video time updated");
       this.evaAPI.updateVideoTime();
     });
@@ -268,13 +268,13 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
     });
 
     /** Notifies `EvaApi` that the video is waiting for data before it can continue playback. */
-    this.waitingSub = this.waiting$.subscribe(v => {
+    this.waitingSub = this.waiting$.subscribe(() => {
       console.log("video waiting");
       this.evaAPI.videoWaiting();
     });
 
     /** Stub — no `EvaApi` side effect yet. */
-    this.waitingForKeySub = this.waitingForKey$.subscribe(v => {
+    this.waitingForKeySub = this.waitingForKey$.subscribe(() => {
       console.log("video waiting for key");
     });
   }

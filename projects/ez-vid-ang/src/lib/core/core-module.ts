@@ -1,4 +1,3 @@
-import { CommonModule } from "@angular/common";
 import { NgModule } from "@angular/core";
 import { EvaApi } from "../api/eva-api";
 import { EvaMediaEventListenersDirective } from './directives/media-event-listeners.directive';
@@ -12,7 +11,7 @@ import { EvaPlayer } from "./player/player";
 		EvaVideoConfigurationDirective,
 		EvaUserInteractionEventsDirective,
 	],
-	imports: [CommonModule],
+	imports: [],
 	exports: [EvaPlayer,
 		EvaMediaEventListenersDirective,
 		EvaVideoConfigurationDirective,

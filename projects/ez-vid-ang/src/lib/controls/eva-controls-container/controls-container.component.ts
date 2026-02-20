@@ -1,6 +1,6 @@
-import { Component, inject, input, Input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges, WritableSignal } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
+import { Component, inject, input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges, WritableSignal } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { EvaApi } from '../../api/eva-api';
 import { transformTimeoutDuration } from '../../utils/utilities';
 
 /**
@@ -127,7 +127,7 @@ export class EvaControlsContainerComponent implements OnInit, OnDestroy, OnChang
    * on every interaction event, keeping the controls visible during activity.
    */
   private startListening() {
-    this.userInteraction$ = this.evaAPI.triggerUserInteraction.subscribe(e => {
+    this.userInteraction$ = this.evaAPI.triggerUserInteraction.subscribe(() => {
       if (this.hideTimeout) {
         clearTimeout(this.hideTimeout);
       }

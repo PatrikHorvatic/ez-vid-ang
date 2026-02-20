@@ -47,7 +47,7 @@ import { validateAndPrepareStartingVideoVolume } from '../../utils/utilities';
   standalone: false
 })
 export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit {
-  private evaAPI = inject(EvaApi);
+  protected evaAPI = inject(EvaApi);
   private elementRef = inject(ElementRef<HTMLVideoElement>);
 
   /**

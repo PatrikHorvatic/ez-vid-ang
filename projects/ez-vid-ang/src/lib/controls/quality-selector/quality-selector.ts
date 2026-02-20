@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
-import { EvaQualityAria } from '../../utils/aria-utilities';
 import { EvaApi } from '../../api/eva-api';
 import { EvaQualityLevel } from '../../types';
+import { EvaQualityAria } from '../../utils/aria-utilities';
 
 // TODO - Prije implementirati streaming direktive
 @Component({
@@ -18,7 +18,7 @@ import { EvaQualityLevel } from '../../types';
   }
 })
 export class EvaQualitySelector implements OnInit, OnDestroy {
-  private evaAPI = inject(EvaApi);
+  protected evaAPI = inject(EvaApi);
 
   readonly evaQualitySelectorText = input<string>("Quality selector");
   readonly evaQualityAutoText = input<string>("Auto");

@@ -1,8 +1,8 @@
-import { UserInteractionEventsDirective } from './user-interaction-events.directive';
+import { EvaUserInteractionEventsDirective } from './user-interaction-events.directive';
 
 describe('UserInteractionEventsDirective', () => {
   it('should create an instance', () => {
-    const directive = new UserInteractionEventsDirective();
+    const directive = new EvaUserInteractionEventsDirective();
     expect(directive).toBeTruthy();
   });
 });

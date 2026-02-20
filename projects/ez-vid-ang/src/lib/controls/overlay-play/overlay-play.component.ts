@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { EvaState } from '../../types';
 import { EvaApi } from '../../api/eva-api';
+import { EvaState } from '../../types';
 import { EvaOverlayPlayAria, EvaOverlayPlayAriaTransformed, transformEvaOverlayPlayAria } from '../../utils/aria-utilities';
 
 @Component({
@@ -33,8 +33,6 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
   protected evaIconPlay = computed<boolean>(() => {
     return !this.evaCustomIcon() && (this.playingState() === 'loading' || this.playingState() === 'paused' || this.playingState() === 'ended' || this.playingState() === 'error');
   })
-
-  readonly test = input.required<string, number>({ transform: (v) => { return "a" } });
 
   protected playingState: WritableSignal<EvaState> = signal(this.evaAPI.getCurrentVideoState());
   private playingStateSub: Subscription | null = null;

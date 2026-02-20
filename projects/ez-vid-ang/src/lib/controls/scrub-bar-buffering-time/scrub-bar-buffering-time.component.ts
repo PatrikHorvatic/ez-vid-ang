@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
 import { Subscription, throttleTime } from 'rxjs';
+import { EvaApi } from '../../api/eva-api';
 
 /**
  * Buffered time indicator component for the Eva scrub bar.
@@ -55,14 +55,14 @@ export class EvaScrubBarBufferingTimeComponent implements OnInit, OnDestroy {
    * Both trigger a recalculation of `bufferedPercentage`.
    */
   ngOnInit(): void {
-    this.bufferSubscription = this.evaAPI.videoBufferSubject.subscribe(e => {
+    this.bufferSubscription = this.evaAPI.videoBufferSubject.subscribe(() => {
       if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
         return;
       }
       this.updateBufferPercentage(this.evaAPI.assignedVideoElement.buffered);
     });
 
-    this.timeChangeSubscription = this.evaAPI.videoTimeChangeSubject.pipe(throttleTime(2000)).subscribe(e => {
+    this.timeChangeSubscription = this.evaAPI.videoTimeChangeSubject.pipe(throttleTime(2000)).subscribe(() => {
       if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
         return;
       }

@@ -35,3 +35,20 @@
 	bottom: -var(--eva-element-height);
 	opacity: 0;
 }
+
+.eva-hover-time {
+	position: absolute;
+	bottom: 100%;
+	transform: translateX(-50%);
+	background-color: rgba(0, 0, 0, 0.75);
+	color: #fff;
+	padding: 4px 8px;
+	border-radius: 4px;
+	font-size: 12px;
+	white-space: nowrap;
+	pointer-events: none;
+	margin-bottom: 6px;
+	z-index: 400;
+	will-change: left;
+	text-align: center;
+}

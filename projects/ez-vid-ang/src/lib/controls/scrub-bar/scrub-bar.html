@@ -1,1 +1,7 @@
 <ng-content></ng-content>
+
+@if (hoverTime() !== null) {
+<div class="eva-hover-time" [style.left.px]="hoverLeft()">
+	{{ hoverTime() }}
+</div>
+}

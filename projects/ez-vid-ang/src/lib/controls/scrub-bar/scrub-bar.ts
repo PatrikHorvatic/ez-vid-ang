@@ -5,13 +5,15 @@ import {
   HostListener,
   inject,
   input,
+  NgZone,
   OnDestroy,
   OnInit,
   signal,
   WritableSignal
 } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
 import { Subscription } from 'rxjs';
+import { EvaApi } from '../../api/eva-api';
+import { EvaTimeFormating } from '../../types';
 import { transformTimeoutDuration } from '../../utils/utilities';
 
 @Component({
@@ -35,24 +37,36 @@ import { transformTimeoutDuration } from '../../utils/utilities';
 export class EvaScrubBar implements OnInit, OnDestroy {
   protected evaAPI = inject(EvaApi);
   private elementRef = inject(ElementRef<HTMLElement>);
+  private ngZone = inject(NgZone);
 
   readonly hideWithControlsContainer = input<boolean>(false);
   readonly evaSlidingEnabled = input<boolean>(true);
   readonly evaAutohideTime = input<number, number>(3000, { transform: transformTimeoutDuration });
+  readonly evaShowTimeOnHover = input<boolean>(true);
+  readonly evaTimeFormat = input<EvaTimeFormating>('mm:ss');
 
   protected hideControls: WritableSignal<boolean> = signal(false);
+  protected hoverTime: WritableSignal<string | null> = signal(null);
+  protected hoverLeft: WritableSignal<number> = signal(0);
 
   private isSeeking = false;
   private wasPlaying = false;
+  private playPromise: Promise<void> | null = null;
 
   private userInteraction$: Subscription | null = null;
   private hideTimeout: any;
-  private playPromise: Promise<void> | null = null;
+
+
 
   ngOnInit(): void {
     if (this.hideWithControlsContainer()) {
       this.startListening();
     }
+
+    this.ngZone.runOutsideAngular(() => {
+      document.addEventListener('mousemove', this.onDocumentMouseMove);
+      document.addEventListener('touchmove', this.onDocumentTouchMove, { passive: true });
+    });
   }
 
   ngOnDestroy(): void {
@@ -60,6 +74,8 @@ export class EvaScrubBar implements OnInit, OnDestroy {
     if (this.hideTimeout) {
       clearTimeout(this.hideTimeout);
     }
+    document.removeEventListener('mousemove', this.onDocumentMouseMove);
+    document.removeEventListener('touchmove', this.onDocumentTouchMove);
   }
 
   protected getPercentage(): string {
@@ -76,19 +92,50 @@ export class EvaScrubBar implements OnInit, OnDestroy {
     if (this.evaSlidingEnabled()) {
       this.seekStart();
     } else {
-      this.seekEnd(this.getOffsetFromEvent(e.clientX)); // ← clientX
+      this.seekEnd(this.getOffsetFromEvent(e.clientX));
     }
   }
 
-  @HostListener('document:mousemove', ['$event'])
-  protected mouseMoveScrubBar(e: MouseEvent) {
+  private onDocumentMouseMove = (e: MouseEvent) => {
     if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) return;
     if (this.evaAPI.isLive()) return;
 
     if (this.evaSlidingEnabled() && this.isSeeking) {
-      this.seekMove(this.getOffsetFromEvent(e.clientX)); // ← clientX
+      // Only re-enter zone when actually seeking
+      this.ngZone.run(() => {
+        this.seekMove(this.getOffsetFromEvent(e.clientX));
+      });
     }
-  }
+
+    if (this.evaShowTimeOnHover()) {
+      const offset = this.getOffsetFromEvent(e.clientX);
+      const rect = this.elementRef.nativeElement.getBoundingClientRect();
+
+      const percentage = Math.max(
+        Math.min((offset * 100) / this.elementRef.nativeElement.scrollWidth, 99.9),
+        0
+      );
+      const time = (percentage * this.evaAPI.time().total) / 100;
+
+      const tooltipHalfWidth = 35;
+      const clampedLeft = Math.max(tooltipHalfWidth, Math.min(offset, rect.width - tooltipHalfWidth));
+      this.ngZone.run(() => {
+        this.hoverTime.set(this.formatTime(time));
+        this.hoverLeft.set(clampedLeft);
+      });
+    }
+  };
+
+  private onDocumentTouchMove = (e: TouchEvent) => {
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) return;
+    if (this.evaAPI.isLive()) return;
+
+    if (this.evaSlidingEnabled() && this.isSeeking) {
+      this.ngZone.run(() => {
+        this.seekMove(this.getTouchOffset(e));
+      });
+    }
+  };
 
   @HostListener('document:mouseup', ['$event'])
   protected mouseUpScrubBar(e: MouseEvent) {
@@ -96,8 +143,13 @@ export class EvaScrubBar implements OnInit, OnDestroy {
     if (this.evaAPI.isLive()) return;
 
     if (this.evaSlidingEnabled() && this.isSeeking) {
-      this.seekEnd(this.getOffsetFromEvent(e.clientX)); // ← clientX
+      this.seekEnd(this.getOffsetFromEvent(e.clientX));
     }
+  }
+
+  @HostListener('mouseleave')
+  protected mouseLeave() {
+    this.hoverTime.set(null);
   }
 
   @HostListener('touchstart', ['$event'])
@@ -109,16 +161,6 @@ export class EvaScrubBar implements OnInit, OnDestroy {
       this.seekStart();
     } else {
       this.seekEnd(false);
-    }
-  }
-
-  @HostListener('document:touchmove', ['$event'])
-  protected touchMoveScrub(e: TouchEvent) {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) return;
-    if (this.evaAPI.isLive()) return;
-
-    if (this.evaSlidingEnabled() && this.isSeeking) {
-      this.seekMove(this.getTouchOffset(e));
     }
   }
 
@@ -162,7 +204,6 @@ export class EvaScrubBar implements OnInit, OnDestroy {
     this.isSeeking = true;
     this.wasPlaying = !this.evaAPI.assignedVideoElement.paused;
 
-    // Wait for any pending play() to resolve before pausing
     if (this.playPromise) {
       this.playPromise.then(() => {
         this.evaAPI.assignedVideoElement.pause();
@@ -182,6 +223,8 @@ export class EvaScrubBar implements OnInit, OnDestroy {
       0
     );
     const newTime = (percentage * this.evaAPI.time().total) / 100;
+    if (isNaN(newTime) || newTime < 0) return;
+
     this.evaAPI.assignedVideoElement.currentTime = newTime;
   }
 
@@ -196,12 +239,12 @@ export class EvaScrubBar implements OnInit, OnDestroy {
       );
       const newTime = (percentage * this.evaAPI.time().total) / 100;
       if (isNaN(newTime) || newTime < 0) return;
+
       this.evaAPI.assignedVideoElement.currentTime = newTime;
     }
 
     if (this.wasPlaying) {
       this.wasPlaying = false;
-      // Don't play immediately - wait for seeked event
       this.evaAPI.pendingPlayAfterSeek = true;
     }
   }
@@ -212,6 +255,36 @@ export class EvaScrubBar implements OnInit, OnDestroy {
       this.wasPlaying = false;
       this.evaAPI.pendingPlayAfterSeek = true;
     }
+  }
+
+  private formatTime(seconds: number): string {
+    const format = this.evaTimeFormat();
+    const totalSeconds = Math.floor(seconds);
+
+    const hh = Math.floor(totalSeconds / 3600);
+    const mm = Math.floor((totalSeconds % 3600) / 60);
+    const ss = totalSeconds % 60;
+
+    const pad = (n: number) => String(n).padStart(2, '0');
+
+    switch (format) {
+      case 'HH:mm:ss':
+        return `${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+      case 'mm:ss':
+        return `${pad(mm)}:${pad(ss)}`;
+      case 'ss':
+        return `${pad(ss)}s`;
+    }
+  }
+
+  private getOffsetFromEvent(clientX: number): number {
+    const rect = this.elementRef.nativeElement.getBoundingClientRect();
+    return clientX - rect.left;
+  }
+
+  private getTouchOffset(event: TouchEvent): number {
+    const rect = this.elementRef.nativeElement.getBoundingClientRect();
+    return event.touches[0].clientX - rect.left;
   }
 
   private startListening() {
@@ -226,15 +299,5 @@ export class EvaScrubBar implements OnInit, OnDestroy {
     this.hideTimeout = setTimeout(() => {
       this.hideControls.set(true);
     }, this.evaAutohideTime());
-  }
-
-  private getOffsetFromEvent(clientX: number): number {
-    const rect = this.elementRef.nativeElement.getBoundingClientRect();
-    return clientX - rect.left;
-  }
-
-  private getTouchOffset(event: TouchEvent): number {
-    const rect = this.elementRef.nativeElement.getBoundingClientRect();
-    return event.touches[0].clientX - rect.left;
   }
 }

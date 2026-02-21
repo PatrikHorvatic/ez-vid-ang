@@ -31,7 +31,6 @@ import { EvaVolume } from "./volume/volume";
 		EvaTimeDisplayPipe, EvaOverlayPlay,
 		EvaTimeDisplay, EvaTrackSelector, EvaVolume,
 		EvaScrubBarCurrentTimeComponent,
-
 		EvaScrubBarBufferingTimeComponent],
 	providers: []
 })

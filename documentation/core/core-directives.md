@@ -1,17 +1,9 @@
 ## EvaMediaEventListenersDirective
-
 A directive that bridges native `HTMLVideoElement` media events to the `EvaApi` layer using RxJS `fromEvent` observables. Applied as an attribute on the `<video>` element inside `EvaPlayer`.
-
----
-
 ### Selector
-
 ```html
 <video evaMediaEventListeners />
 ```
-
----
-
 ### Event Map
 
 Events with an active `EvaApi` side effect:
@@ -36,24 +28,18 @@ Events with an active `EvaApi` side effect:
 
 The following events are subscribed but reserved for future implementation: `abort`, `canplaythrough`, `complete`, `durationchange`, `emptied`, `encrypted`, `loadeddata`, `loadstart`, `suspend`, `waitingforkey`.
 
-
+---
 
 ## EvaUserInteractionEventsDirective
 
 A directive that listens for user interaction events on the native `HTMLVideoElement` and forwards them to `EvaApi.triggerUserInteraction`. Other components such as `eva-controls-container` subscribe to this subject to drive auto-hide behaviour.
 
 If the player is not yet ready on init, listener setup is automatically deferred until `EvaApi.playerReadyEvent` fires.
-
----
-
 ### Selector
 
 ```html
 <eva-controls-container evaUserInteractionEvents />
 ```
-
----
-
 ### Listened Events
 
 All three streams are merged into a single observable and torn down automatically when the directive is destroyed.
@@ -65,7 +51,7 @@ All three streams are merged into a single observable and torn down automaticall
 | `click` | `HTMLVideoElement` | Fires on any pointer click. |
 
 
-
+---
 
 ## EvaVideoConfigurationDirective
 
@@ -73,23 +59,16 @@ A directive that applies an `EvaVideoElementConfiguration` object to a native `<
 
 Only properties that are explicitly set in the config object are applied — unset properties are left at their native defaults. The exception is `startingVolume`, which is always validated and clamped to `[0, 1]` before assignment.
 
----
-
 ### Selector
 
 ```html
 <video evaVideoConfiguration />
 ```
-
----
-
 ### Inputs
 
 | Input | Type | Required | Description |
 |---|---|---|---|
 | `evaVideoConfig` | `EvaVideoElementConfiguration` | ✅ Yes | Configuration object applied to the native `<video>` element. See supported properties below. |
-
----
 
 ### Supported Configuration Properties
 
@@ -110,8 +89,6 @@ All properties are optional. Only truthy values are applied to the element.
 | `poster` | `string` | URL of the poster image shown before playback begins. |
 | `preload` | `'none' \| 'metadata' \| 'auto' \| ''` | Preload hint for the browser. |
 | `startingVolume` | `number` | Initial volume on load. Validated and clamped to `[0, 1]`. |
-
----
 
 ### Usage
 

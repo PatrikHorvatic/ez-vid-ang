@@ -58,7 +58,9 @@ import { transformTimeoutDuration } from '../../utils/utilities';
  * <eva-scrub-bar
  *   [hideWithControlsContainer]="true"
  *   [evaAutohideTime]="4000"
- * />
+ * >
+ * ...other scrub bar components
+ * </eva-scrub-bar>
  */
 @Component({
   selector: 'eva-scrub-bar',

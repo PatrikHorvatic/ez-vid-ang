@@ -15,8 +15,7 @@ import { EvaPlayer } from "./player/player";
 	exports: [EvaPlayer,
 		EvaMediaEventListenersDirective,
 		EvaVideoConfigurationDirective,
-		EvaUserInteractionEventsDirective,
-
+		EvaUserInteractionEventsDirective
 	],
 	providers: [EvaApi]
 })

@@ -1,13 +1,17 @@
 :host {
 	position: absolute;
-	display: flex;
-	align-items: center;
-	width: 100%;
-	height: var(--eva-element-height);
-	z-index: 302;
 	bottom: 0;
 	left: 0;
-	background-color: rgb(0 0 0);
+
+	display: flex;
+	align-items: center;
+	column-gap: var(--eva-controls-container-controls-spacing);
+
+	width: 100%;
+	height: var(--eva-control-element-height);
+	z-index: 302;
+
+	background-color: var(--eva-controls-container-background-color);
 	opacity: 1;
 	transition:
 		bottom var(--eva-transition-duration) ease-in-out,
@@ -15,6 +19,6 @@
 }
 
 :host(.hide) {
-	bottom: -50px;
-	opacity: 0;
+	bottom: calc(-1 * var(--eva-control-element-height)) !important;
+	opacity: 0 !important;
 }

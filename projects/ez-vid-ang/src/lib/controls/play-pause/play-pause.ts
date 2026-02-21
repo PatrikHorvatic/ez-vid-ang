@@ -32,7 +32,10 @@ import { EvaPlayPauseAria, EvaPlayPauseAriaTransformed, transformEvaPlayPauseAri
  *
  * @example
  * // Custom icon
- * <eva-play-pause [evaCustomIcon]="true" />
+ * <eva-play-pause [evaCustomIcon]="true">
+ *   <img evaPlay src="path-to-your-play-icon" />
+ *   <img evaPause src="path-to-your-pause-icon" />
+ * </eva-play-pause>
  */
 @Component({
   selector: 'eva-play-pause',

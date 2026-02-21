@@ -11,7 +11,6 @@
 	width: 50px;
 	cursor: pointer;
 	color: white;
-	line-height: 50px;
 	position: relative;
 	outline: none;
 
@@ -168,7 +167,7 @@
 .dropdown-header {
 	padding: 10px 14px 8px;
 	font-family: var(--eva-font-family);
-	font-size: 11px;
+	font-size: var(var(--eva-playback-speed-dropdown-content-header-font-size));
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;

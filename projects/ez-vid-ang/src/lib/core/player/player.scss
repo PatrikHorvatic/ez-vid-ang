@@ -17,5 +17,5 @@
 }
 
 :host > video::cue {
-	bottom: 50px;
+	bottom: var(--eva-control-element-height);
 }

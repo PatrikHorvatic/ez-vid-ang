@@ -8,10 +8,10 @@
 	top: 0;
 	left: 0;
 	transition:
-		visibility 0.4s linear,
-		opacity 0.4s linear;
+		visibility var(--eva-transition-duration) linear,
+		opacity var(--eva-transition-duration) linear;
 
-	background-color: rgba(0, 0, 0, 0.7);
+	background-color: var(--eva-buffering-background-color);
 	z-index: 302;
 	visibility: hidden;
 	opacity: 0;
@@ -23,14 +23,14 @@
 }
 
 .eva-loader-meteor {
-	width: 56px;
-	height: 56px;
+	width: var(--eva-buffering-default-spinner-size);
+	height: var(--eva-buffering-default-spinner-size);
 	border-radius: 50%;
 	display: inline-block;
 	border-top: 3px solid #fff;
 	border-right: 3px solid transparent;
 	box-sizing: border-box;
-	animation: eva-loader-meteor-rotation 1s linear infinite;
+	animation: eva-loader-meteor-rotation var(--eva-buffering-spinner-animation-speed) linear infinite;
 }
 
 @keyframes eva-loader-meteor-rotation {

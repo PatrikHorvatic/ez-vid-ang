@@ -1,18 +1,24 @@
 :host {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	height: var(--eva-control-element-height);
+	min-width: 30px;
+
+	cursor: pointer;
+
+	color: var(--eva-time-display-text-color);
+
+	pointer-events: none;
+
+	padding: 0px 6px;
+
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
-	display: flex;
-	justify-content: center;
-	height: var(--eva-element-height);
-	min-width: 30px;
-	cursor: pointer;
-	color: white;
-	line-height: 50px;
-	pointer-events: none;
-	padding: 0px 6px;
 }
 
 :host > span {

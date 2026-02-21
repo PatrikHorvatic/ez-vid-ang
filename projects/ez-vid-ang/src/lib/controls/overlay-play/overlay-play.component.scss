@@ -3,10 +3,10 @@
 	align-items: center;
 	justify-content: center;
 	width: 100%;
-	height: calc(100% - var(--eva-element-height));
+	height: calc(100% - var(--eva-control-element-height));
 	cursor: pointer;
-	color: white;
-	line-height: 50px;
+	color: var(--eva-icon-color);
+
 	user-select: none;
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
@@ -24,11 +24,12 @@
 
 	background-color: rgba(0, 0, 0, 0);
 	z-index: 301;
-	visibility: visible;
+	visibility: hidden;
 	opacity: 0;
 }
 
 :host(.eva-display-overlay-play) {
-	background-color: rgba(0, 0, 0, 0.7) !important;
+	background-color: var(--eva-overlay-play-background-color) !important;
 	opacity: 1 !important;
+	visibility: visible !important;
 }

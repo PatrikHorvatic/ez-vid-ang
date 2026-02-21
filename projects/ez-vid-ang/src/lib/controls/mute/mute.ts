@@ -29,7 +29,12 @@ import { EvaMuteAria, EvaMuteAriaTransformed, transformEvaMuteAria, validateAndT
  *
  * @example
  * // Custom icon with adjusted thresholds
- * <eva-mute [evaCustomIcon]="true" [evaLowVolume]="0.33" [evaMiddleVolume]="0.66" />
+ * <eva-mute [evaCustomIcon]="true" [evaLowVolume]="0.33" [evaMiddleVolume]="0.66">
+ *   <p evaVolumeOff>Off</p>
+ *   <p evaVolumeLow>Low</p>
+ *   <p evaVolumeMiddle>Middle</p>
+ *   <p evaVolumeUp>Up</p>
+ * </eva-mute>
  */
 @Component({
   selector: 'eva-mute',

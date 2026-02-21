@@ -1,23 +1,54 @@
+/**
+ * Configuration object for the native `<video>` element.
+ * Passed to `EvaVideoConfigurationDirective` via `EvaPlayer`.
+ * All properties are optional — only truthy values are applied to the element.
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/video
+ */
 export interface EvaVideoElementConfiguration {
+	/** Width of the video element in pixels. */
 	width?: number;
+	/** Height of the video element in pixels. */
 	height?: number;
+	/** When `true`, the video starts playing as soon as it is ready. */
 	autoplay?: boolean;
+	/** When `true`, the native browser video controls are shown. */
 	controls?: boolean;
+	/** Allows specifying which controls to show (e.g. `"nodownload nofullscreen"`). */
 	controlsList?: string;
+	/** CORS setting for the video element. */
 	crossorigin?: 'anonymous' | 'use-credentials';
+	/** When `true`, disables picture-in-picture mode. */
 	disablePictureInPicture?: boolean;
+	/** When `true`, disables remote playback (e.g. Chromecast, AirPlay). */
 	disableRemotePlayback?: boolean;
+	/** When `true`, the video loops back to the beginning when it ends. */
 	loop?: boolean;
+	/** When `true`, the video starts muted. */
 	muted?: boolean;
+	/** When `true`, the video plays inline on mobile rather than entering fullscreen automatically. Maps to `playsInline`. */
 	playinline?: boolean;
+	/** URL of the poster image shown before playback begins. */
 	poster?: string;
+	/** Hint to the browser about how much data to preload before playback. */
 	preload?: 'none' | 'metadata' | 'auto' | '';
-	startingVolume?: number
+	/**
+	 * Initial volume applied to the video element on load.
+	 * Validated and clamped to `[0, 1]` via `validateAndPrepareStartingVideoVolume`.
+	 */
+	startingVolume?: number;
 }
 
+/**
+ * Represents a single `<source>` element to be rendered inside the `<video>` element.
+ * Provide multiple sources for fallback across browsers and formats.
+ */
 export interface EvaVideoSource {
+	/** MIME type of the video source (e.g. `"video/mp4"`, `"video/webm"`, `"application/x-mpegURL"`). */
 	type: string;
+	/** URL of the video file or stream manifest. */
 	src: string;
+	/** Optional media query string for responsive source selection. */
 	media?: string;
 	// srcset?: string;
 	// sizes?: string;
@@ -25,6 +56,11 @@ export interface EvaVideoSource {
 	// height?: number;
 }
 
+/**
+ * Enum of all possible playback states the Eva player can be in.
+ * Broadcast via `EvaApi.videoStateSubject` and consumed by components
+ * such as `EvaPlayPause`, `EvaOverlayPlay`, and `EvaTimeDisplay`.
+ */
 export enum EvaState {
 	LOADING = 'loading',
 	PLAYING = 'playing',
@@ -34,10 +70,10 @@ export enum EvaState {
 }
 
 /**
- * List of all events based on:
- * https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/video#events
- * 
- * All events you can subscribe to.
+ * Enum of all native `HTMLVideoElement` events that `EvaMediaEventListenersDirective` subscribes to.
+ *
+ * Based on the full event reference:
+ * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/video#events
  */
 export enum EvaVideoEvent {
 	ABORT = 'abort',
@@ -67,26 +103,56 @@ export enum EvaVideoEvent {
 	WAITING_FOR_KEY = 'waitingforkey'
 }
 
+/** Which time value the `EvaTimeDisplay` component and `EvaTimeDisplayPipe` should render. */
 export type EvaTimeProperty = "current" | "total" | "remaining";
+
+/**
+ * Format string used by `EvaTimeDisplay`, `EvaTimeDisplayPipe`, and `EvaScrubBar`
+ * to format time values in seconds.
+ *
+ * - `'HH:mm:ss'` — hours, minutes, seconds (e.g. `"01:23:45"`)
+ * - `'mm:ss'` — total minutes and seconds (e.g. `"83:45"`)
+ * - `'ss'` — total seconds as a plain integer (e.g. `"5025"`)
+ */
 export type EvaTimeFormating = "HH:mm:ss" | "mm:ss" | "ss";
+
+/**
+ * Represents a single chapter marker displayed on `EvaScrubBar`.
+ * Can be provided directly via `evaChapters` input or parsed from a VTT text track.
+ */
 export type EvaChapterMarker = {
+	/** Start time of the chapter in seconds. */
 	startTime: number;
+	/** End time of the chapter in seconds. */
 	endTime: number;
+	/** Display title of the chapter, shown in the hover tooltip. */
 	title: string;
 }
 
+/**
+ * Type guard that checks whether a string is a valid `EvaVideoEvent` value.
+ *
+ * @param event - The string to check.
+ * @returns `true` if the string is a member of the `EvaVideoEvent` enum.
+ */
 export const isValidVideoEvent = (event: string): event is EvaVideoEvent => {
 	return Object.values(EvaVideoEvent).includes(event as EvaVideoEvent);
 };
 
+/**
+ * Type guard that checks whether a string is a valid `EvaTrackKind` value.
+ *
+ * @param kind - The string to check.
+ * @returns `true` if the string is one of the five valid HTML track `kind` values.
+ */
 export const isValidTrackKind = (kind: string): kind is EvaTrackKind => {
 	return ['subtitles', 'captions', 'descriptions', 'chapters', 'metadata'].includes(kind);
 };
 
-
 /**
- * According to:
- * https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/track#kind
+ * The five valid values for the `kind` attribute of an HTML `<track>` element.
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/track#kind
  */
 export type EvaTrackKind =
 	| 'subtitles'
@@ -96,28 +162,32 @@ export type EvaTrackKind =
 	| 'metadata';
 
 /**
- * Base track interface
+ * Base interface shared by all track types.
+ * Extended by each specific track interface with their `kind` discriminant.
  */
 interface EvaBaseTrack {
-	/** Address of the track (.vtt file). Must be a valid URL. */
+	/** URL of the `.vtt` track file. Must be a valid URL. */
 	src: string;
-	/** User-readable title of the text track */
+	/** Human-readable label displayed in the track selector UI. */
 	label?: string;
-	/** Indicates that the track should be enabled by default */
+	/** When `true`, this track is enabled by default on load. */
 	default?: boolean;
 }
 
 /**
- * Subtitle track - requires srclang
+ * Subtitle track. Requires `srclang` (BCP 47 language code).
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/track#kind
  */
 interface EvaSubtitleTrack extends EvaBaseTrack {
 	kind: 'subtitles';
-	/** Language of the track (BCP 47). Required for subtitles. */
+	/** BCP 47 language code (e.g. `"en"`, `"fr"`, `"pt-BR"`). Required for subtitles. */
 	srclang: string;
 }
 
 /**
- * Caption track - optional srclang
+ * Caption track. `srclang` is optional.
+ * Captions are similar to subtitles but also describe non-speech audio (e.g. sound effects).
  */
 interface EvaCaptionTrack extends EvaBaseTrack {
 	kind: 'captions';
@@ -125,7 +195,8 @@ interface EvaCaptionTrack extends EvaBaseTrack {
 }
 
 /**
- * Description track - optional srclang
+ * Description track. `srclang` is optional.
+ * Descriptions provide a text description of the video content for audio-only consumption.
  */
 interface EvaDescriptionTrack extends EvaBaseTrack {
 	kind: 'descriptions';
@@ -133,7 +204,8 @@ interface EvaDescriptionTrack extends EvaBaseTrack {
 }
 
 /**
- * Chapter track - optional srclang
+ * Chapter track. `srclang` is optional.
+ * Used to define named chapters for navigation. Parsed by `EvaScrubBar` when `evaShowChapters` is enabled.
  */
 interface EvaChapterTrack extends EvaBaseTrack {
 	kind: 'chapters';
@@ -141,7 +213,8 @@ interface EvaChapterTrack extends EvaBaseTrack {
 }
 
 /**
- * Metadata track - no srclang needed
+ * Metadata track. `srclang` is not applicable (`never`).
+ * Used for programmatic data embedded in the video timeline, not displayed to users.
  */
 interface EvaMetadataTrack extends EvaBaseTrack {
 	kind: 'metadata';
@@ -149,7 +222,10 @@ interface EvaMetadataTrack extends EvaBaseTrack {
 }
 
 /**
- * Union type representing any valid track configuration
+ * Discriminated union of all valid track configurations.
+ * The `kind` property narrows the type to the appropriate interface.
+ *
+ * Used as the input type for `EvaPlayer.evaVideoTracks` and `EvaApi.videoTracksSubject`.
  */
 export type EvaTrack =
 	| EvaSubtitleTrack
@@ -158,38 +234,41 @@ export type EvaTrack =
 	| EvaChapterTrack
 	| EvaMetadataTrack;
 
-
-
 /**
  * Represents a single quality/bitrate level available in the stream.
  *
  * Compatible with both HLS and DASH:
- *  - HLS  → populated from hls.js `levels[]`
- *  - DASH → populated from dash.js `getBitrateInfoListFor('video')`
+ * - HLS → populated from hls.js `levels[]`
+ * - DASH → populated from dash.js `getBitrateInfoListFor('video')`
  *
  * `qualityIndex` is the raw index used by the underlying player library to
- * switch levels.  Pass -1 (or leave `isAuto` true) for the "Auto" sentinel.
+ * switch levels. Pass `-1` (or set `isAuto` to `true`) for the "Auto" sentinel.
  */
 export interface EvaQualityLevel {
-	/** Raw index used by hls.js / dash.js to switch to this level. -1 = Auto */
+	/**
+	 * Raw index used by hls.js / dash.js to switch to this level.
+	 * `-1` represents the Auto (ABR) option.
+	 */
 	qualityIndex: number;
-	/** Human-readable label shown in the UI, e.g. "1080p", "720p", "Auto" */
+	/** Human-readable label shown in the quality selector UI (e.g. `"1080p"`, `"720p"`, `"Auto"`). */
 	label: string;
-	/** Video frame width in pixels (0 when unknown / Auto) */
+	/** Video frame width in pixels. `0` when unknown or for the Auto option. */
 	width: number;
-	/** Video frame height in pixels (0 when unknown / Auto).
-	 *  This is the value most commonly displayed to users ("720p" → height 720). */
+	/**
+	 * Video frame height in pixels. `0` when unknown or for the Auto option.
+	 * This is the value most commonly displayed to users (e.g. `720` → `"720p"`).
+	 */
 	height: number;
-	/** Bitrate in bits-per-second (0 when unknown / Auto) */
+	/** Bitrate in bits per second. `0` when unknown or for the Auto option. */
 	bitrate: number;
-	/** "video" | "audio" – mirrors the DASH mediaType concept */
+	/** Media type of this level — mirrors the DASH `mediaType` concept. */
 	mediaType: 'video' | 'audio';
-	/** True for the synthetic "Auto / ABR" option */
+	/** When `true`, this entry represents the synthetic Auto / ABR option. */
 	isAuto?: boolean;
-	/** Whether this level is currently selected in the UI */
+	/** When `true`, this level is currently selected in the quality selector UI. */
 	selected?: boolean;
-	/** Optional codec string, e.g. "avc1.640028" */
+	/** Optional codec string (e.g. `"avc1.640028"`). */
 	codec?: string;
-	/** Optional frame-rate, e.g. 29.97 */
+	/** Optional frame rate (e.g. `29.97`). */
 	frameRate?: number;
 }

@@ -1,0 +1,72 @@
+:root {
+	--eva-control-element-height: 50px;
+	--eva-transition-duration: 0.2s;
+	--eva-font-family: Arial;
+	--eva-icon-color: white;
+
+	--eva-controls-container-background-color: rgb(0 0 0);
+	--eva-controls-container-controls-spacing: 4px;
+
+	--eva-scrub-bar-heights: 5px;
+	--eva-scrub-bar-background: rgb(54, 54, 54);
+	--eva-scrub-bar-buffering-background: gray;
+	--eva-scrub-bar-current-time-background: green;
+	--eva-scrub-bar-chapter-marker-color: rgba(255, 255, 255, 0.5);
+	--eva-scrub-bar-chapter-marker-width: 3px;
+	--eva-scrub-bar-chapter-hover-background-color: rgba(0, 0, 0, 0.85);
+	--eva-scrub-bar-chapter-hover-text-color: white;
+	--eva-scrub-bar-chapter-hover-font-size: 14px;
+	--eva-scrub-bar-chapter-hover-tooltip-background-color: rgba(0, 0, 0, 0.75);
+	--eva-scrub-bar-chapter-hover-tooltip-text-color: white;
+	--eva-scrub-bar-chapter-hover-tooltip-font-size: 14px;
+
+	--eva-time-display-text-color: white;
+
+	--eva-buffering-background-color: rgba(0, 0, 0, 0.7);
+	--eva-buffering-default-spinner-size: 56px;
+	--eva-buffering-spinner-animation-speed: 0.8s;
+
+	--eva-overlay-play-background-color: rgba(0, 0, 0, 0.7);
+
+	--eva-playback-speed-label-font-size: 14px;
+	--eva-playback-speed-label-color: rgba(255, 255, 255, 0.95);
+	--eva-playback-speed-dropdown-arrow-size: 20px;
+	--eva-playback-speed-dropdown-arrow-color: rgba(255, 255, 255, 0.6);
+	--eva-playback-speed-hover-background: rgba(255, 255, 255, 0.1);
+	--eva-playback-speed-opened-background: rgba(255, 255, 255, 0.15);
+	--eva-playback-speed-dropdown-content-background: rgba(28, 28, 30, 0.95);
+	--eva-playback-speed-dropdown-content-box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+	--eva-playback-speed-dropdown-content-header-font-size: 14px;
+	--eva-playback-speed-dropdown-content-header-font-color: rgba(255, 255, 255, 0.5);
+	--eva-playback-speed-dropdown-content-header-bottom-border: 1px solid rgba(255, 255, 255, 0.1);
+	--eva-playback-speed-dropdown-content-speed-option-bacground-hover: rgba(255, 255, 255, 0.1);
+	--eva-playback-speed-dropdown-content-speed-option-icon-active: rgba(59, 130, 246, 0.3);
+	--eva-playback-speed-dropdown-content-speed-option-font-size: 14px;
+	--eva-playback-speed-dropdown-content-speed-option-font-color: rgba(255, 255, 255, 0.95);
+	--eva-playback-speed-dropdown-content-speed-option-checkmark-size: 16px;
+	--eva-playback-speed-dropdown-content-speed-option-checkmark-color: rgb(59, 130, 246);
+
+	--eva-track-selector-label-font-size: 14px;
+	--eva-track-selector-label-color: rgba(255, 255, 255, 0.95);
+	--eva-track-selector-dropdown-arrow-size: 20px;
+	--eva-track-selector-dropdown-arrow-color: rgba(255, 255, 255, 0.6);
+	--eva-track-selector-hover-background: rgba(255, 255, 255, 0.1);
+	--eva-track-selector-opened-background: rgba(255, 255, 255, 0.15);
+	--eva-track-selector-dropdown-content-background: rgba(28, 28, 30, 0.95);
+	--eva-track-selector-dropdown-content-box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+	--eva-track-selector-dropdown-content-header-font-size: 14px;
+	--eva-track-selector-dropdown-content-header-font-color: rgba(255, 255, 255, 0.5);
+	--eva-track-selector-dropdown-content-header-bottom-border: 1px solid rgba(255, 255, 255, 0.1);
+	--eva-track-selector-dropdown-content-speed-option-bacground-hover: rgba(255, 255, 255, 0.1);
+	--eva-track-selector-dropdown-content-speed-option-icon-active: rgba(59, 130, 246, 0.3);
+	--eva-track-selector-dropdown-content-speed-option-font-size: 14px;
+	--eva-track-selector-dropdown-content-speed-option-font-color: rgba(255, 255, 255, 0.95);
+	--eva-track-selector-dropdown-content-speed-option-checkmark-size: 16px;
+	--eva-track-selector-dropdown-content-speed-option-checkmark-color: rgb(59, 130, 246);
+
+	--eva-volume-background-color: rgba(255, 255, 255, 0.2);
+	--eva-volume-value-background-color: white;
+	--eva-volume-knob-background-color: white;
+	--eva-volume-knob-size: 15px;
+	--eva-volume-knob-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}

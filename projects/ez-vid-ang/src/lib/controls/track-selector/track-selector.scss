@@ -7,11 +7,10 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	height: var(--eva-element-height);
+	height: var(--eva-control-element-height);
 	width: 50px;
 	cursor: pointer;
 	color: white;
-	line-height: var(--eva-element-height);
 	position: relative;
 	outline: none;
 
@@ -22,12 +21,12 @@
 	}
 
 	&:hover {
-		background-color: rgba(255, 255, 255, 0.1);
+		background-color: var(--eva-track-selector-hover-background);
 		border-radius: 4px;
 	}
 
 	&.open {
-		background-color: rgba(255, 255, 255, 0.15);
+		background-color: var(--eva-track-selector-opened-background);
 		border-radius: 4px;
 	}
 }
@@ -35,7 +34,8 @@
 .eva-track-selector-container {
 	position: relative;
 	display: flex;
-	flex-direction: column;
+	align-items: center;
+	justify-content: center;
 }
 
 .eva-track-selector-button {
@@ -53,9 +53,9 @@
 
 	.speed-label {
 		font-family: var(--eva-font-family);
-		font-size: 12px;
+		font-size: var(--eva-track-selector-label-font-size);
 		font-weight: 600;
-		color: rgba(255, 255, 255, 0.95);
+		color: var(--eva-track-selector-label-color);
 		white-space: nowrap;
 		line-height: 1;
 	}
@@ -63,9 +63,9 @@
 	.dropdown-arrow {
 		display: flex;
 		align-items: center;
-		width: 10px;
-		height: 10px;
-		color: rgba(255, 255, 255, 0.6);
+		width: var(--eva-track-selector-dropdown-arrow-size);
+		height: var(--eva-track-selector-dropdown-arrow-size);
+		color: var(--eva-track-selector-dropdown-arrow-color);
 		transition: transform var(--eva-transition-duration) cubic-bezier(0.4, 0, 0.2, 1);
 
 		svg {
@@ -140,12 +140,10 @@
 }
 
 .dropdown-content {
-	background: rgba(28, 28, 30, 0.95);
+	background: var(--eva-track-selector-dropdown-content-background);
 	backdrop-filter: blur(20px);
 	border-radius: 8px;
-	box-shadow:
-		0 8px 24px rgba(0, 0, 0, 0.4),
-		0 0 0 1px rgba(255, 255, 255, 0.1);
+	box-shadow: var(--eva-track-selector-dropdown-content-box-shadow);
 	overflow: hidden;
 	min-width: 180px;
 	animation: slideIn var(--eva-transition-duration) cubic-bezier(0.4, 0, 0.2, 1);
@@ -169,12 +167,12 @@
 .dropdown-header {
 	padding: 10px 14px 8px;
 	font-family: var(--eva-font-family);
-	font-size: 11px;
+	font-size: var(--eva-track-selector-dropdown-content-header-font-size);
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.5px;
-	color: rgba(255, 255, 255, 0.5);
-	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	color: var(--eva-track-selector-dropdown-content-header-font-color);
+	border-bottom: var(--eva-track-selector-dropdown-content-header-bottom-border);
 }
 
 .speed-options {
@@ -218,7 +216,7 @@
 	outline: none;
 
 	&:hover {
-		background-color: rgba(255, 255, 255, 0.1);
+		background-color: var(--eva-track-selector-dropdown-content-speed-option-bacground-hover);
 	}
 
 	&:active {
@@ -240,19 +238,19 @@
 
 	.speed-text {
 		font-family: var(--eva-font-family);
-		font-size: 14px;
+		font-size: var(--eva-track-selector-dropdown-content-speed-option-font-size);
 		font-weight: 500;
-		color: rgba(255, 255, 255, 0.95);
+		color: var(--eva-track-selector-dropdown-content-speed-option-font-color);
 		transition: color var(--eva-transition-duration) ease;
 	}
 
 	.checkmark {
 		display: flex;
 		align-items: center;
-		width: 16px;
-		height: 16px;
-		color: rgb(59, 130, 246);
-		animation: checkmarkAppear 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+		width: var(--eva-track-selector-dropdown-content-speed-option-checkmark-size);
+		height: var(--eva-track-selector-dropdown-content-speed-option-checkmark-size);
+		color: var(--eva-track-selector-dropdown-content-speed-option-checkmark-color);
+		animation: checkmarkAppear var(--eva-transition-duration) cubic-bezier(0.4, 0, 0.2, 1);
 
 		svg {
 			width: 100%;
@@ -269,60 +267,6 @@
 	to {
 		opacity: 1;
 		transform: scale(1);
-	}
-}
-
-// Dark theme adjustments (if needed)
-:host-context(.dark-theme) {
-	.dropdown-content {
-		background: rgba(18, 18, 20, 0.98);
-	}
-}
-
-// Light theme adjustments (if needed)
-:host-context(.light-theme) {
-	.eva-track-selector-button {
-		background-color: rgba(0, 0, 0, 0.1);
-
-		.speed-icon,
-		.speed-label,
-		.dropdown-arrow {
-			color: rgba(0, 0, 0, 0.8);
-		}
-	}
-
-	:host:hover .eva-track-selector-button {
-		background-color: rgba(0, 0, 0, 0.15);
-	}
-
-	.dropdown-content {
-		background: rgba(255, 255, 255, 0.95);
-		box-shadow:
-			0 8px 24px rgba(0, 0, 0, 0.15),
-			0 0 0 1px rgba(0, 0, 0, 0.1);
-	}
-
-	.dropdown-header {
-		color: rgba(0, 0, 0, 0.5);
-		border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-	}
-
-	.speed-option {
-		.speed-text {
-			color: rgba(0, 0, 0, 0.9);
-		}
-
-		&:hover {
-			background-color: rgba(0, 0, 0, 0.08);
-		}
-
-		&.active {
-			background-color: rgba(59, 130, 246, 0.15);
-
-			&:hover {
-				background-color: rgba(59, 130, 246, 0.2);
-			}
-		}
 	}
 }
 

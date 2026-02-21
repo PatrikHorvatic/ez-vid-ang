@@ -6,11 +6,9 @@
 	user-select: none;
 	display: flex;
 	justify-content: center;
-	height: var(--eva-element-height);
+	height: var(--eva-control-element-height);
 	width: 100px;
 	cursor: pointer;
-	color: white;
-	line-height: 50px;
 	position: relative;
 }
 
@@ -34,19 +32,6 @@
 		background-color: rgba(255, 255, 255, 0.05);
 	}
 
-	// Hover enhancement
-	&:hover {
-		.volumeBackground {
-			height: 6px;
-		}
-
-		.volumeKnob {
-			width: 17px;
-			height: 17px;
-			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-		}
-	}
-
 	// Active state
 	&:active {
 		.volumeKnob {
@@ -60,7 +45,7 @@
 	flex-grow: 1;
 	height: 5px;
 	pointer-events: none;
-	background-color: rgba(255, 255, 255, 0.2);
+	background-color: var(--eva-volume-background-color);
 	border-radius: 3px;
 	position: relative;
 	transition: height var(--eva-transition-duration) ease;
@@ -74,26 +59,23 @@
 	display: flex;
 	height: 100%;
 	pointer-events: none;
-	background-color: #fff;
+	background-color: var(--eva-volume-value-background-color);
 	transition: width var(--eva-transition-duration) ease-out;
 	border-radius: 3px;
 	position: relative;
-
-	// Add a subtle gradient
-	background: linear-gradient(to right, rgba(255, 255, 255, 0.9), #fff);
 }
 
 .volumeKnob {
 	position: absolute;
-	width: 15px;
-	height: 15px;
+	width: var(--eva-volume-knob-size);
+	height: var(--eva-volume-knob-size);
 	left: 0;
 	top: 50%;
 	transform: translateY(-50%);
 	border-radius: 50%;
 	pointer-events: none;
-	background-color: #fff;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+	background-color: var(--eva-volume-knob-background-color);
+	box-shadow: var(--eva-volume-knob-box-shadow);
 	transition: all var(--eva-transition-duration) ease-out;
 	z-index: 1;
 

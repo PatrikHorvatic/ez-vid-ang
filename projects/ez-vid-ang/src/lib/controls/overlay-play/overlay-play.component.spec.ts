@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { OverlayPlayComponent } from './overlay-play.component';
+import { EvaOverlayPlay } from './overlay-play.component';
 
 describe('OverlayPlayComponent', () => {
-  let component: OverlayPlayComponent;
-  let fixture: ComponentFixture<OverlayPlayComponent>;
+  let component: EvaOverlayPlay;
+  let fixture: ComponentFixture<EvaOverlayPlay>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [OverlayPlayComponent]
+      declarations: [EvaOverlayPlay]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(OverlayPlayComponent);
+    fixture = TestBed.createComponent(EvaOverlayPlay);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

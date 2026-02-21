@@ -31,7 +31,7 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
   });
 
   protected evaIconPlay = computed<boolean>(() => {
-    return !this.evaCustomIcon() && (this.playingState() === 'loading' || this.playingState() === 'paused' || this.playingState() === 'ended' || this.playingState() === 'error');
+    return this.playingState() === 'loading' || this.playingState() === 'paused' || this.playingState() === 'ended' || this.playingState() === 'error';
   })
 
   protected playingState: WritableSignal<EvaState> = signal(this.evaAPI.getCurrentVideoState());
@@ -39,6 +39,8 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.playingStateSub = this.evaAPI.videoStateSubject.subscribe(state => {
+      console.log(state);
+
       this.playingState.set(state);
     })
   }

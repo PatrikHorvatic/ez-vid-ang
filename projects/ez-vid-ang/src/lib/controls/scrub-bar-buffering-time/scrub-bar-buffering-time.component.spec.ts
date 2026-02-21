@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ScrubBarBufferingTimeComponent } from './scrub-bar-buffering-time.component';
+import { EvaScrubBarBufferingTimeComponent } from './scrub-bar-buffering-time.component';
 
 describe('ScrubBarBufferingTimeComponent', () => {
-  let component: ScrubBarBufferingTimeComponent;
-  let fixture: ComponentFixture<ScrubBarBufferingTimeComponent>;
+  let component: EvaScrubBarBufferingTimeComponent;
+  let fixture: ComponentFixture<EvaScrubBarBufferingTimeComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ScrubBarBufferingTimeComponent]
+      declarations: [EvaScrubBarBufferingTimeComponent]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(ScrubBarBufferingTimeComponent);
+    fixture = TestBed.createComponent(EvaScrubBarBufferingTimeComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

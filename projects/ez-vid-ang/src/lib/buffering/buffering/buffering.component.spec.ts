@@ -1,18 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { BufferingComponent } from './buffering.component';
+import { EvaBufferingComponent } from './buffering.component';
 
 describe('BufferingComponent', () => {
-  let component: BufferingComponent;
-  let fixture: ComponentFixture<BufferingComponent>;
+  let component: EvaBufferingComponent;
+  let fixture: ComponentFixture<EvaBufferingComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [BufferingComponent]
+      declarations: [EvaBufferingComponent]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(BufferingComponent);
+    fixture = TestBed.createComponent(EvaBufferingComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

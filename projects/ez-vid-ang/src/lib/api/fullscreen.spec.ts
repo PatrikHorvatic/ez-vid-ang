@@ -1,13 +1,12 @@
 import { TestBed } from '@angular/core/testing';
-
-import { Fullscreen } from './fullscreen';
+import { EvaFullscreenAPI } from './fullscreen';
 
 describe('Fullscreen', () => {
-  let service: Fullscreen;
+  let service: EvaFullscreenAPI;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(Fullscreen);
+    service = TestBed.inject(EvaFullscreenAPI);
   });
 
   it('should be created', () => {

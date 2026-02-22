@@ -83,7 +83,7 @@
 	position: absolute;
 	bottom: 100%;
 	left: 50%;
-	transform: translateX(-50%) translateY(-8px);
+	transform: translateX(-50%) translateY(-12px);
 	margin-bottom: 4px;
 	z-index: 1000;
 
@@ -103,7 +103,7 @@
 		opacity: 1;
 		visibility: visible;
 		pointer-events: auto;
-		transform: translateX(-50%) translateY(-8px) scale(1);
+		transform: translateX(-50%) translateY(calc(-12px - var(--eva-scrub-bar-heights))) scale(1);
 	}
 
 	// Responsive positioning

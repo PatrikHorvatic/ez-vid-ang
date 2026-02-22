@@ -57,18 +57,18 @@
 // .eva-icon-skip_previous::before {
 // 	content: "\e028";
 // }
-// .eva-icon-forward_10::before {
-// 	content: "\e038";
-// }
-// .eva-icon-forward_30::before {
-// 	content: "\e039";
-// }
-// .eva-icon-replay_10::before {
-// 	content: "\e03b";
-// }
-// .eva-icon-replay_30::before {
-// 	content: "\e03c";
-// }
+.eva-icon-forward_10::before {
+	content: "\e038";
+}
+.eva-icon-forward_30::before {
+	content: "\e039";
+}
+.eva-icon-replay_10::before {
+	content: "\e03b";
+}
+.eva-icon-replay_30::before {
+	content: "\e03c";
+}
 
 /* Volume controls */
 .eva-icon-volume_up::before {

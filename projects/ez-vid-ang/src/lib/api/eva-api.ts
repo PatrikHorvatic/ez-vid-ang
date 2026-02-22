@@ -167,23 +167,29 @@ export class EvaApi {
 	}
 
 	/**
-	 * Seeks forward by 5 seconds, clamped to the total duration.
+	 * Seeks forward by N seconds, clamped to the total duration.
 	 * Updates `time` signal immediately for responsive UI feedback.
 	 * Called from `EvaScrubBar` keyboard handler.
 	 */
-	public seekForward() {
-		const newTime = Math.min(this.time().current + 5, this.time().total);
+	public seekForward(n: number = 5) {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		const newTime = Math.min(this.time().current + n, this.time().total);
 		this.assignedVideoElement.currentTime = newTime;
 		this.time.update(a => ({ ...a, current: newTime, remaining: a.total - newTime }));
 	}
 
 	/**
-	 * Seeks backward by 5 seconds, clamped to a minimum of `0`.
+	 * Seeks backward by N seconds, clamped to a minimum of `0`.
 	 * Updates `time` signal immediately for responsive UI feedback.
 	 * Called from `EvaScrubBar` keyboard handler.
 	 */
-	public seekBack() {
-		const newTime = Math.min(this.time().current - 5, this.time().total);
+	public seekBack(n: number = 5) {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		const newTime = Math.min(this.time().current - n, this.time().total);
 		this.assignedVideoElement.currentTime = newTime;
 		this.time.update(a => ({ ...a, current: newTime, remaining: a.total - newTime }));
 	}
@@ -385,7 +391,9 @@ export class EvaApi {
 	 * Ignores `AbortError` which can occur if another seek interrupts the play call.
 	 */
 	public videoSeeked() {
-		if (!this.validateVideoAndPlayerBeforeAction()) return;
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
 		this.isSeeking.set(false);
 
 		if (this.pendingPlayAfterSeek) {

@@ -13,6 +13,8 @@ import { EvaScrubBar } from "./scrub-bar/scrub-bar";
 import { EvaTimeDisplay } from "./time-display/time-display";
 import { EvaTrackSelector } from "./track-selector/track-selector";
 import { EvaVolume } from "./volume/volume";
+import { EvaForwardComponent } from './forward/forward.component';
+import { EvaBackwardComponent } from './backward/backward.component';
 
 
 @NgModule({
@@ -23,7 +25,9 @@ import { EvaVolume } from "./volume/volume";
 		EvaControlsContainerComponent,
 		EvaOverlayPlay,
 		EvaScrubBarBufferingTimeComponent,
-		EvaScrubBarCurrentTimeComponent],
+		EvaScrubBarCurrentTimeComponent,
+		EvaForwardComponent,
+		EvaBackwardComponent],
 	imports: [],
 	exports: [EvaFullscreen, EvaMute, EvaPlayPause,
 		EvaPlaybackSpeed, EvaQualitySelector, EvaScrubBar,
@@ -31,7 +35,10 @@ import { EvaVolume } from "./volume/volume";
 		EvaTimeDisplayPipe, EvaOverlayPlay,
 		EvaTimeDisplay, EvaTrackSelector, EvaVolume,
 		EvaScrubBarCurrentTimeComponent,
-		EvaScrubBarBufferingTimeComponent],
+		EvaScrubBarBufferingTimeComponent,
+		EvaForwardComponent,
+		EvaBackwardComponent
+	],
 	providers: []
 })
 export class EvaControlsModule { }

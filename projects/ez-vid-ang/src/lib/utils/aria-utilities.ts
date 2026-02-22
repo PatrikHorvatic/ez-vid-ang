@@ -137,6 +137,53 @@ export function transformEvaPlayPauseAria(v: EvaPlayPauseAria | undefined): EvaP
 
 }
 
+export type EvaForwardAria = {
+	ariaLabel?: string,
+}
+
+export type EvaForwardAriaTransformed = {
+	ariaLabel: string,
+}
+
+export function validateAndTransformEvaForwardAndBackwardSeconds(v: number): number {
+	if (!v) { return 10; }
+	if (v === Infinity) { return 10; }
+	if (v <= 0) { return 10; }
+
+	return v;
+}
+
+export function transformEvaForwardAria(v: EvaForwardAria | undefined): EvaForwardAriaTransformed {
+	if (!v) {
+		return {
+			ariaLabel: "Forward 10 seconds"
+		}
+	}
+
+	return {
+		ariaLabel: v.ariaLabel ? v.ariaLabel : "Forward 10 seconds"
+	}
+}
+export type EvaBackwardAria = {
+	ariaLabel?: string,
+}
+
+export type EvaBackwardAriaTransformed = {
+	ariaLabel: string,
+}
+
+export function transformEvaBackwardAria(v: EvaBackwardAria | undefined): EvaBackwardAriaTransformed {
+	if (!v) {
+		return {
+			ariaLabel: "Backward 10 seconds"
+		}
+	}
+
+	return {
+		ariaLabel: v.ariaLabel ? v.ariaLabel : "Backward 10 seconds"
+	}
+}
+
 export type EvaPlaybackSpeedAria = {
 	ariaLabel?: string,
 }

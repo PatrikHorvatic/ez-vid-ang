@@ -75,8 +75,8 @@ export class HomePage {}
 
 ## Modules
 
-Library has four logically grouped modules:
-- **EvaCoreModule** – Main player component, directives, and providers
-- **EvaControlsModule** – Video control components and pipes
-- **EvaBufferingModule** – Loading and buffering indicators
-- **EvaStreamingModule** – Directives for live streaming support
+Library has four logically grouped modules. You can click on the name to go to the documentation:
+- [**EvaCoreModule**](documentation/core) – Main player component, directives, and providers
+- [**EvaControlsModule**](documentation/controls) – Video control components and pipes
+- [**EvaBufferingModule**](documentation/buffering) – Loading and buffering indicators
+- [**EvaStreamingModule**](documentation/streaming) – Directives for live streaming support

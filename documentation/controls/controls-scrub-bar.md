@@ -14,7 +14,7 @@ Mouse and touch event listeners are registered outside Angular's zone to avoid u
 
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `evaAria` | `EvaScrubBarAria` | No | See [Aria Types — `EvaScrubBarAria`](#) | ARIA label for the scrub bar slider. |
+| `evaAria` | `EvaScrubBarAria` | No | See [`EvaScrubBarAria`](#) | ARIA label for the scrub bar slider. |
 | `hideWithControlsContainer` | `boolean` | No | `false` | When `true`, the scrub bar participates in the controls container auto-hide behaviour. |
 | `evaAutohideTime` | `number` | No | `3000` | Milliseconds of inactivity before the scrub bar hides. Only applies when `hideWithControlsContainer` is `true`. |
 | `evaSlidingEnabled` | `boolean` | No | `true` | When `true`, click-and-drag seeking is supported. When `false`, only click-to-seek is supported. |
@@ -79,6 +79,11 @@ All keyboard seeking is disabled for live streams.
 | `--eva-scrub-bar-chapter-hover-tooltip-text-color` | `white` | Text color of the hover time tooltip. |
 | `--eva-scrub-bar-chapter-hover-tooltip-font-size` | `14px` | Font size of the hover time tooltip. |
 
+### `EvaScrubBarAria`
+
+| Property | Default |
+|---|---|
+| `ariaLabel` | `"Scrub bar"` |
 
 ---
 <br />

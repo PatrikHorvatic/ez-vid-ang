@@ -12,7 +12,7 @@ A fullscreen toggle button rendered as a `role="button"` element. Tracks fullscr
 
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `evaAria` | `EvaFullscreenAria` | No | See [Aria Types — `EvaFullscreenAria`](#) | ARIA labels for the enter and exit fullscreen states. |
+| `evaAria` | `EvaFullscreenAria` | No | See [`EvaFullscreenAria`](#aria) | ARIA labels for the enter and exit fullscreen states. |
 | `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses all built-in icon classes so a custom icon can be projected instead. |
 
 ### Usage
@@ -36,3 +36,11 @@ A fullscreen toggle button rendered as a `role="button"` element. Tracks fullscr
 |---|---|
 | `Enter` | Toggle fullscreen |
 | `Space` | Toggle fullscreen |
+
+<a name="aria"></a>
+### `EvaFullscreenAria`
+
+| Property | Default |
+|---|---|
+| `enterFullscreen` | `"Enter fullscreen"` |
+| `exitFullscreen` | `"Exit fullscreen"` |

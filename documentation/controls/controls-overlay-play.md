@@ -12,7 +12,7 @@ A centered overlay play button that appears over the video when it is in a non-p
 
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `evaOvelayPlayAria` | `EvaOverlayPlayAria` | No | See [Aria Types — `EvaOverlayPlayAria`](#) | ARIA label for the overlay button. |
+| `evaOvelayPlayAria` | `EvaOverlayPlayAria` | No | See [`EvaOverlayPlayAria`](#) | ARIA label for the overlay button. |
 | `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses all built-in icon classes so a custom icon can be projected instead. |
 
 ### Usage
@@ -46,3 +46,10 @@ The overlay is shown when the video state is `loading`, `paused`, `ended`, or `e
 | Variable | Default | Description |
 |---|---|---|
 | `--eva-overlay-play-background-color` | `rgba(0, 0, 0, 0.7)` | Background color of the overlay play button. |
+
+
+### `EvaOverlayPlayAria`
+
+| Property | Default |
+|---|---|
+| `ariaLabel` | `"Overlay play"` |

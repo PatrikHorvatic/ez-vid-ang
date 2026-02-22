@@ -12,7 +12,7 @@ A play/pause toggle button rendered as a `role="button"` element. Tracks the cur
 
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `evaPlayPauseAria` | `EvaPlayPauseAria` | No | See [Aria Types — `EvaPlayPauseAria`](#) | ARIA labels and value texts for each playback state. |
+| `evaPlayPauseAria` | `EvaPlayPauseAria` | No | See [`EvaPlayPauseAria`](#) | ARIA labels and value texts for each playback state. |
 | `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses all built-in icon classes so a custom icon can be projected instead. |
 
 ### Usage
@@ -51,3 +51,16 @@ Built-in icon classes are suppressed entirely when `evaCustomIcon` is `true`.
 |---|---|
 | `Enter` | Toggle play/pause |
 | `Space` | Toggle play/pause |
+
+
+### `EvaPlayPauseAria`
+
+| Property | Default |
+|---|---|
+| `ariaLabel.play` | `"play"` |
+| `ariaLabel.pause` | `"pause"` |
+| `ariaValueText.playing` | `"playing"` |
+| `ariaValueText.loading` | `"loading"` |
+| `ariaValueText.paused` | `"paused"` |
+| `ariaValueText.ended` | `"ended"` |
+| `ariaValueText.errored` | `"errored"` |

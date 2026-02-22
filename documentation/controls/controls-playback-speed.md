@@ -14,7 +14,7 @@ A playback speed selector component that renders a dropdown of available speeds.
 |---|---|---|---|---|
 | `evaPlaybackSpeeds` | `number[]` | ✅ Yes | — | Available playback speeds. Values outside `0.25`–`4` are removed, duplicates are stripped. Falls back to `[1]` if the result is empty. Display order follows the array order — sorting is the consumer's responsibility. |
 | `evaDefaultPlaybackSpeed` | `number` | No | `1` | Speed pre-selected on init. Must exist in `evaPlaybackSpeeds` — falls back to the first speed if not found. |
-| `evaAria` | `EvaPlaybackSpeedAria` | No | See [Aria Types — `EvaPlaybackSpeedAria`](#) | ARIA label for the speed selector button. |
+| `evaAria` | `EvaPlaybackSpeedAria` | No | See [`EvaPlaybackSpeedAria`](#) | ARIA label for the speed selector button. |
 
 ### Usage
 
@@ -62,3 +62,9 @@ A playback speed selector component that renders a dropdown of available speeds.
 | `--eva-playback-speed-dropdown-content-speed-option-font-color` | `rgba(255, 255, 255, 0.95)` | Color of speed option labels. |
 | `--eva-playback-speed-dropdown-content-speed-option-checkmark-size` | `16px` | Size of the checkmark icon on the active speed. |
 | `--eva-playback-speed-dropdown-content-speed-option-checkmark-color` | `rgb(59, 130, 246)` | Color of the checkmark icon on the active speed. |
+
+### `EvaPlaybackSpeedAria`
+
+| Property | Default |
+|---|---|
+| `ariaLabel` | `"Playback speed"` |

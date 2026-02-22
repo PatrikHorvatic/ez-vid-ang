@@ -12,7 +12,7 @@ A mute/unmute toggle button rendered as a `role="button"` element. Reflects the 
 
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `evaAria` | `EvaMuteAria` | No | See [Aria Types — `EvaMuteAria`](#) | ARIA label and value texts for the muted/unmuted states. |
+| `evaAria` | `EvaMuteAria` | No | See [`EvaMuteAria`](#) | ARIA label and value texts for the muted/unmuted states. |
 | `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses all built-in icon classes so a custom icon can be projected instead. |
 | `evaLowVolume` | `number` | No | `0.25` | Volume threshold below which the low volume icon is shown. Clamped to `[0, 1]`. |
 | `evaMiddleVolume` | `number` | No | `0.75` | Volume threshold at or above which the high volume icon is shown. Clamped to `[0, 1]`. |
@@ -52,3 +52,11 @@ Built-in icon classes are suppressed entirely when `evaCustomIcon` is `true`.
 |---|---|
 | `Enter` | Toggle mute/unmute |
 | `Space` | Toggle mute/unmute |
+
+### `EvaMuteAria`
+
+| Property | Default |
+|---|---|
+| `ariaLabel` | `"mute"` |
+| `ariaValueTextMuted` | `"Muted"` |
+| `ariaValueTextUnmuted` | `"Unmuted"` |

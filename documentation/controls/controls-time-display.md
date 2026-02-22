@@ -15,7 +15,7 @@ A time display component that renders a single time value — current, total, or
 | `evaTimeProperty` | `EvaTimeProperty` | ✅ Yes | — | Which time value to display: `"current"`, `"total"`, or `"remaining"`. Also determines which `evaAria` label is applied. |
 | `evaTimeFormating` | `EvaTimeFormating` | ✅ Yes | — | Format used to render the time value. See [Types — `EvaTimeFormating`](#). |
 | `evaLiveText` | `string` | No | `"LIVE"` | Text shown in place of the time value when the stream is live. |
-| `evaAria` | `EvaTimeDisplayAria` | No | See [Aria Types — `EvaTimeDisplayAria`](#) | ARIA labels for the timer element, keyed by `evaTimeProperty`. |
+| `evaAria` | `EvaTimeDisplayAria` | No | See [`EvaTimeDisplayAria`](#) | ARIA labels for the timer element, keyed by `evaTimeProperty`. |
 
 ### Usage
 
@@ -52,3 +52,14 @@ The `aria-label` is resolved from `evaAria` based on the active `evaTimeProperty
 | Variable | Default | Description |
 |---|---|---|
 | `--eva-time-display-text-color` | `white` | Color of the time display text. |
+
+
+### `EvaTimeDisplayAria`
+
+The active property depends on the `EvaTimeProperty` set on the component.
+
+| Property | Used when `evaTimeProperty` is | Default |
+|---|---|---|
+| `ariaLabelCurrent` | `"current"` | `"Current time display"` |
+| `ariaLabelTotal` | `"total"` | `"Duration display"` |
+| `ariaLabelRemaining` | `"remaining"` | `"Remaining time display"` |

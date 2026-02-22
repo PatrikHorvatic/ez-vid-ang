@@ -18,11 +18,15 @@ import { transformTimeoutDuration } from '../../utils/utilities';
  *
  * @example
  * // Always visible
- * <eva-controls-container />
+ * <eva-controls-container>
+ *  ... other controls
+ * </eva-controls-container>
  *
  * @example
  * // Auto-hide after 4 seconds of inactivity
- * <eva-controls-container [evaAutohide]="true" [evaAutohideTime]="4000" />
+ * <eva-controls-container [evaAutohide]="true" [evaAutohideTime]="4000">
+ *  ... other controls
+ * </eva-controls-container>
  */
 @Component({
   selector: 'eva-controls-container',

@@ -12,7 +12,7 @@ A volume slider component for the Eva video player. Rendered as a `role="slider"
 
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `evaAria` | `EvaVolumeAria` | No | See [Aria Types — `EvaVolumeAria`](#) | ARIA label for the volume slider. |
+| `evaAria` | `EvaVolumeAria` | No | See [`EvaVolumeAria`](#) | ARIA label for the volume slider. |
 
 ### Usage
 
@@ -46,3 +46,9 @@ A volume slider component for the Eva video player. Rendered as a `role="slider"
 ### Accessibility
 
 Volume changes are announced to screen readers via a live region controlled by `shouldAnnounceVolume`. Announcements are debounced at 300ms to avoid excessive reads during rapid input, and the live region is cleared after 100ms.
+
+### `EvaVolumeAria`
+
+| Property | Default |
+|---|---|
+| `ariaLabel` | `"Volume control"` |

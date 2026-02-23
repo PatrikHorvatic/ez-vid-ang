@@ -71,12 +71,9 @@ export class EvaControlsContainerComponent implements OnInit, OnDestroy, OnChang
   /**
    * Reference to the active auto-hide timeout.
    * Cleared whenever a new user interaction is detected or auto-hide is disabled.
-   *
-   * @todo Replace `any` with the explicit `NodeJS.Timeout` type.
    */
-  //TODO - Add a timeout type!
   /**This is NodeJS.Timeout type! */
-  private hideTimeout: any;
+  private hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
   /**
    * Starts listening for user interaction events if `evaAutohide` is enabled on init,

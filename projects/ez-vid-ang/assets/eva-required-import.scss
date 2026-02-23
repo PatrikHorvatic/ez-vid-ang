@@ -31,6 +31,13 @@
 
 	--eva-overlay-play-background-color: rgba(0, 0, 0, 0.7);
 
+	--eva-active-chapter-min-width: 30px;
+	--eva-active-chapter-width: auto;
+	--eva-active-chapter-max-width: 200px;
+	--eva-active-chapter-padding: 0px 4px;
+	--eva-active-chapter-hover-background: rgba(255, 255, 255, 0.1);
+	--eva-active-chapter-icon-color: white;
+
 	--eva-playback-speed-label-font-size: 14px;
 	--eva-playback-speed-label-color: rgba(255, 255, 255, 0.95);
 	--eva-playback-speed-dropdown-arrow-size: 20px;
@@ -86,8 +93,11 @@
 	--eva-track-selector-dropdown-content-speed-option-checkmark-size: 16px;
 	--eva-track-selector-dropdown-content-speed-option-checkmark-color: rgb(59, 130, 246);
 
+	--eva-volume-width: 110px;
 	--eva-volume-background-color: rgba(255, 255, 255, 0.2);
-	--eva-volume-value-background-color: white;
+	--eva-volume-track-background-color: white;
+	--eva-volume-track-height: 4px;
+	--eva-volume-track-height-dragging: 5px;
 	--eva-volume-knob-background-color: white;
 	--eva-volume-knob-size: 15px;
 	--eva-volume-knob-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);

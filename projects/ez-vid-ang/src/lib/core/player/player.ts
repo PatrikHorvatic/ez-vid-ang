@@ -1,5 +1,4 @@
-import { AfterViewInit, Component, ElementRef, inject, input, OnChanges, OnDestroy, QueryList, signal, SimpleChanges, viewChild, viewChildren, WritableSignal } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { AfterViewInit, Component, ElementRef, inject, input, OnChanges, OnDestroy, SimpleChanges, viewChild } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
 import { EvaTrack, EvaVideoElementConfiguration, EvaVideoSource } from '../../types';
@@ -109,11 +108,7 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
   /**
    * References to the `<track>` elements rendered in the template for subtitle support.
    */
-  readonly evaVideoTrackElements = viewChildren<QueryList<HTMLTrackElement>>("evaVideoTracks");
-
-
-  protected subtitlesPadding: WritableSignal<string> = signal("10px");
-  private controlsContainerHidding: Subscription | null = null;
+  // private readonly evaVideoTrackElements = viewChildren<HTMLTrackElement>("evaVideoTracks");
 
   /**
    * Responds to runtime changes of `evaVideoTracks`.
@@ -124,7 +119,8 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
    */
   ngOnChanges(changes: SimpleChanges): void {
     if (changes["evaVideoTracks"]) {
-      this.playerMainAPI.videoTracksSubject.next(changes["evaVideoTracks"].currentValue);
+      //when number of tracks is change we must restart all mutation observers as some may become invalid
+      this.playerMainAPI.updateAndPrepareTracks(changes["evaVideoTracks"].currentValue);
     }
   }
 
@@ -135,25 +131,12 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
   ngAfterViewInit(): void {
     this.playerMainAPI.assignElementToApi(this.evaVideoElement().nativeElement);
     this.playerMainAPI.onPlayerReady();
-    // console.log(this.hlsDirective);
-    // console.log(this.dashDirective);
-
-    this.controlsContainerHidding = this.playerMainAPI.componentsContainerVisibilityStateSubject.subscribe(hidden => {
-      // console.log(hidden);
-
-      if (hidden) {
-        this.subtitlesPadding.set("10px");
-      }
-      else {
-        this.subtitlesPadding.set("var(--eva-subtitle-offset)");
-      }
-    });
   }
 
   /** Reserved for future teardown logic. */
   ngOnDestroy(): void {
-    this.controlsContainerHidding?.unsubscribe();
     this.playerFullscreenAPI.destroy();
     this.playerMainAPI.destroy();
   }
+
 }

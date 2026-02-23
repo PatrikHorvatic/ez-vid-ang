@@ -7,9 +7,10 @@
 	display: flex;
 	justify-content: center;
 	height: var(--eva-control-element-height);
-	width: 100px;
+	width: var(--eva-volume-width);
 	cursor: pointer;
 	position: relative;
+	padding: 0px 8px;
 }
 
 .volumeBar {
@@ -43,7 +44,7 @@
 .volumeBackground {
 	display: flex;
 	flex-grow: 1;
-	height: 5px;
+	height: var(--eva-volume-track-height);
 	pointer-events: none;
 	background-color: var(--eva-volume-background-color);
 	border-radius: 3px;
@@ -51,7 +52,7 @@
 	transition: height var(--eva-transition-duration) ease;
 
 	&.dragging {
-		height: 6px;
+		height: var(--eva-volume-track-height-dragging);
 	}
 }
 
@@ -59,7 +60,7 @@
 	display: flex;
 	height: 100%;
 	pointer-events: none;
-	background-color: var(--eva-volume-value-background-color);
+	background-color: var(--eva-volume-track-background-color);
 	transition: width var(--eva-transition-duration) ease-out;
 	border-radius: 3px;
 	position: relative;

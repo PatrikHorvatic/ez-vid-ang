@@ -343,7 +343,14 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
    *
    * @param v - The raw track list from `EvaApi.videoTracksSubject`.
    */
-  private extractTracksFromAssignedVideoElement(v: EvaTrack[]): TrackInternal[] {
+  private extractTracksFromAssignedVideoElement(v: EvaTrack[] | null): TrackInternal[] {
+    if (v === null) {
+      return [{
+        id: "off",
+        label: this.evaTrackOffText(),
+        selected: true
+      }];
+    }
     if (v.length === 0) {
       return [{
         id: "off",

@@ -4,6 +4,7 @@ export * from "./lib/controls/controls-divider/controls-divider.component";
 export * from "./lib/controls/eva-controls-container/controls-container.component";
 export * from "./lib/controls/forward/forward.component";
 export * from "./lib/controls/fullscreen/fullscreen";
+export * from "./lib/controls/active-chapter/active-chapter.component";
 export * from "./lib/controls/mute/mute";
 export * from "./lib/controls/overlay-play/overlay-play.component";
 export * from "./lib/controls/pipes/time-display-pipe";

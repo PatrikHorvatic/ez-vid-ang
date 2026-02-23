@@ -92,7 +92,6 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
    */
   ngOnInit(): void {
     this.playingStateSub = this.evaAPI.videoStateSubject.subscribe(state => {
-      // console.log(state);
       this.playingState.set(state);
     });
   }

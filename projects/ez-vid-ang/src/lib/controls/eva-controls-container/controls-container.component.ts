@@ -132,7 +132,6 @@ export class EvaControlsContainerComponent implements OnInit, OnDestroy, OnChang
       this.prepareHiding();
     });
     this.controlsSelectorActive$ = this.evaAPI.controlsSelectorComponentActive.subscribe((isActive) => {
-      console.log(isActive);
       this.isControlerSelectorActive = isActive;
       if (this.hideTimeout) {
         clearTimeout(this.hideTimeout);

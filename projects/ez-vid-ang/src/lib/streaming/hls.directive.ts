@@ -190,8 +190,7 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
         this.evaAPI.registerQualityFn(this.setQualityLevel.bind(this));
       });
 
-      this.hls.on(Hls.Events.LEVEL_SWITCHED, (_event: any, data: { level: number }) => {
-        console.log('[EvaHls] Level switched to:', data.level);
+      this.hls.on(Hls.Events.LEVEL_SWITCHED, (_event: any, _data: { level: number }) => {
       });
 
       this.hls.attachMedia(video);

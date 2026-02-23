@@ -1,6 +1,6 @@
 import { EventEmitter, Injectable, signal, WritableSignal } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { EvaQualityLevel, EvaState, EvaTrack } from '../types';
+import { EvaChapterMarker, EvaQualityLevel, EvaState, EvaTrack } from '../types';
 
 /**
  * Core API service for the Eva video player.
@@ -111,7 +111,7 @@ export class EvaApi {
 	public playbackRateSubject = new BehaviorSubject<number | null>(null);
 
 	/** Broadcasts the current list of available `EvaTrack` objects. Updated by `EvaPlayer` on input changes. */
-	public videoTracksSubject = new BehaviorSubject<EvaTrack[]>([]);
+	public videoTracksSubject = new BehaviorSubject<EvaTrack[] | null>([]);
 
 	/**
 	 * Broadcasts the video element's `TimeRanges` buffer object on each `progress` event.
@@ -124,7 +124,7 @@ export class EvaApi {
 	 * Subscribed to by components that need to react to time changes (e.g. buffering time display),
 	 * typically with throttling applied.
 	 */
-	public videoTimeChangeSubject = new BehaviorSubject<null>(null);
+	public videoTimeChangeSubject = new BehaviorSubject<number>(0);
 
 	/**
 	  * The list of available quality levels for the current stream.
@@ -132,6 +132,15 @@ export class EvaApi {
 	  * Subscribed to by `EvaQualitySelector` to populate its dropdown.
 	  */
 	public qualityLevelsSubject = new BehaviorSubject<EvaQualityLevel[]>([]);
+
+
+	/**
+	 * Used when user changes current time on the scrub track through interaction.
+	 * Chapter marker gets calculated inside the component.
+	 */
+	public activeChapterSubject = new BehaviorSubject<EvaChapterMarker | null>(null);
+
+	public chapterMarkerChangesSubject = new BehaviorSubject<EvaChapterMarker[]>([]);
 
 	/**
 	  * The currently selected quality level index.
@@ -160,6 +169,28 @@ export class EvaApi {
 	/** The playback position recorded at the start of the current `timeupdate` cycle. */
 	private currentPlayPos = 0;
 
+
+	public isActiveChapterPresent: boolean = false;
+	private trackTimeout: ReturnType<typeof setTimeout> | null = null;
+	public updateAndPrepareTracks(tracks: EvaTrack[]) {
+		this.videoTracksSubject.next(tracks);
+
+		if (this.trackTimeout) {
+			clearTimeout(this.trackTimeout);
+		}
+
+		this.trackTimeout = setTimeout(() => {
+			if (this.validateVideoAndPlayerBeforeAction()) {
+				let listOfChapters = this.loadChaptersFromTrack();
+				this.chapterMarkerChangesSubject.next(listOfChapters);
+				if (!this.isLive()) {
+					let currentTime = Math.floor(this.time().current);
+					const chapter = listOfChapters.find(c => currentTime >= c.startTime && currentTime < c.endTime);
+					this.activeChapterSubject.next(chapter ? chapter : null);
+				}
+			}
+		}, 100);
+	}
 
 	/**
 	  * Internal reference to the streaming library's quality setter function.
@@ -477,8 +508,7 @@ export class EvaApi {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
-
-		this.videoTimeChangeSubject.next(null);
+		this.videoTimeChangeSubject.next(this.videoTimeChangeSubject.value + 1);
 
 		const crnt = this.assignedVideoElement.currentTime;
 		this.time.update(a => {
@@ -489,6 +519,17 @@ export class EvaApi {
 			}
 		});
 
+		if (!this.isLive()) {
+			if (this.isActiveChapterPresent) {
+				let currentTime = Math.floor(this.time().current);
+				let listOfChapters = this.chapterMarkerChangesSubject.value;
+				const chapter = listOfChapters.find(c => currentTime >= c.startTime && currentTime < c.endTime);
+				// prevent triggering unneccesery change detection in signals.
+				if (this.activeChapterSubject.value !== chapter) {
+					this.activeChapterSubject.next(chapter ? chapter : null);
+				}
+			}
+		}
 		this.detectBuffering(crnt);
 	}
 
@@ -749,6 +790,10 @@ export class EvaApi {
 			this.bufferingTimeout = undefined;
 		}
 
+		if (this.trackTimeout) {
+			clearTimeout(this.trackTimeout);
+		}
+
 		// Clear the registered streaming quality function
 		this.qualityFn = null;
 
@@ -764,5 +809,46 @@ export class EvaApi {
 		this.controlsSelectorComponentActive.complete();
 		this.triggerUserInteraction.complete();
 		this.playerReadyEvent.complete();
+	}
+
+	/**
+	   Scans the video element's text tracks for a `chapters` or `metadata` track
+	   and parses its cues into `EvaChapterMarker` objects.
+	   If cues are not yet available, waits for the track's `load` event.
+	  */
+	private loadChaptersFromTrack(): EvaChapterMarker[] {
+		const textTracks = this.assignedVideoElement.textTracks;
+		let l: EvaChapterMarker[] = [];
+		for (let i = 0; i < textTracks.length; i++) {
+			const track = textTracks[i];
+			if (track.kind === 'metadata' || track.kind === 'chapters') {
+				track.mode = 'hidden';
+				if (track.cues && track.cues.length > 0) {
+					l = this.parseCues(track.cues);
+				}
+				break;
+			}
+		}
+
+		return l;
+	}
+
+	/**
+	  * Converts a `TextTrackCueList` into an array of `EvaChapterMarker` objects
+	  * and updates the `chapters` signal inside the Angular zone.
+	  *
+	  * @param cues - The list of VTT cues to parse.
+	  */
+	private parseCues(cues: TextTrackCueList): EvaChapterMarker[] {
+		const parsed: EvaChapterMarker[] = [];
+		for (let i = 0; i < cues.length; i++) {
+			const cue = cues[i] as VTTCue;
+			parsed.push({
+				startTime: cue.startTime ? cue.startTime : 0,
+				endTime: cue.endTime,
+				title: cue.text
+			});
+		}
+		return parsed;
 	}
 }

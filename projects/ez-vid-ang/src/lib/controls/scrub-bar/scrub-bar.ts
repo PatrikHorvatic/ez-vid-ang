@@ -144,13 +144,13 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
   readonly evaShowChapters = input<boolean>(true);
 
   /**
-   * Chapter markers to display on the scrub bar.
-   *
-   * If provided and non-empty, these take priority over any VTT text track on the video element.
-   * Only used when `evaShowChapters` is `true`.
-   *
-   * @default []
-   */
+ * Chapter markers to display on the scrub bar.
+ *
+ * If provided and non-empty, these take priority over any VTT text track on the video element.
+ * Only used when `evaShowChapters` is `true`.
+ *
+ * @default []
+ */
   readonly evaChapters = input<EvaChapterMarker[]>([]);
 
   /** Whether the scrub bar is currently hidden. Applies the `hide` class to the host. */
@@ -187,6 +187,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
   /** Subscription to user interaction events for the auto-hide feature. */
   private userInteraction$: Subscription | null = null;
   private controlsSelectorActive$: Subscription | null = null;
+  private chapterChanges$: Subscription | null = null;
 
   /** Reference to the auto-hide timeout. Cleared when new interaction is detected. */
   private hideTimeout: any;
@@ -225,6 +226,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.userInteraction$?.unsubscribe();
     this.controlsSelectorActive$?.unsubscribe();
+    this.chapterChanges$?.unsubscribe();
     if (this.hideTimeout) clearTimeout(this.hideTimeout);
 
     document.removeEventListener('mousemove', this.onDocumentMouseMove);
@@ -360,10 +362,31 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
     if (e.keyCode === 38 || e.keyCode === 39) {
       e.preventDefault();
       this.evaAPI.seekForward();
+      this.emitChapterAtTime(this.evaAPI.time().current);
     } else if (e.keyCode === 37 || e.keyCode === 40) {
       e.preventDefault();
       this.evaAPI.seekBack();
+      this.emitChapterAtTime(this.evaAPI.time().current);
     }
+  }
+
+  /**
+ * Looks up the chapter at the given time and emits it via `onChapterChange`.
+ * Emits the matching `EvaChapterMarker` if the time falls within a chapter,
+ * or `null` if no chapter contains that time.
+ *
+ * Called after every user-initiated seek: click, drag release, touch end, and keyboard.
+ *
+ * @param time - The playback time in seconds to look up.
+ */
+  private emitChapterAtTime(time: number): void {
+    const chapters = this.chapters();
+    if (!chapters.length) {
+      this.evaAPI.activeChapterSubject.next(null);
+      return;
+    }
+    const chapter = chapters.find(c => time >= c.startTime && time < c.endTime) ?? null;
+    this.evaAPI.activeChapterSubject.next(chapter);
   }
 
   /**
@@ -442,44 +465,6 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
     this.runInZone(() => this.seekMove(this.getTouchOffset(e)));
   };
 
-  /**
-   * Host-level `mousemove` handler (currently unused — registered but commented out in `ngAfterViewInit`).
-   * Originally intended as an alternative hover tooltip approach scoped to the host element.
-   */
-  // private onHostMouseMove = (e: MouseEvent) => {
-  //   if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
-  //   if (this.evaAPI.isLive()) return;
-  //   if (!this.evaShowTimeOnHover()) return;
-
-  //   const offset = this.getOffsetFromEvent(e.clientX);
-  //   const rect = this.elementRef.nativeElement.getBoundingClientRect();
-  //   const scrollWidth = this.elementRef.nativeElement.scrollWidth;
-
-  //   const percentage = Math.max(Math.min((offset * 100) / scrollWidth, 99.9), 0);
-  //   const time = (percentage * this.evaAPI.time().total) / 100;
-
-  //   const tooltipHalfWidth = 35;
-  //   const clampedLeft = Math.max(tooltipHalfWidth, Math.min(offset, rect.width - tooltipHalfWidth));
-  //   const formatted = this.formatTime(time);
-  //   const chapter = this.getChapterAtTime(time);
-
-  //   this.runInZone(() => {
-  //     this.hoverTime.set(formatted);
-  //     this.hoverLeft.set(clampedLeft);
-  //     this.hoverChapter.set(chapter);
-  //   });
-  // };
-
-  /**
-   * Host-level `mouseleave` handler (currently unused — registered but commented out in `ngAfterViewInit`).
-   * Clears the hover tooltip when the mouse leaves the host element.
-   */
-  // private onHostMouseLeave = () => {
-  //   this.runInZone(() => {
-  //     this.hoverTime.set(null);
-  //     this.hoverChapter.set(null);
-  //   });
-  // };
 
   /**
    * Begins a drag seek operation.
@@ -541,6 +526,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
       if (isNaN(newTime) || newTime < 0) return;
 
       this.evaAPI.assignedVideoElement.currentTime = newTime;
+      this.emitChapterAtTime(newTime);
     }
 
     if (this.wasPlaying) {
@@ -555,6 +541,8 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    */
   private touchEnd() {
     this.isSeeking = false;
+    this.emitChapterAtTime(this.evaAPI.assignedVideoElement.currentTime);
+
     if (this.wasPlaying) {
       this.wasPlaying = false;
       this.evaAPI.pendingPlayAfterSeek = true;
@@ -570,68 +558,16 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    *    If the player is not yet ready, waits for `playerReadyEvent` before loading the track.
    */
   private initChapters() {
-    if (!this.evaShowChapters()) return;
-
-    // Priority 1: directly provided input
-    if (this.evaChapters().length > 0) {
+    if (!this.evaShowChapters()) { return; }
+    if (this.evaChapters() && this.evaChapters().length > 0) {
       this.chapters.set(this.evaChapters());
-      return;
+
     }
+    this.chapterChanges$ = this.evaAPI.chapterMarkerChangesSubject.subscribe((d) => {
+      if (this.evaChapters().length > 0) { return; }
+      this.chapters.set(d);
+    });
 
-    // Priority 2: fallback to VTT track on the video element
-    if (this.evaAPI.isPlayerReady) {
-      this.loadChaptersFromTrack();
-    } else {
-      const sub = this.evaAPI.playerReadyEvent.subscribe(() => {
-        this.loadChaptersFromTrack();
-        sub.unsubscribe();
-      });
-    }
-  }
-
-  /**
-   * Scans the video element's text tracks for a `chapters` or `metadata` track
-   * and parses its cues into `EvaChapterMarker` objects.
-   * If cues are not yet available, waits for the track's `load` event.
-   */
-  private loadChaptersFromTrack() {
-    const video = this.evaAPI.assignedVideoElement;
-    const textTracks = video.textTracks;
-
-    for (let i = 0; i < textTracks.length; i++) {
-      const track = textTracks[i];
-      if (track.kind === 'metadata' || track.kind === 'chapters') {
-        track.mode = 'hidden';
-
-        if (track.cues && track.cues.length > 0) {
-          this.parseCues(track.cues);
-        } else {
-          track.addEventListener('load', () => {
-            if (track.cues) this.parseCues(track.cues);
-          });
-        }
-        break;
-      }
-    }
-  }
-
-  /**
-   * Converts a `TextTrackCueList` into an array of `EvaChapterMarker` objects
-   * and updates the `chapters` signal inside the Angular zone.
-   *
-   * @param cues - The list of VTT cues to parse.
-   */
-  private parseCues(cues: TextTrackCueList) {
-    const parsed: EvaChapterMarker[] = [];
-    for (let i = 0; i < cues.length; i++) {
-      const cue = cues[i] as VTTCue;
-      parsed.push({
-        startTime: cue.startTime,
-        endTime: cue.endTime,
-        title: cue.text
-      });
-    }
-    this.runInZone(() => this.chapters.set(parsed));
   }
 
   /**
@@ -641,7 +577,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    */
   private getChapterAtTime(time: number): string | null {
     const chapters = this.chapters();
-    if (!chapters.length) return null;
+    if (!chapters.length) { return null; }
     const chapter = chapters.find(c => time >= c.startTime && time < c.endTime);
     return chapter ? chapter.title : null;
   }
@@ -719,7 +655,6 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
     });
 
     this.controlsSelectorActive$ = this.evaAPI.controlsSelectorComponentActive.subscribe((isActive) => {
-      console.log(isActive);
       this.isControlerSelectorActive = isActive;
       if (this.hideTimeout) {
         clearTimeout(this.hideTimeout);

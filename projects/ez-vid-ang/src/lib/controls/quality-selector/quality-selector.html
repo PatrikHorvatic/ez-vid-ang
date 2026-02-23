@@ -1,0 +1,45 @@
+<div class="eva-quality-selector-container">
+	<!-- Current Quality Display Button -->
+	<div class="eva-quality-selector-button">
+		<span class="speed-icon">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+				stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+			</svg>
+		</span>
+		<span class="speed-label">
+			{{ currentQuality() ? formatQuality(currentQuality()!) : evaQualityAutoText() }}
+		</span>
+		<span class="dropdown-arrow" [class.rotated]="isOpen()">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+				stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<polyline points="6 9 12 15 18 9"></polyline>
+			</svg>
+		</span>
+	</div>
+
+	<!-- Dropdown Menu -->
+	<div class="eva-quality-selector-dropdown" [class.show]="isOpen()">
+		<div class="dropdown-content">
+			<div class="dropdown-header">{{ evaQualitySelectorText() }}</div>
+			<div class="quality-options">
+				@for (quality of qualities(); track quality.qualityIndex) {
+				<button type="button" class="quality-option"
+					[class.active]="quality.qualityIndex === currentQuality()?.qualityIndex"
+					(click)="selectQuality(quality, $index)"
+					[attr.aria-selected]="quality.qualityIndex === currentQuality()?.qualityIndex" role="option">
+					<span class="speed-text">{{ formatQuality(quality) }}</span>
+					@if (quality.qualityIndex === currentQuality()?.qualityIndex) {
+					<span class="checkmark">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+							stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<polyline points="20 6 9 17 4 12"></polyline>
+						</svg>
+					</span>
+					}
+				</button>
+				}
+			</div>
+		</div>
+	</div>
+</div>

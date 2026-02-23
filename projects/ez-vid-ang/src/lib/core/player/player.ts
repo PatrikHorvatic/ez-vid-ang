@@ -1,8 +1,7 @@
-import { AfterViewInit, Component, ElementRef, inject, input, OnChanges, OnDestroy, QueryList, SimpleChanges, viewChild, viewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, input, OnChanges, OnDestroy, QueryList, signal, SimpleChanges, viewChild, viewChildren, WritableSignal } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
-import { EvaDashDirective } from '../../streaming/dash.directive';
-import { EvaHlsDirective } from '../../streaming/hls.directive';
 import { EvaTrack, EvaVideoElementConfiguration, EvaVideoSource } from '../../types';
 import { validateTracks } from '../../utils/utilities';
 
@@ -49,13 +48,13 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
    * Optionally injected HLS streaming directive.
    * Present only when `evaHls` is applied to the `<video>` element inside this player.
    */
-  private hlsDirective = inject(EvaHlsDirective, { optional: true });
+  // private hlsDirective = inject(EvaHlsDirective, { optional: true });
 
   /**
    * Optionally injected DASH streaming directive.
    * Present only when `evaDash` is applied to the `<video>` element inside this player.
    */
-  private dashDirective = inject(EvaDashDirective, { optional: true });
+  // private dashDirective = inject(EvaDashDirective, { optional: true });
 
   /**
    * Unique identifier for this player instance.
@@ -110,6 +109,10 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
    */
   readonly evaVideoTrackElements = viewChildren<QueryList<HTMLTrackElement>>("evaVideoTracks");
 
+
+  protected subtitlesPadding: WritableSignal<string> = signal("10px");
+  private controlsContainerHidding: Subscription | null = null;
+
   /**
    * Responds to runtime changes of `evaVideoTracks`.
    * Forwards the updated track list to `EvaApi.videoTracksSubject` so that
@@ -130,11 +133,23 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
   ngAfterViewInit(): void {
     this.playerMainAPI.assignElementToApi(this.evaVideoElement().nativeElement);
     this.playerMainAPI.onPlayerReady();
-    console.log(this.hlsDirective);
-    console.log(this.dashDirective);
+    // console.log(this.hlsDirective);
+    // console.log(this.dashDirective);
+
+    this.controlsContainerHidding = this.playerMainAPI.componentsContainerVisibilityStateSubject.subscribe(hidden => {
+      // console.log(hidden);
+
+      if (hidden) {
+        this.subtitlesPadding.set("10px");
+      }
+      else {
+        this.subtitlesPadding.set("var(--eva-subtitle-offset)");
+      }
+    });
   }
 
   /** Reserved for future teardown logic. */
   ngOnDestroy(): void {
+    this.controlsContainerHidding?.unsubscribe();
   }
 }

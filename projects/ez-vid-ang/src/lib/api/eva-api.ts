@@ -1,6 +1,6 @@
 import { EventEmitter, Injectable, signal, WritableSignal } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { EvaState, EvaTrack } from '../types';
+import { EvaQualityLevel, EvaState, EvaTrack } from '../types';
 
 /**
  * Core API service for the Eva video player.
@@ -100,6 +100,8 @@ export class EvaApi {
 	 */
 	public videoVolumeSubject = new BehaviorSubject<number | null>(null);
 
+	public componentsContainerVisibilityStateSubject = new BehaviorSubject<boolean>(false);
+
 	/**
 	 * Broadcasts the current playback rate (e.g. `1`, `1.5`, `2`).
 	 * Emits `null` until the first rate change occurs.
@@ -122,6 +124,19 @@ export class EvaApi {
 	 */
 	public videoTimeChangeSubject = new BehaviorSubject<null>(null);
 
+	/**
+	  * The list of available quality levels for the current stream.
+	  * Populated by `registerQualityLevels()` after the streaming manifest is parsed.
+	  * Subscribed to by `EvaQualitySelector` to populate its dropdown.
+	  */
+	public qualityLevelsSubject = new BehaviorSubject<EvaQualityLevel[]>([]);
+
+	/**
+	  * The currently selected quality level index.
+	  * `-1` represents Auto (ABR). Updated by `setQuality()`.
+	  */
+	public currentQualityIndex: WritableSignal<number> = signal(-1);
+
 	/** The current `EvaState` value, mirrored as a plain field for synchronous reads. */
 	private currentVideoState: EvaState = EvaState.LOADING;
 
@@ -142,6 +157,53 @@ export class EvaApi {
 
 	/** The playback position recorded at the start of the current `timeupdate` cycle. */
 	private currentPlayPos = 0;
+
+
+	/**
+	  * Internal reference to the streaming library's quality setter function.
+	  * Registered by `EvaHlsDirective` or `EvaDashDirective` via `registerQualityFn()`.
+	  * `null` when no streaming directive is active.
+	  */
+	private qualityFn: ((qualityIndex: number) => void) | null = null;
+
+	/**
+	  * Registers the streaming library's quality setter function with the API.
+	  * Called by `EvaHlsDirective` or `EvaDashDirective` after the player is created.
+	  *
+	  * @param fn - A function that accepts a quality index and switches the active level.
+	  *   Pass `-1` to restore Auto (ABR) mode.
+	  */
+	public registerQualityFn(fn: (qualityIndex: number) => void): void {
+		this.qualityFn = fn;
+	}
+
+	/**
+	  * Registers the available quality levels parsed from the stream manifest.
+	  * Called by `EvaHlsDirective` or `EvaDashDirective` after `MANIFEST_PARSED`.
+	  * Broadcasts the levels to `qualityLevelsSubject`.
+	  *
+	  * @param levels - The parsed quality levels including the synthetic Auto option.
+	  */
+	public registerQualityLevels(levels: EvaQualityLevel[]): void {
+		this.qualityLevelsSubject.next(levels);
+	}
+
+	/**
+	 * Switches to the given quality level by delegating to the registered `qualityFn`.
+	 * Updates `currentQualityIndex` to reflect the active selection.
+	 * No-ops if no streaming directive has registered a quality function.
+	 *
+	 * @param qualityIndex - The `qualityIndex` from an `EvaQualityLevel` object.
+	 *   Pass `-1` for Auto (ABR) mode.
+	 */
+	public setQuality(qualityIndex: number): void {
+		if (!this.qualityFn) {
+			console.warn('[EvaApi] No quality function registered. Is a streaming directive active?');
+			return;
+		}
+		this.currentQualityIndex.set(qualityIndex);
+		this.qualityFn(qualityIndex);
+	}
 
 	// ─── Playback Commands ────────────────────────────────────────────────────
 

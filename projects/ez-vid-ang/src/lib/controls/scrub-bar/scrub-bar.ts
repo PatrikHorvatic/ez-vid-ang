@@ -446,8 +446,6 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
     const rect = this.elementRef.nativeElement.getBoundingClientRect();
     const scrollWidth = this.elementRef.nativeElement.scrollWidth;
 
-    console.log('onHostMouseMove fired', offset, scrollWidth, rect.width);
-
     const percentage = Math.max(Math.min((offset * 100) / scrollWidth, 99.9), 0);
     const time = (percentage * this.evaAPI.time().total) / 100;
 
@@ -455,8 +453,6 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
     const clampedLeft = Math.max(tooltipHalfWidth, Math.min(offset, rect.width - tooltipHalfWidth));
     const formatted = this.formatTime(time);
     const chapter = this.getChapterAtTime(time);
-
-    console.log('formatted:', formatted, 'chapter:', chapter, 'clampedLeft:', clampedLeft);
 
     this.runInZone(() => {
       this.hoverTime.set(formatted);

@@ -1,7 +1,5 @@
 :host {
 	display: block;
-	width: 100%;
-	height: 100%;
 	position: relative;
 	padding: 0;
 	margin: 0;
@@ -13,9 +11,7 @@
 :host > video {
 	display: block;
 	width: 100%;
-	height: 100%;
-}
-
-:host > video::cue {
-	bottom: var(--eva-control-element-height);
+	object-fit: contain;
+	object-position: 0 0;
+	transition: padding-bottom var(--eva-transition-duration) ease-in-out;
 }

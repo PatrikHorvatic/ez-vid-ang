@@ -110,13 +110,6 @@ export class EvaControlsContainerComponent implements OnInit, OnDestroy, OnChang
         }
       }
     }
-
-    // TODO - Needs testing */
-    if (changes["evaAutohideTime"]) {
-      if (!changes["evaAutohideTime"].firstChange) {
-
-      }
-    }
   }
 
   /** Unsubscribes from the user interaction subscription to prevent memory leaks. */
@@ -151,6 +144,7 @@ export class EvaControlsContainerComponent implements OnInit, OnDestroy, OnChang
       this.userInteraction$.unsubscribe();
     }
     this.hideControls.set(false);
+    this.evaAPI.componentsContainerVisibilityStateSubject.next(false);
   }
 
   /**
@@ -159,8 +153,10 @@ export class EvaControlsContainerComponent implements OnInit, OnDestroy, OnChang
    */
   private prepareHiding() {
     this.hideControls.set(false);
+    this.evaAPI.componentsContainerVisibilityStateSubject.next(false);
     this.hideTimeout = setTimeout(() => {
       this.hideControls.set(true);
+      this.evaAPI.componentsContainerVisibilityStateSubject.next(true);
     }, this.evaAutohideTime());
   }
 }

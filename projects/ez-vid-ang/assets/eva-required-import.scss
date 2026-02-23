@@ -20,6 +20,9 @@
 	--eva-scrub-bar-chapter-hover-tooltip-text-color: white;
 	--eva-scrub-bar-chapter-hover-tooltip-font-size: 14px;
 
+	// DO NOT CHANGE!
+	--eva-subtitle-offset: calc(var(--eva-control-element-height) + var(--eva-scrub-bar-heights) + 5px);
+
 	--eva-time-display-text-color: white;
 
 	--eva-buffering-background-color: rgba(0, 0, 0, 0.7);
@@ -45,6 +48,25 @@
 	--eva-playback-speed-dropdown-content-speed-option-font-color: rgba(255, 255, 255, 0.95);
 	--eva-playback-speed-dropdown-content-speed-option-checkmark-size: 16px;
 	--eva-playback-speed-dropdown-content-speed-option-checkmark-color: rgb(59, 130, 246);
+
+	--eva-quality-selector-label-font-size: 14px;
+	--eva-quality-selector-label-color: rgba(255, 255, 255, 0.95);
+	--eva-quality-selector-dropdown-arrow-size: 20px;
+	--eva-quality-selector-dropdown-arrow-color: rgba(255, 255, 255, 0.6);
+	--eva-quality-selector-hover-background: rgba(255, 255, 255, 0.1);
+	--eva-quality-selector-opened-background: rgba(255, 255, 255, 0.15);
+	--eva-quality-selector-dropdown-content-background: rgba(28, 28, 30, 0.95);
+	--eva-quality-selector-dropdown-content-box-shadow:
+		0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+	--eva-quality-selector-dropdown-content-header-font-size: 14px;
+	--eva-quality-selector-dropdown-content-header-font-color: rgba(255, 255, 255, 0.5);
+	--eva-quality-selector-dropdown-content-header-bottom-border: 1px solid rgba(255, 255, 255, 0.1);
+	--eva-quality-selector-dropdown-content-quality-option-bacground-hover: rgba(255, 255, 255, 0.1);
+	--eva-quality-selector-dropdown-content-quality-option-icon-active: rgba(59, 130, 246, 0.3);
+	--eva-quality-selector-dropdown-content-quality-option-font-size: 14px;
+	--eva-quality-selector-dropdown-content-quality-option-font-color: rgba(255, 255, 255, 0.95);
+	--eva-quality-selector-dropdown-content-quality-option-checkmark-size: 16px;
+	--eva-quality-selector-dropdown-content-quality-option-checkmark-color: rgb(59, 130, 246);
 
 	--eva-track-selector-label-font-size: 14px;
 	--eva-track-selector-label-color: rgba(255, 255, 255, 0.95);

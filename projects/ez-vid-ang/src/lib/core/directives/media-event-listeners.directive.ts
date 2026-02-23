@@ -144,12 +144,12 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
 
     /** Stub — no `EvaApi` side effect yet. */
     this.abortSub = this.abort$.subscribe(() => {
-      console.log("video aborted");
+      // console.log("video aborted");
     });
 
     /** Notifies `EvaApi` that the video is ready to begin playback. */
     this.canPlaySub = this.canPlay$.subscribe(() => {
-      console.log("vcan playd");
+      // console.log("vcan playd");
       this.evaAPI.videoCanPlay();
     });
 
@@ -159,7 +159,7 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
 
     /** Stub — no `EvaApi` side effect yet. */
     this.completeSub = this.complete$.subscribe(() => {
-      console.log("video complete");
+      // console.log("video complete");
       // this.evaAPI.endedVideo();
     });
 
@@ -177,88 +177,88 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
 
     /** Notifies `EvaApi` that video playback has ended. */
     this.endedSub = this.ended$.subscribe(() => {
-      console.log("vendedd");
+      // console.log("vendedd");
       this.evaAPI.endedVideo();
     });
 
     /** Notifies `EvaApi` that the video has encountered an error. */
     this.errorSub = this.error$.subscribe(() => {
-      console.log("video errored");
+      // console.log("video errored");
       this.evaAPI.erroredVideo();
     });
 
     /** Stub — no `EvaApi` side effect yet. */
     this.loadedDataSub = this.loadedData$.subscribe(() => {
-      console.log("video loaded data");
+      // console.log("video loaded data");
     });
 
     /** Notifies `EvaApi` that video metadata (duration, dimensions, tracks) has loaded. */
     this.loadedMetadataSub = this.loadedMetadata$.subscribe(v => {
-      console.log("video loaded metadata");
+      // console.log("video loaded metadata");
       this.evaAPI.loadedVideoMetadata(v)
     });
 
     /** Stub — no `EvaApi` side effect yet. */
     this.loadStartSub = this.loadStart$.subscribe(() => {
-      console.log("vload startd");
+      // console.log("vload startd");
     });
 
     /** Notifies `EvaApi` that the video has been paused. */
     this.pauseSub = this.pause$.subscribe(() => {
-      console.log("video pause");
+      // console.log("video pause");
       this.evaAPI.pauseVideo();
     });
 
     /** Notifies `EvaApi` that the video has started playing (the `play` event, before frames render). */
     this.playSub = this.play$.subscribe(() => {
-      console.log("video play");
+      // console.log("video play");
       this.evaAPI.playVideo();
     });
 
     /** Notifies `EvaApi` that the video is actively playing and rendering frames. */
     this.playingSub = this.playing$.subscribe(() => {
-      console.log("video playing");
+      // console.log("video playing");
       this.evaAPI.playingVideo();
     });
 
     /** Notifies `EvaApi` to check the current buffer status. */
     this.progressSub = this.progress$.subscribe(() => {
-      console.log("video progressed");
+      // console.log("video progressed");
       this.evaAPI.checkBufferStatus();
     });
 
     /** Notifies `EvaApi` that the playback rate has changed. */
     this.rateChangeSub = this.rateChange$.subscribe(v => {
-      console.log("video rate changed");
+      // console.log("video rate changed");
       this.evaAPI.playbackRateVideoChanged(v);
     });
 
     /** Notifies `EvaApi` that a seek operation has completed. */
     this.seekedSub = this.seeked$.subscribe(() => {
-      console.log("vseekedd");
+      // console.log("vseekedd");
       this.evaAPI.videoSeeked();
     });
 
     /** Notifies `EvaApi` that a seek operation has begun. */
     this.seekingSub = this.seeking$.subscribe(() => {
-      console.log("video seeking");
+      // console.log("video seeking");
       this.evaAPI.videoSeeking();
     });
 
     /** Notifies `EvaApi` that the browser has stalled while fetching media data. */
     this.stalledSub = this.stalled$.subscribe(() => {
-      console.log("video stalled");
+      // console.log("video stalled");
       this.evaAPI.videoStalled();
     });
 
     /** Stub — no `EvaApi` side effect yet. */
     this.suspendSub = this.suspend$.subscribe(() => {
-      console.log("video suspended");
+      // console.log("video suspended");
     });
 
     /** Notifies `EvaApi` to update the tracked current playback time. */
     this.timeUpdateSub = this.timeUpdate$.subscribe(() => {
-      console.log("video time updated");
+      // console.log("video time updated");
       this.evaAPI.updateVideoTime();
     });
 
@@ -269,13 +269,13 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
 
     /** Notifies `EvaApi` that the video is waiting for data before it can continue playback. */
     this.waitingSub = this.waiting$.subscribe(() => {
-      console.log("video waiting");
+      // console.log("video waiting");
       this.evaAPI.videoWaiting();
     });
 
     /** Stub — no `EvaApi` side effect yet. */
     this.waitingForKeySub = this.waitingForKey$.subscribe(() => {
-      console.log("video waiting for key");
+      // console.log("video waiting for key");
     });
   }
 

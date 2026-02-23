@@ -109,17 +109,13 @@ export class EvaScrubBarBufferingTimeComponent implements OnInit, OnDestroy {
       if (tr.start(0) === 0 && tr.end(0) === this.evaAPI.time().total) {
         // The one range starts at the beginning and ends at
         // the end of the video, so the whole thing is loaded
-        console.log("u potpunosti učitano!");
-
         bufferTime = "100%";
         this.bufferedPercentage.set(bufferTime);
         return;
       }
     }
 
-    console.log("radim provjeru indexa!");
     if (tr.length - 1 >= 0) {
-      console.log("ulazim u index!");
       bufferTime = (tr.end(tr.length - 1) / this.evaAPI.time().total) * 100 + "%";
     }
 

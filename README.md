@@ -5,6 +5,7 @@ Highly configurable and easy-to-use Angular component library for video playback
 ## Why to use it?
 🚦 **Signal based components** - Granular and optimized render updates<br/>
 ⚡ **Zoneless** - Built for zoneless Angular applications by default<br/>
+🧩 **Standalone architecture** – No NgModules required; simpler imports, better tree-shaking, and improved DX<br/>
 🚀 **High performance** – Powered by RxJS; change detection runs only when needed (no zone pollution)<br/>
 🎨 **Highly customizable** – Styling variables, custom icons, and fonts. Bring your own assets<br/>
 ♿ **ARIA compliant** – All components follow ARIA standards and support custom inputs<br/>
@@ -56,7 +57,7 @@ Add the required styles to your angular.json:
 Import the needed modules into your standalone component or NgModule:
 ```
 import { Component } from '@angular/core';
-import { EvaBufferingModule, EvaControlsModule, EvaCoreModule, EvaStreamingModule } from 'ez-vid-ang';
+import { EvaPlayer } from 'ez-vid-ang';
 
 @Component({
   selector: 'lt-home-page',
@@ -75,8 +76,8 @@ export class HomePage {}
 
 ## Modules
 
-Library has four logically grouped modules. You can click on the name to go to the documentation:
-- [**EvaCoreModule**](documentation/core) – Main player component, directives, and providers
-- [**EvaControlsModule**](documentation/controls) – Video control components and pipes
-- [**EvaBufferingModule**](documentation/buffering) – Loading and buffering indicators
-- [**EvaStreamingModule**](documentation/streaming) – Directives for live streaming support
+Library has four groups of componentse. You can click on the name to go to the documentation:
+- [**EvaCore**](documentation/core) – Main player component, directives, and providers
+- [**EvaControls**](documentation/controls) – Video control components and pipes
+- [**EvaBuffering**](documentation/buffering) – Loading and buffering indicators
+- [**EvaStreaming**](documentation/streaming) – Directives for live streaming support

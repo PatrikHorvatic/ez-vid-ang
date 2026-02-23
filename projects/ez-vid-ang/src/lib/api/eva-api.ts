@@ -152,7 +152,7 @@ export class EvaApi {
 	// ─── Buffering Detection ──────────────────────────────────────────────────
 
 	/** Timeout reference used by the position-polling buffering detection. Cleared on each `timeupdate`. */
-	private bufferingTimeout?: ReturnType<typeof setTimeout>;
+	private bufferingTimeout: ReturnType<typeof setTimeout> | undefined;
 
 	/** The playback position recorded at the end of the previous `timeupdate` cycle. */
 	private lastPlayPos = 0;
@@ -724,5 +724,45 @@ export class EvaApi {
 		}
 
 		return true;
+	}
+
+	/**
+ * Cleans up all resources held by this `EvaApi` instance.
+ * Called from `EvaPlayer.ngOnDestroy`.
+ *
+ * Performs the following cleanup:
+ * - Completes all `BehaviorSubject` and `Subject` streams so that any lingering
+ *   subscribers receive a completion signal and are automatically unsubscribed.
+ * - Clears the position-polling buffering timeout to prevent it from firing
+ *   after the player has been destroyed.
+ * - Clears the registered quality setter function reference.
+ * - Marks the player as not ready to block any late-arriving callbacks from
+ *   operating on the now-detached video element.
+ */
+	public destroy(): void {
+		// Mark player as no longer ready — blocks any late callbacks
+		this.isPlayerReady = false;
+
+		// Cancel any pending buffering detection timeout
+		if (this.bufferingTimeout) {
+			clearTimeout(this.bufferingTimeout);
+			this.bufferingTimeout = undefined;
+		}
+
+		// Clear the registered streaming quality function
+		this.qualityFn = null;
+
+		// Complete all subjects — notifies subscribers and prevents further emissions
+		this.videoStateSubject.complete();
+		this.videoVolumeSubject.complete();
+		this.playbackRateSubject.complete();
+		this.videoTracksSubject.complete();
+		this.videoBufferSubject.complete();
+		this.videoTimeChangeSubject.complete();
+		this.qualityLevelsSubject.complete();
+		this.componentsContainerVisibilityStateSubject.complete();
+		this.controlsSelectorComponentActive.complete();
+		this.triggerUserInteraction.complete();
+		this.playerReadyEvent.complete();
 	}
 }

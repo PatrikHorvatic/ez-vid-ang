@@ -291,4 +291,17 @@ export class EvaFullscreenAPI {
   private isiOSDevice(): boolean {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
   }
+
+  /**
+ * Cleans up all resources held by this `EvaFullscreenAPI` instance.
+ * Called from `EvaPlayer.ngOnDestroy`.
+ *
+ * Performs the following cleanup:
+ * - Unsubscribes from the native fullscreen change event on `document` to prevent
+ *   the listener from firing after the player has been destroyed.
+ * - Completes `isFullscreenSubject` so subscribers receive a completion signal.
+ */
+  public destroy(): void {
+    this.isFullscreenSubject.complete();
+  }
 }

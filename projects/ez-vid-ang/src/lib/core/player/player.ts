@@ -41,10 +41,10 @@ import { EvaVideoConfigurationDirective } from '../directives/video-configuratio
 export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
 
   /** The scoped `EvaApi` instance provided to this player's component subtree. */
-  private playerMainAPI = inject(EvaApi);
+  public playerMainAPI = inject(EvaApi);
 
   /** The scoped `EvaFullscreenAPI` instance provided to this player's component subtree. */
-  protected playerFullscreenAPI = inject(EvaFullscreenAPI);
+  public playerFullscreenAPI = inject(EvaFullscreenAPI);
 
   /**
    * Optionally injected HLS streaming directive.
@@ -153,5 +153,7 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
   /** Reserved for future teardown logic. */
   ngOnDestroy(): void {
     this.controlsContainerHidding?.unsubscribe();
+    this.playerFullscreenAPI.destroy();
+    this.playerMainAPI.destroy();
   }
 }

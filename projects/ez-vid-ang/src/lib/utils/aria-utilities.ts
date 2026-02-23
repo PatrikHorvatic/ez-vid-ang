@@ -241,6 +241,26 @@ export function transformEvaTimeDisplayAria(v: EvaTimeDisplayAria | undefined): 
 	}
 }
 
+export type EvaControlsDividerAria = {
+	ariaLabel?: string
+}
+
+export type EvaControlsDividerAriaTransformed = {
+	ariaLabel: string
+}
+
+export function transformEvaControlsDividerAria(v: EvaControlsDividerAria | undefined): EvaControlsDividerAriaTransformed {
+	if (!v) {
+		return {
+			ariaLabel: "Controls divider"
+		}
+	}
+
+	return {
+		ariaLabel: v.ariaLabel ? v.ariaLabel : "Controls divider"
+	}
+}
+
 export type EvaScrubBarAria = {
 	ariaLabel?: string
 }

@@ -29,7 +29,7 @@ import { EvaApi } from '../../api/eva-api';
  */
 @Directive({
   selector: 'eva-controls-container[evaUserInteractionEvents]',
-  standalone: false,
+  standalone: true
 })
 export class EvaUserInteractionEventsDirective implements OnInit, OnDestroy {
   private evaAPI = inject(EvaApi);

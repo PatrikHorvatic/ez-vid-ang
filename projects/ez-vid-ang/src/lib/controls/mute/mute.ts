@@ -40,7 +40,6 @@ import { EvaMuteAria, EvaMuteAriaTransformed, transformEvaMuteAria, validateAndT
   selector: 'eva-mute',
   templateUrl: './mute.html',
   styleUrl: './mute.scss',
-  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "tabindex": "0",

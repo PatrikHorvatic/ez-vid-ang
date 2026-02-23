@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { EvaApi } from '../../api/eva-api';
 import { EvaTimeFormating, EvaTimeProperty } from '../../types';
 import { EvaTimeDisplayAria, EvaTimeDisplayAriaTransformed, transformEvaTimeDisplayAria } from '../../utils/aria-utilities';
+import { EvaTimeDisplayPipe } from "../pipes/time-display-pipe";
 
 /**
  * Time display component for the Eva video player.
@@ -40,7 +41,6 @@ import { EvaTimeDisplayAria, EvaTimeDisplayAriaTransformed, transformEvaTimeDisp
   selector: 'eva-time-display',
   templateUrl: './time-display.html',
   styleUrl: './time-display.scss',
-  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "tabindex": "0",
@@ -49,7 +49,8 @@ import { EvaTimeDisplayAria, EvaTimeDisplayAriaTransformed, transformEvaTimeDisp
     "[attr.aria-live]": "'off'", // Change to 'polite' for live updates announcements
     "[attr.aria-atomic]": "'true'",
     "[attr.aria-valuetext]": "displayText()",
-  }
+  },
+  imports: [EvaTimeDisplayPipe]
 })
 export class EvaTimeDisplay {
   protected evaAPI = inject(EvaApi);

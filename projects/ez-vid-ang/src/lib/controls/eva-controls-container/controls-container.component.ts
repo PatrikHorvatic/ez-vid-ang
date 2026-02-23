@@ -32,7 +32,6 @@ import { transformTimeoutDuration } from '../../utils/utilities';
   selector: 'eva-controls-container',
   templateUrl: './controls-container.component.html',
   styleUrl: './controls-container.component.scss',
-  standalone: false,
   host: {
     "[class.hide]": "hideControls()"
   }

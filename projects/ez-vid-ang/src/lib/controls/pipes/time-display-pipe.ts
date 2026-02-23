@@ -26,8 +26,7 @@ import { EvaTimeFormating, EvaTimeProperty } from '../../types';
  */
 @Pipe({
   name: 'evaTimeDisplay',
-  pure: true,
-  standalone: false
+  pure: true
 })
 export class EvaTimeDisplayPipe implements PipeTransform {
 

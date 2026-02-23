@@ -21,7 +21,6 @@ import { EvaApi } from '../../api/eva-api';
   selector: 'eva-scrub-bar-current-time',
   templateUrl: './scrub-bar-current-time.component.html',
   styleUrl: './scrub-bar-current-time.component.scss',
-  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EvaScrubBarCurrentTimeComponent {

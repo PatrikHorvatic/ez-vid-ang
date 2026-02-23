@@ -63,7 +63,6 @@ interface TrackInternal {
   selector: 'eva-track-selector',
   templateUrl: './track-selector.html',
   styleUrl: './track-selector.scss',
-  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "[class.eva-icon]": "true",

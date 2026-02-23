@@ -39,7 +39,6 @@ import { transformDefaultPlaybackSpeed, validateAndTransformPlaybackSpeeds } fro
   selector: 'eva-playback-speed',
   templateUrl: './playback-speed.html',
   styleUrl: './playback-speed.scss',
-  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "tabindex": "0",

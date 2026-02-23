@@ -43,7 +43,6 @@ import { EvaVolumeAria, EvaVolumeAriaTransformed, transformEvaVolumeAria } from 
   selector: 'eva-volume',
   templateUrl: './volume.html',
   styleUrl: './volume.scss',
-  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "tabindex": "0",

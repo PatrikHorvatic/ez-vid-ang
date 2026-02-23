@@ -71,8 +71,7 @@ export interface EvaHlsConfig {
  */
 @Directive({
   selector: 'eva-player[evaHls]',
-  exportAs: 'evaHls',
-  standalone: false,
+  exportAs: 'evaHls'
 })
 export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
   private evaAPI = inject(EvaApi);

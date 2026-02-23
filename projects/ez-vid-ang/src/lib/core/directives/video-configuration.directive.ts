@@ -44,7 +44,7 @@ import { validateAndPrepareStartingVideoVolume } from '../../utils/utilities';
  */
 @Directive({
   selector: 'video[evaVideoConfiguration]',
-  standalone: false
+  standalone: true
 })
 export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit {
   protected evaAPI = inject(EvaApi);

@@ -30,7 +30,6 @@ import { EvaApi } from '../../api/eva-api';
   selector: 'eva-scrub-bar-buffering-time',
   templateUrl: './scrub-bar-buffering-time.component.html',
   styleUrl: './scrub-bar-buffering-time.component.scss',
-  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EvaScrubBarBufferingTimeComponent implements OnInit, OnDestroy {

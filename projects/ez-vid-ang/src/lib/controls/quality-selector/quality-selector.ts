@@ -52,7 +52,6 @@ import { EvaQualityAria } from '../../utils/aria-utilities';
   selector: 'eva-quality-selector',
   templateUrl: './quality-selector.html',
   styleUrl: './quality-selector.scss',
-  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'tabindex': '0',

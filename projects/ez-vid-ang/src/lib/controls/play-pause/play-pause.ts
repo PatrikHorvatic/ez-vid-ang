@@ -41,7 +41,6 @@ import { EvaPlayPauseAria, EvaPlayPauseAriaTransformed, transformEvaPlayPauseAri
   selector: 'eva-play-pause',
   templateUrl: './play-pause.html',
   styleUrl: './play-pause.scss',
-  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "tabindex": "0",

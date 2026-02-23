@@ -35,7 +35,6 @@ import { EvaBackwardAria, EvaBackwardAriaTransformed, transformEvaBackwardAria, 
   selector: 'eva-backward',
   templateUrl: './backward.component.html',
   styleUrl: './backward.component.scss',
-  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "tabindex": "0",

@@ -35,7 +35,6 @@ import { EvaForwardAria, EvaForwardAriaTransformed, transformEvaForwardAria, val
   selector: 'eva-forward',
   templateUrl: './forward.component.html',
   styleUrl: './forward.component.scss',
-  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "tabindex": "0",

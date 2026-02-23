@@ -34,7 +34,6 @@ import { EvaOverlayPlayAria, EvaOverlayPlayAriaTransformed, transformEvaOverlayP
  */
 @Component({
   selector: 'eva-overlay-play',
-  standalone: false,
   templateUrl: './overlay-play.component.html',
   styleUrl: './overlay-play.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

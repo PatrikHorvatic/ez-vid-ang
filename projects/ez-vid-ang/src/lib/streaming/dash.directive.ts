@@ -72,8 +72,7 @@ export interface EvaDRMLicenseServer {
  */
 @Directive({
   selector: 'eva-player[evaDash]',
-  exportAs: 'evaDash',
-  standalone: false,
+  exportAs: 'evaDash'
 })
 export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
   private evaAPI = inject(EvaApi);

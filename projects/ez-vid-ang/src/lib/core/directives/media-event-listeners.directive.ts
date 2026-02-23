@@ -41,11 +41,11 @@ import { EvaVideoEvent } from '../../types';
  * `encrypted`, `loadeddata`, `loadstart`, `suspend`, `waitingforkey`.
  *
  * @example
- * <video evaMediaEventListeners [evaVideoConfig]="config" />
+ * <video evaMediaEventListeners [evaVideoConfig]="config"></video>
  */
 @Directive({
   selector: 'video[evaMediaEventListeners]',
-  standalone: false,
+  standalone: true
 })
 export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
   private evaAPI = inject(EvaApi);

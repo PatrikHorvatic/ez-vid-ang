@@ -4,6 +4,8 @@ import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
 import { EvaTrack, EvaVideoElementConfiguration, EvaVideoSource } from '../../types';
 import { validateTracks } from '../../utils/utilities';
+import { EvaMediaEventListenersDirective } from '../directives/media-event-listeners.directive';
+import { EvaVideoConfigurationDirective } from '../directives/video-configuration.directive';
 
 /**
  * Root player component for the Eva video player.
@@ -33,7 +35,7 @@ import { validateTracks } from '../../utils/utilities';
   selector: 'eva-player',
   templateUrl: './player.html',
   styleUrl: './player.scss',
-  standalone: false,
+  imports: [EvaMediaEventListenersDirective, EvaVideoConfigurationDirective],
   providers: [EvaApi, EvaFullscreenAPI]
 })
 export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {

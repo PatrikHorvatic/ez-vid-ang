@@ -25,7 +25,6 @@ import { EvaApi } from '../../api/eva-api';
   selector: 'eva-buffering',
   templateUrl: './buffering.component.html',
   styleUrl: './buffering.component.scss',
-  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "[class.eva-display-buffering]": "evaAPI.isBuffering()"

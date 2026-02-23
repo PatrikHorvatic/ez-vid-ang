@@ -38,7 +38,6 @@ import { EvaFullscreenAria, EvaFullscreenAriaTransformed, transformEvaFullscreen
   selector: 'eva-fullscreen',
   templateUrl: './fullscreen.html',
   styleUrl: './fullscreen.scss',
-  standalone: false,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "tabindex": "0",

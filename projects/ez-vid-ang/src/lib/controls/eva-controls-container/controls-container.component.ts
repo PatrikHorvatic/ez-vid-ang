@@ -63,9 +63,11 @@ export class EvaControlsContainerComponent implements OnInit, OnDestroy, OnChang
 
   /** Whether the controls container is currently hidden. Applies the `hide` class to the host. */
   protected hideControls: WritableSignal<boolean> = signal(false);
+  private isControlerSelectorActive: boolean = false;
 
   /** Subscription to user interaction events from `EvaApi`. Cleaned up in `ngOnDestroy` or when auto-hide is disabled. */
   private userInteraction$: Subscription | null = null;
+  private controlsSelectorActive$: Subscription | null = null;
 
   /**
    * Reference to the active auto-hide timeout.
@@ -117,6 +119,9 @@ export class EvaControlsContainerComponent implements OnInit, OnDestroy, OnChang
     if (this.userInteraction$) {
       this.userInteraction$.unsubscribe();
     }
+    if (this.controlsSelectorActive$) {
+      this.controlsSelectorActive$.unsubscribe();
+    }
   }
 
   /**
@@ -129,6 +134,16 @@ export class EvaControlsContainerComponent implements OnInit, OnDestroy, OnChang
         clearTimeout(this.hideTimeout);
       }
       this.prepareHiding();
+    });
+    this.controlsSelectorActive$ = this.evaAPI.controlsSelectorComponentActive.subscribe((isActive) => {
+      console.log(isActive);
+      this.isControlerSelectorActive = isActive;
+      if (this.hideTimeout) {
+        clearTimeout(this.hideTimeout);
+      }
+      if (!this.isControlerSelectorActive) {
+        this.prepareHiding();
+      }
     });
   }
 

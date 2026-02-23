@@ -157,6 +157,7 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
     this.currentQuality.set(quality);
     this.keyboardIndex.set(index);
     this.isOpen.set(false);
+    this.evaAPI.controlsSelectorComponentActive.next(false);
     this.evaAPI.setQuality(quality.qualityIndex);
   }
 
@@ -194,6 +195,7 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
         e.preventDefault();
         if (!isOpen) {
           this.isOpen.set(true);
+          this.evaAPI.controlsSelectorComponentActive.next(true);
         } else {
           const next = Math.min(currentIndex + 1, qualities.length - 1);
           this.selectQuality(qualities[next], next);
@@ -204,6 +206,7 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
         e.preventDefault();
         if (!isOpen) {
           this.isOpen.set(true);
+          this.evaAPI.controlsSelectorComponentActive.next(true);
         } else {
           const prev = Math.max(currentIndex - 1, 0);
           this.selectQuality(qualities[prev], prev);
@@ -228,6 +231,7 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
       case 'Escape':
         e.preventDefault();
         this.isOpen.set(false);
+        this.evaAPI.controlsSelectorComponentActive.next(false);
         break;
     }
   }
@@ -237,17 +241,20 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
     const related = event.relatedTarget as HTMLElement;
     if (!related || !related.closest('eva-quality-selector')) {
       this.isOpen.set(false);
+      this.evaAPI.controlsSelectorComponentActive.next(false);
     }
   }
 
   private toggleDropdown(): void {
     this.isOpen.update(open => !open);
+    this.evaAPI.controlsSelectorComponentActive.next(this.isOpen());
   }
 
   private handleClickOutside(event: MouseEvent): void {
     const target = event.target as HTMLElement;
     if (!target.closest('eva-quality-selector')) {
       this.isOpen.set(false);
+      this.evaAPI.controlsSelectorComponentActive.next(false);
     }
   }
 }

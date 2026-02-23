@@ -102,6 +102,8 @@ export class EvaApi {
 
 	public componentsContainerVisibilityStateSubject = new BehaviorSubject<boolean>(false);
 
+	public controlsSelectorComponentActive = new BehaviorSubject<boolean>(false);
+
 	/**
 	 * Broadcasts the current playback rate (e.g. `1`, `1.5`, `2`).
 	 * Emits `null` until the first rate change occurs.

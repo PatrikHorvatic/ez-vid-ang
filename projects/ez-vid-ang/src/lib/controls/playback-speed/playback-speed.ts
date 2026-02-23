@@ -171,6 +171,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
           this.selectSpeed(speeds[currentIndex - 1], currentIndex - 1);
         } else if (!isOpen) {
           this.isOpen.set(true);
+          this.evaAPI.controlsSelectorComponentActive.next(true);
         }
         break;
 
@@ -180,12 +181,14 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
           this.selectSpeed(speeds[currentIndex + 1], currentIndex + 1);
         } else if (!isOpen) {
           this.isOpen.set(true);
+          this.evaAPI.controlsSelectorComponentActive.next(true);
         }
         break;
 
       case 'Escape':
         e.preventDefault();
         this.isOpen.set(false);
+        this.evaAPI.controlsSelectorComponentActive.next(false);
         break;
 
       case 'Home':
@@ -214,6 +217,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
     const relatedTarget = event.relatedTarget as HTMLElement;
     if (!relatedTarget || !relatedTarget.closest('eva-playback-speed')) {
       this.isOpen.set(false);
+      this.evaAPI.controlsSelectorComponentActive.next(false);
     }
   }
 
@@ -228,7 +232,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
     this.currentSpeed.set(speed);
     this.selectedIndex.set(index);
     this.isOpen.set(false);
-
+    this.evaAPI.controlsSelectorComponentActive.next(false);
     this.evaAPI.setPlaybackSpeed(speed);
   }
 
@@ -245,6 +249,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
   /** Toggles the `isOpen` signal between `true` and `false`. */
   private toggleDropdown() {
     this.isOpen.update(open => !open);
+    this.evaAPI.controlsSelectorComponentActive.next(this.isOpen());
   }
 
   /**
@@ -257,6 +262,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     if (!target.closest('eva-playback-speed')) {
       this.isOpen.set(false);
+      this.evaAPI.controlsSelectorComponentActive.next(false);
     }
   }
 }

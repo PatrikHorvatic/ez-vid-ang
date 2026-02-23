@@ -177,6 +177,8 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
   /** Whether the user is currently dragging/seeking along the scrub bar. */
   private isSeeking = false;
 
+  private isControlerSelectorActive = false;
+
   /** Whether the video was playing before a seek started. Used to resume playback after seek. */
   private wasPlaying = false;
 
@@ -185,6 +187,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
 
   /** Subscription to user interaction events for the auto-hide feature. */
   private userInteraction$: Subscription | null = null;
+  private controlsSelectorActive$: Subscription | null = null;
 
   /** Reference to the auto-hide timeout. Cleared when new interaction is detected. */
   private hideTimeout: any;
@@ -222,12 +225,13 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
   /** Unsubscribes from all subscriptions, clears the hide timeout, and removes all document/host listeners. */
   ngOnDestroy(): void {
     this.userInteraction$?.unsubscribe();
+    this.controlsSelectorActive$?.unsubscribe();
     if (this.hideTimeout) clearTimeout(this.hideTimeout);
 
     document.removeEventListener('mousemove', this.onDocumentMouseMove);
     document.removeEventListener('touchmove', this.onDocumentTouchMove);
-    this.elementRef.nativeElement.removeEventListener('mousemove', this.onHostMouseMove);
-    this.elementRef.nativeElement.removeEventListener('mouseleave', this.onHostMouseLeave);
+    // this.elementRef.nativeElement.removeEventListener('mousemove', this.onHostMouseMove);
+    // this.elementRef.nativeElement.removeEventListener('mouseleave', this.onHostMouseLeave);
   }
 
   /**
@@ -271,8 +275,8 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    */
   @HostListener('mousedown', ['$event'])
   protected mouseDownScrub(e: MouseEvent) {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) return;
-    if (this.evaAPI.isLive()) return;
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
+    if (this.evaAPI.isLive()) { return; }
 
     if (this.evaSlidingEnabled()) {
       this.seekStart();
@@ -288,8 +292,8 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    */
   @HostListener('document:mouseup', ['$event'])
   protected mouseUpScrubBar(e: MouseEvent) {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) return;
-    if (this.evaAPI.isLive()) return;
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
+    if (this.evaAPI.isLive()) { return; }
 
     if (this.evaSlidingEnabled() && this.isSeeking) {
       this.seekEnd(this.getOffsetFromEvent(e.clientX));
@@ -303,8 +307,8 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    */
   @HostListener('touchstart', ['$event'])
   protected touchStartScrub(_e: TouchEvent) {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) return;
-    if (this.evaAPI.isLive()) return;
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
+    if (this.evaAPI.isLive()) { return; }
 
     if (this.evaSlidingEnabled()) {
       this.seekStart();
@@ -320,8 +324,8 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    */
   @HostListener('document:touchcancel', ['$event'])
   protected touchCancelScrub(_e: TouchEvent) {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) return;
-    if (this.evaAPI.isLive()) return;
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
+    if (this.evaAPI.isLive()) { return; }
 
     if (this.evaSlidingEnabled() && this.isSeeking) {
       this.touchEnd();
@@ -335,8 +339,8 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    */
   @HostListener('document:touchend', ['$event'])
   protected touchEndScrub(_e: TouchEvent) {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) return;
-    if (this.evaAPI.isLive()) return;
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
+    if (this.evaAPI.isLive()) { return; }
 
     if (this.evaSlidingEnabled() && this.isSeeking) {
       this.touchEnd();
@@ -351,8 +355,8 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    */
   @HostListener('keydown', ['$event'])
   protected arrowAdjustTime(e: KeyboardEvent) {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) return;
-    if (this.evaAPI.isLive()) return;
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
+    if (this.evaAPI.isLive()) { return; }
 
     if (e.keyCode === 38 || e.keyCode === 39) {
       e.preventDefault();
@@ -373,8 +377,8 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    *   mouse leaves the bar. Signal updates are run back inside the Angular zone via `runInZone`.
    */
   private onDocumentMouseMove = (e: MouseEvent) => {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) return;
-    if (this.evaAPI.isLive()) return;
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
+    if (this.evaAPI.isLive()) { return; }
 
     // Handle seeking
     if (this.evaSlidingEnabled() && this.isSeeking) {
@@ -409,6 +413,9 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
             this.hoverTime.set(formatted);
             this.hoverLeft.set(clampedLeft);
             this.hoverChapter.set(chapter);
+            if (!this.evaAPI.controlsSelectorComponentActive.getValue()) {
+              this.evaAPI.controlsSelectorComponentActive.next(true);
+            }
           });
         }
       } else if (this.hoverTime() !== null) {
@@ -416,6 +423,9 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
         this.runInZone(() => {
           this.hoverTime.set(null);
           this.hoverChapter.set(null);
+          if (this.evaAPI.controlsSelectorComponentActive.getValue()) {
+            this.evaAPI.controlsSelectorComponentActive.next(false);
+          }
         });
       }
     }
@@ -426,9 +436,9 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    * Updates `currentTime` based on touch position during an active drag seek.
    */
   private onDocumentTouchMove = (e: TouchEvent) => {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) return;
-    if (this.evaAPI.isLive()) return;
-    if (!this.evaSlidingEnabled() || !this.isSeeking) return;
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
+    if (this.evaAPI.isLive()) { return; }
+    if (!this.evaSlidingEnabled() || !this.isSeeking) { return; }
 
     this.runInZone(() => this.seekMove(this.getTouchOffset(e)));
   };
@@ -437,40 +447,40 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    * Host-level `mousemove` handler (currently unused — registered but commented out in `ngAfterViewInit`).
    * Originally intended as an alternative hover tooltip approach scoped to the host element.
    */
-  private onHostMouseMove = (e: MouseEvent) => {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) return;
-    if (this.evaAPI.isLive()) return;
-    if (!this.evaShowTimeOnHover()) return;
+  // private onHostMouseMove = (e: MouseEvent) => {
+  //   if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
+  //   if (this.evaAPI.isLive()) return;
+  //   if (!this.evaShowTimeOnHover()) return;
 
-    const offset = this.getOffsetFromEvent(e.clientX);
-    const rect = this.elementRef.nativeElement.getBoundingClientRect();
-    const scrollWidth = this.elementRef.nativeElement.scrollWidth;
+  //   const offset = this.getOffsetFromEvent(e.clientX);
+  //   const rect = this.elementRef.nativeElement.getBoundingClientRect();
+  //   const scrollWidth = this.elementRef.nativeElement.scrollWidth;
 
-    const percentage = Math.max(Math.min((offset * 100) / scrollWidth, 99.9), 0);
-    const time = (percentage * this.evaAPI.time().total) / 100;
+  //   const percentage = Math.max(Math.min((offset * 100) / scrollWidth, 99.9), 0);
+  //   const time = (percentage * this.evaAPI.time().total) / 100;
 
-    const tooltipHalfWidth = 35;
-    const clampedLeft = Math.max(tooltipHalfWidth, Math.min(offset, rect.width - tooltipHalfWidth));
-    const formatted = this.formatTime(time);
-    const chapter = this.getChapterAtTime(time);
+  //   const tooltipHalfWidth = 35;
+  //   const clampedLeft = Math.max(tooltipHalfWidth, Math.min(offset, rect.width - tooltipHalfWidth));
+  //   const formatted = this.formatTime(time);
+  //   const chapter = this.getChapterAtTime(time);
 
-    this.runInZone(() => {
-      this.hoverTime.set(formatted);
-      this.hoverLeft.set(clampedLeft);
-      this.hoverChapter.set(chapter);
-    });
-  };
+  //   this.runInZone(() => {
+  //     this.hoverTime.set(formatted);
+  //     this.hoverLeft.set(clampedLeft);
+  //     this.hoverChapter.set(chapter);
+  //   });
+  // };
 
   /**
    * Host-level `mouseleave` handler (currently unused — registered but commented out in `ngAfterViewInit`).
    * Clears the hover tooltip when the mouse leaves the host element.
    */
-  private onHostMouseLeave = () => {
-    this.runInZone(() => {
-      this.hoverTime.set(null);
-      this.hoverChapter.set(null);
-    });
-  };
+  // private onHostMouseLeave = () => {
+  //   this.runInZone(() => {
+  //     this.hoverTime.set(null);
+  //     this.hoverChapter.set(null);
+  //   });
+  // };
 
   /**
    * Begins a drag seek operation.
@@ -703,8 +713,21 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    */
   private startListening() {
     this.userInteraction$ = this.evaAPI.triggerUserInteraction.subscribe(() => {
-      if (this.hideTimeout) clearTimeout(this.hideTimeout);
+      if (this.hideTimeout) {
+        clearTimeout(this.hideTimeout);
+      }
       this.prepareHiding();
+    });
+
+    this.controlsSelectorActive$ = this.evaAPI.controlsSelectorComponentActive.subscribe((isActive) => {
+      console.log(isActive);
+      this.isControlerSelectorActive = isActive;
+      if (this.hideTimeout) {
+        clearTimeout(this.hideTimeout);
+      }
+      if (!this.isControlerSelectorActive) {
+        this.prepareHiding();
+      }
     });
   }
 

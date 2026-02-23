@@ -194,6 +194,7 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
     this.announceTrackChange(tr.label);
 
     this.isOpen.set(false);
+    this.evaAPI.controlsSelectorComponentActive.next(false);
   }
 
   /** Toggles the dropdown open/closed on click. */
@@ -221,6 +222,7 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
         e.preventDefault();
         if (!isDropdownOpen) {
           this.isOpen.set(true);
+          this.evaAPI.controlsSelectorComponentActive.next(true);
           // Reset keyboard navigation to current selection
           const currentIndex = tracks.findIndex(t => t.selected);
           this.keyboardNavigationIndex.set(currentIndex >= 0 ? currentIndex : 0);
@@ -231,6 +233,7 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
         e.preventDefault();
         if (isDropdownOpen) {
           this.isOpen.set(false);
+          this.evaAPI.controlsSelectorComponentActive.next(false);
         }
         break;
 
@@ -238,6 +241,7 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
         e.preventDefault();
         if (!isDropdownOpen) {
           this.isOpen.set(true);
+          this.evaAPI.controlsSelectorComponentActive.next(true);
           this.keyboardNavigationIndex.set(0);
         } else {
           // Navigate down in the list
@@ -251,6 +255,7 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
         e.preventDefault();
         if (!isDropdownOpen) {
           this.isOpen.set(true);
+          this.evaAPI.controlsSelectorComponentActive.next(true);
           this.keyboardNavigationIndex.set(tracks.length - 1);
         } else {
           // Navigate up in the list
@@ -288,6 +293,7 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
     const relatedTarget = event.relatedTarget as HTMLElement;
     if (!relatedTarget || !relatedTarget.closest('eva-track-selector')) {
       this.isOpen.set(false);
+      this.evaAPI.controlsSelectorComponentActive.next(false);
     }
   }
 
@@ -311,6 +317,7 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
     const target = event.target as HTMLElement;
     if (!target.closest('eva-track-selector')) {
       this.isOpen.set(false);
+      this.evaAPI.controlsSelectorComponentActive.next(false);
     }
   }
 
@@ -320,7 +327,7 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
    */
   private toggleDropdown() {
     this.isOpen.update(open => !open);
-
+    this.evaAPI.controlsSelectorComponentActive.next(this.isOpen());
     if (this.isOpen()) {
       // Set keyboard navigation to current selection when opening
       const currentIndex = this.localTracks().findIndex(t => t.selected);

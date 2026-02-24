@@ -1,6 +1,6 @@
 {
   "name": "ez-vid-ang",
-  "version": "0.0.5",
+  "version": "0.0.4",
   "exports": {
     "./assets/styling.scss": {
       "style": "./assets/styling.scss"

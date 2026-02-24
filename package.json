@@ -1,6 +1,28 @@
 {
   "name": "ez-vid-ang",
-  "version": "0.0.0",
+  "version": "0.0.1",
+  "license": "MIT",
+  "description": "Highly configurable and easy-to-use Angular component library for video playback and streaming.",
+  "author": {
+    "name": "Patrik Horvatić",
+    "email": "patrik.horvatic.development@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PatrikHorvatic/ez-vid-ang"
+  },
+  "bugs": {
+    "url": "https://github.com/PatrikHorvatic/ez-vid-ang/issues"
+  },
+  "homepage": "https://github.com/PatrikHorvatic/ez-vid-ang",
+  "keywords": [
+    "EzVidAng",
+    "video",
+    "player",
+    "angular",
+    "signals",
+    "zoneless"
+  ],
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -21,7 +43,7 @@
       }
     ]
   },
-  "private": true,
+  "private": false,
   "packageManager": "npm@11.7.0",
   "peerDependencies": {
     "@angular/common": "^21.0.0",

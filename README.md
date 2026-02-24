@@ -2,6 +2,9 @@
 
 Highly configurable and easy-to-use Angular component library for video playback and streaming.
 
+> [!CAUTION]
+> This package is still under development and is not ready for use in production. Use at your own risk.
+
 ## Why to use it?
 🚦 **Signal based components** - Granular and optimized render updates<br/>
 ⚡ **Zoneless** - Built for zoneless Angular applications by default<br/>

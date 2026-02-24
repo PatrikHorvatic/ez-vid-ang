@@ -9,9 +9,6 @@ rm -rf .angular node_modules dist
 echo "📦 Installing..."
 npm i
 
-echo "🔢 Bumping version..."
-npm version patch
-
 echo "🏗 Building..."
 npm run buildProd
 

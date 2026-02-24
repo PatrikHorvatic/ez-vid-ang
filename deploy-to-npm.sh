@@ -1,9 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-rm -rf .angular node_modules dist
-npm i
+PACKAGE_PATH="./dist/ez-vid-ang"
 
-npm run buildProd
+echo "🧹 Cleaning..."
+rm -rf .angular node_modules dist
+
+echo "📦 Installing..."
+npm ci
+
+echo "🔢 Bumping version..."
 npm version patch
-npm publish ./dist/ez-vid-ang
+
+echo "🏗 Building..."
+npm run buildProd
+
+echo "🔎 Verifying version inside dist..."
+cat "$PACKAGE_PATH/package.json" | grep version
+
+echo "📤 Publishing to npm..."
+npm publish "$PACKAGE_PATH"
+
+echo "🎉 Release successful."

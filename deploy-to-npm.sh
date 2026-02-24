@@ -15,6 +15,9 @@ npm run buildProd
 echo "🔎 Verifying version inside dist..."
 cat "$PACKAGE_PATH/package.json" | grep version
 
+echo "Moving README.md"
+cp README.md dist/ez-vid-ang/README.md && cp LICENSE dist/ez-vid-ang/LICENSE
+
 echo "📤 Publishing to npm..."
 npm publish "$PACKAGE_PATH"
 

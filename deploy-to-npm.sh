@@ -7,7 +7,7 @@ echo "🧹 Cleaning..."
 rm -rf .angular node_modules dist
 
 echo "📦 Installing..."
-npm ci
+npm i
 
 echo "🔢 Bumping version..."
 npm version patch

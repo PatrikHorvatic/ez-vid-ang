@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, output, signal, WritableSignal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaState } from '../../types';
@@ -84,6 +84,8 @@ export class EvaPlayPause implements OnInit, OnDestroy {
    */
   readonly evaCustomIcon = input<boolean>(false);
 
+  readonly playingStateChanged = output<EvaState>();
+
   /**
    * Resolves the `aria-label` based on the current playback state.
    * Returns `ariaLabel.pause` when playing, `ariaLabel.play` otherwise.
@@ -149,6 +151,7 @@ export class EvaPlayPause implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.playingStateSub = this.evaAPI.videoStateSubject.subscribe(state => {
       this.playingState.set(state);
+      this.playingStateChanged.emit(state);
     })
   }
 

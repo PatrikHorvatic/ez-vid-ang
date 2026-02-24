@@ -1,20 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
-import { EvaTrack } from '../../types';
+import { EvaTrack, EvaTrackInternal } from '../../types';
 
-/**
- * Internal representation of a text track option within the dropdown.
- * Derived from `EvaTrack` with a simplified structure for local state management.
- */
-interface TrackInternal {
-  /** Language code or `"off"` for the disabled option. */
-  id: string;
-  /** Display label shown in the dropdown. */
-  label: string;
-  /** Whether this track is currently active. Only one track can be selected at a time. */
-  selected: boolean;
-}
+
 
 /**
  * Subtitle/text track selector component for the Eva video player.
@@ -70,7 +59,7 @@ interface TrackInternal {
     "[attr.aria-label]": "evaTrackSelectorText()"
   }
 })
-export class EvaTrackSelector implements OnInit, OnDestroy {
+export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
   private evaAPI = inject(EvaApi);
 
   /**
@@ -110,7 +99,7 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
   });
 
   /** The local list of track options rendered in the dropdown, including the "Off" option. */
-  protected localTracks!: WritableSignal<TrackInternal[]>;
+  protected localTracks!: WritableSignal<EvaTrackInternal[]>;
 
   /** Whether the track dropdown is currently open. Applies the `open` class to the host. */
   protected isOpen = signal(false);
@@ -141,11 +130,17 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
 
     this.videoTracksSub = this.evaAPI.videoTracksSubject.subscribe(t => {
       this.localTracks.set(this.extractTracksFromAssignedVideoElement(t));
+      this.changeSubtitles();
     });
 
     // Listen for clicks outside
     this.clickOutsideListener = this.handleClickOutside.bind(this);
     document.addEventListener('click', this.clickOutsideListener, true);
+  }
+
+  // we need to set first value to the player component.
+  ngAfterViewInit(): void {
+    this.changeSubtitles();
   }
 
   /** Unsubscribes from track changes and removes the document-level click listener. */
@@ -167,7 +162,7 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
    * @param tr - The track to select.
    * @param i - The index of the track within `localTracks`.
    */
-  protected selectTrack(tr: TrackInternal, i: number) {
+  protected selectTrack(tr: EvaTrackInternal, i: number) {
     this.localTracks.update(tracks => {
       const updated = tracks.map(track => ({
         ...track,
@@ -189,6 +184,7 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
         });
     }
 
+    this.evaAPI.subtitlesChanged(tr);
     // Announce the change to screen readers
     this.announceTrackChange(tr.label);
 
@@ -335,7 +331,7 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
   }
 
   /**
-   * Converts an array of `EvaTrack` objects into the internal `TrackInternal` format
+   * Converts an array of `EvaTrack` objects into the internal `EvaTrackInternal` format
    * used by the dropdown, filtered to `kind === "subtitles"`.
    *
    * - If no tracks are provided, returns a single "Off" option marked as selected.
@@ -343,7 +339,7 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
    *
    * @param v - The raw track list from `EvaApi.videoTracksSubject`.
    */
-  private extractTracksFromAssignedVideoElement(v: EvaTrack[] | null): TrackInternal[] {
+  private extractTracksFromAssignedVideoElement(v: EvaTrack[] | null): EvaTrackInternal[] {
     if (v === null) {
       return [{
         id: "off",
@@ -401,5 +397,14 @@ export class EvaTrackSelector implements OnInit, OnDestroy {
     setTimeout(() => {
       document.body.removeChild(announcement);
     }, 1000);
+  }
+
+  private changeSubtitles() {
+    if (!this.currentTrack()) {
+      this.evaAPI.subtitlesChanged(null);
+      return;
+    }
+    let t = this.localTracks().find(a => a.selected === true);
+    this.evaAPI.subtitlesChanged(t ? t : null);
   }
 }

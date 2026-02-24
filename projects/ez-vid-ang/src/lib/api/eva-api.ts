@@ -1,6 +1,6 @@
 import { EventEmitter, Injectable, signal, WritableSignal } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { EvaChapterMarker, EvaQualityLevel, EvaState, EvaTrack } from '../types';
+import { EvaChapterMarker, EvaQualityLevel, EvaState, EvaTrack, EvaTrackInternal } from '../types';
 
 /**
  * Core API service for the Eva video player.
@@ -113,6 +113,8 @@ export class EvaApi {
 	/** Broadcasts the current list of available `EvaTrack` objects. Updated by `EvaPlayer` on input changes. */
 	public videoTracksSubject = new BehaviorSubject<EvaTrack[] | null>([]);
 
+	public videoSubtitlesSubject = new BehaviorSubject<EvaTrackInternal | null>(null);
+
 	/**
 	 * Broadcasts the video element's `TimeRanges` buffer object on each `progress` event.
 	 * Subscribed to by `EvaScrubBarBufferingTimeComponent`.
@@ -158,6 +160,10 @@ export class EvaApi {
 	 */
 	public triggerUserInteraction = new Subject<MouseEvent | TouchEvent | PointerEvent>();
 
+
+	public currentSubtitleCue: WritableSignal<string | null> = signal(null);
+
+
 	// ─── Buffering Detection ──────────────────────────────────────────────────
 
 	/** Timeout reference used by the position-polling buffering detection. Cleared on each `timeupdate`. */
@@ -169,9 +175,9 @@ export class EvaApi {
 	/** The playback position recorded at the start of the current `timeupdate` cycle. */
 	private currentPlayPos = 0;
 
-
 	public isActiveChapterPresent: boolean = false;
 	private trackTimeout: ReturnType<typeof setTimeout> | null = null;
+
 	public updateAndPrepareTracks(tracks: EvaTrack[]) {
 		this.videoTracksSubject.next(tracks);
 
@@ -189,7 +195,28 @@ export class EvaApi {
 					this.activeChapterSubject.next(chapter ? chapter : null);
 				}
 			}
-		}, 100);
+		}, 300);
+
+		return;
+	}
+
+	/**
+	  * Called when the active text track fires a `cuechange` event.
+	  * Reads the first active cue from the track and updates `currentSubtitleCue`.
+	  *
+	  * @param track - The `TextTrack` whose cues changed.
+	  */
+	public onCueChange(track: TextTrack | null): void {
+		if (!track) {
+			this.currentSubtitleCue.set(null);
+			return;
+		}
+		if (!track.activeCues || track.activeCues.length === 0) {
+			this.currentSubtitleCue.set(null);
+			return;
+		}
+		const cue = track.activeCues[0] as VTTCue;
+		this.currentSubtitleCue.set(cue.text ?? null);
 	}
 
 	/**
@@ -734,6 +761,13 @@ export class EvaApi {
 	public assignElementToApi(element: HTMLVideoElement) {
 		this.assignedVideoElement = element;
 	}
+
+	// ---------------- SUBTITLES -------------------------
+
+	public subtitlesChanged(label: EvaTrackInternal | null) {
+		this.videoSubtitlesSubject.next(label);
+	}
+
 
 	/** Reserved for future subtitle initialization logic. */
 	public setFirstSubtitles() {

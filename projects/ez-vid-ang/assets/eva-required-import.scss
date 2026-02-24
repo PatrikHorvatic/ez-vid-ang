@@ -1,11 +1,17 @@
 :root {
 	--eva-control-element-height: 50px;
-	--eva-transition-duration: 0.2s;
+	--eva-transition-duration: 0.25s;
 	--eva-font-family: Arial;
 	--eva-icon-color: white;
 
 	--eva-controls-container-background-color: rgb(0 0 0);
 	--eva-controls-container-controls-spacing: 4px;
+
+	--eva-subtitle-font-family: inherit;
+	--eva-subtitle-font-size: 1.3rem;
+	--eva-subtitle-background: rgba(0, 0, 0, 0.72);
+	--eva-subtitle-padding: 0.15em 0.5em;
+	--eva-subtitle-color: white;
 
 	--eva-scrub-bar-heights: 5px;
 	--eva-scrub-bar-background: rgb(54, 54, 54);

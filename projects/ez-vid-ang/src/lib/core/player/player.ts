@@ -1,10 +1,12 @@
-import { AfterViewInit, Component, ElementRef, inject, input, OnChanges, OnDestroy, SimpleChanges, viewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, input, OnChanges, OnDestroy, SimpleChanges, viewChild, viewChildren } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
 import { EvaTrack, EvaVideoElementConfiguration, EvaVideoSource } from '../../types';
 import { validateTracks } from '../../utils/utilities';
 import { EvaMediaEventListenersDirective } from '../directives/media-event-listeners.directive';
 import { EvaVideoConfigurationDirective } from '../directives/video-configuration.directive';
+import { Subscription } from 'rxjs';
+import { EvaCueChangeDirective } from '../directives/cue-change.directive';
 
 /**
  * Root player component for the Eva video player.
@@ -34,7 +36,7 @@ import { EvaVideoConfigurationDirective } from '../directives/video-configuratio
   selector: 'eva-player',
   templateUrl: './player.html',
   styleUrl: './player.scss',
-  imports: [EvaMediaEventListenersDirective, EvaVideoConfigurationDirective],
+  imports: [EvaMediaEventListenersDirective, EvaVideoConfigurationDirective, EvaCueChangeDirective],
   providers: [EvaApi, EvaFullscreenAPI]
 })
 export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
@@ -44,18 +46,6 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
 
   /** The scoped `EvaFullscreenAPI` instance provided to this player's component subtree. */
   public playerFullscreenAPI = inject(EvaFullscreenAPI);
-
-  /**
-   * Optionally injected HLS streaming directive.
-   * Present only when `evaHls` is applied to the `<video>` element inside this player.
-   */
-  // private hlsDirective = inject(EvaHlsDirective, { optional: true });
-
-  /**
-   * Optionally injected DASH streaming directive.
-   * Present only when `evaDash` is applied to the `<video>` element inside this player.
-   */
-  // private dashDirective = inject(EvaDashDirective, { optional: true });
 
   /**
    * Unique identifier for this player instance.
@@ -108,7 +98,12 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
   /**
    * References to the `<track>` elements rendered in the template for subtitle support.
    */
-  // private readonly evaVideoTrackElements = viewChildren<HTMLTrackElement>("evaVideoTracks");
+  private readonly evaVideoTrackElements = viewChildren<ElementRef<HTMLTrackElement>>("evaVideoTracks");
+
+
+  private subtitleChangeSubject: Subscription | null = null;
+  private subtitlesTimeout: ReturnType<typeof setTimeout> | null = null;
+  protected activeSubtitleLabel: string | null = null;
 
   /**
    * Responds to runtime changes of `evaVideoTracks`.
@@ -121,6 +116,10 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
     if (changes["evaVideoTracks"]) {
       //when number of tracks is change we must restart all mutation observers as some may become invalid
       this.playerMainAPI.updateAndPrepareTracks(changes["evaVideoTracks"].currentValue);
+
+      if (!changes["evaVideoTracks"].firstChange) {
+        this.prepareSubtitles();
+      }
     }
   }
 
@@ -130,13 +129,50 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
    */
   ngAfterViewInit(): void {
     this.playerMainAPI.assignElementToApi(this.evaVideoElement().nativeElement);
+    this.subtitleChangeSubject = this.playerMainAPI.videoSubtitlesSubject.subscribe(a => {
+      if (a) {
+        // if subtitles are disabled
+        if (a.id !== "off") {
+          this.activeSubtitleLabel = a.label;
+        }
+        else {
+          this.activeSubtitleLabel = null;
+          this.playerMainAPI.onCueChange(null);
+        }
+      }
+    });
+
     this.playerMainAPI.onPlayerReady();
   }
 
   /** Reserved for future teardown logic. */
   ngOnDestroy(): void {
+    if (this.subtitlesTimeout) {
+      clearTimeout(this.subtitlesTimeout);
+    }
+    this.subtitleChangeSubject?.unsubscribe();
     this.playerFullscreenAPI.destroy();
     this.playerMainAPI.destroy();
   }
+
+  private prepareSubtitles() {
+    if (this.subtitlesTimeout) {
+      clearTimeout(this.subtitlesTimeout);
+    }
+
+    this.subtitlesTimeout = setTimeout(() => {
+      let trackRef = this.evaVideoTrackElements().find(a => {
+        let tt = a.nativeElement.track;
+        return tt && tt.mode === "showing" && tt.kind === "subtitles"
+      });
+      if (!trackRef) {
+        this.playerMainAPI.currentSubtitleCue.set(null);
+        return;
+      }
+
+    }, 200);
+  }
+
+
 
 }

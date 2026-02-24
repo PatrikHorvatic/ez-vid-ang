@@ -40,6 +40,19 @@ export interface EvaVideoElementConfiguration {
 }
 
 /**
+ * Internal representation of a text track option within the dropdown.
+ * Derived from `EvaTrack` with a simplified structure for local state management.
+ */
+export interface EvaTrackInternal {
+	/** Language code or `"off"` for the disabled option. */
+	id: string;
+	/** Display label shown in the dropdown. */
+	label: string;
+	/** Whether this track is currently active. Only one track can be selected at a time. */
+	selected: boolean;
+}
+
+/**
  * Represents a single `<source>` element to be rendered inside the `<video>` element.
  * Provide multiple sources for fallback across browsers and formats.
  */

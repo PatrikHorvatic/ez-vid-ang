@@ -15,3 +15,8 @@
 	object-position: 0 0;
 	transition: padding-bottom var(--eva-transition-duration) ease-in-out;
 }
+
+:host > video::cue {
+	font-family: var(--eva-font-family);
+	color: white;
+}

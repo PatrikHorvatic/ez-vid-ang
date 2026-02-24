@@ -1,5 +1,3 @@
-<ng-content></ng-content>
-
 <video #evaVideoElement [id]="id()" evaMediaEventListeners evaVideoConfiguration
 	[evaVideoConfig]="evaVideoConfiguration()">
 	@for (vs of evaVideoSources(); track $index) {
@@ -11,6 +9,9 @@
 
 	@for (t of evaVideoTracks(); track $index) {
 	<track #evaVideoTracks [default]="t.default" [kind]="t.kind" [label]="t.label" [src]="t.src" [srclang]="t.srclang"
-		[ariaLabel]="t.label" />
+		[ariaLabel]="t.label" evaCueChange
+		[evaCueChangeActive]="t.kind === 'subtitles' && activeSubtitleLabel === t.label" />
 	}
 </video>
+
+<ng-content></ng-content>

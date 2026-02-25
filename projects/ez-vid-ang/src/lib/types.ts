@@ -94,6 +94,8 @@ export enum EvaVideoEvent {
 	CAN_PLAY_THROUGH = 'canplaythrough',
 	COMPLETE = 'complete',
 	DURATION_CHANGE = 'durationchange',
+	ENTERED_PICTURE_IN_PICTURE = 'enterpictureinpicture',
+	LEFT_PICTURE_IN_PICTURE = 'leavepictureinpicture',
 	EMPTIED = 'emptied',
 	ENCRYPTED = 'encrypted',
 	ENDED = 'ended',

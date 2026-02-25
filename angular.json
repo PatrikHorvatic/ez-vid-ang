@@ -37,13 +37,21 @@
     "@schematics/angular:component": {
       "changeDetection": "OnPush",
       "style": "scss",
-      "standalone": false,
-      "type": "component"
+      "standalone": true,
+      "type": "",
+      "skipTests": false
     },
     "@schematics/angular:directive": {
-      "standalone": false,
-      "type": "directive"
+      "standalone": true,
+      "type": "",
+      "skipTests": false
     },
-    "@schematics/angular:service": {}
+    "@schematics/angular:pipe": {
+      "standalone": true,
+      "skipTests": false
+    },
+    "@schematics/angular:service": {
+      "skipTests": false
+    }
   }
 }

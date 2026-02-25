@@ -71,7 +71,7 @@ import {
   EvaMute, EvaMuteAria, EvaPlaybackSpeed, EvaPlayer,
   EvaPlayPause, EvaQualitySelector, EvaScrubBar,
   EvaScrubBarBufferingTime, EvaScrubBarCurrentTime,
-  EvaSubtitleDisplay,
+  EvaSubtitleDisplay,EvaPictureInPicture,
   EvaTimeDisplay, EvaTrack, EvaTrackSelector,
   EvaVideoElementConfiguration, EvaVideoSource, EvaVolume
 } from "ez-vid-ang";
@@ -94,6 +94,7 @@ EvaActiveChapter,
     EvaPlaybackSpeed,
     EvaPlayer,
     EvaPlayPause,
+    EvaPictureInPicture,
     EvaQualitySelector,
     EvaScrubBar,
     EvaScrubBarBufferingTime,

@@ -137,6 +137,42 @@ export function transformEvaPlayPauseAria(v: EvaPlayPauseAria | undefined): EvaP
 
 }
 
+export type EvaPictureInPictureAria = {
+	ariaLabel?: string,
+	ariaValueText?: {
+		ariaLabelActivated?: string,
+		ariaLabelDeactivated?: string,
+	}
+}
+
+export type EvaPictureInPictureTransformed = {
+	ariaLabel: string,
+	ariaValueText: {
+		ariaLabelActivated: string,
+		ariaLabelDeactivated: string,
+	}
+}
+
+export function transformEvaPictureInPictureAria(v: EvaPictureInPictureAria | undefined): EvaPictureInPictureTransformed {
+	if (!v) {
+		return {
+			ariaLabel: "Picture in picture",
+			ariaValueText: {
+				ariaLabelActivated: "Picture in picture is active",
+				ariaLabelDeactivated: "Picture in picture is invactive",
+			}
+		}
+	}
+
+	return {
+		ariaLabel: v.ariaLabel ? v.ariaLabel : "Picture in picture",
+		ariaValueText: {
+			ariaLabelActivated: v.ariaValueText && v.ariaValueText.ariaLabelActivated ? v.ariaValueText.ariaLabelActivated : "Picture in picture is active",
+			ariaLabelDeactivated: v.ariaValueText && v.ariaValueText.ariaLabelDeactivated ? v.ariaValueText.ariaLabelDeactivated : "Picture in picture is invactive",
+		}
+	}
+}
+
 export type EvaForwardAria = {
 	ariaLabel?: string,
 }

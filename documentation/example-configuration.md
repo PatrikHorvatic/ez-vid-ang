@@ -26,6 +26,8 @@ Here you can see how you can configure your Eva video player. All of the compone
 			<p evaPause>Pause</p>
 		</eva-play-pause>
 
+		<eva-picture-in-picture />
+    
 		<eva-active-chapter />
 
 		<eva-mute [evaCustomIcon]="false" [evaAria]="ariaMute()">

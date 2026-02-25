@@ -164,6 +164,17 @@ export class EvaApi {
 	public currentSubtitleCue: WritableSignal<string | null> = signal(null);
 
 
+	/** The active `PictureInPictureWindow` instance. `null` when PiP is not active. */
+	private pipWindow: PictureInPictureWindow | null = null;
+
+	/**
+	 * Broadcasts the current Picture-in-Picture state.
+	 * Emits `true` when the player enters PiP, `false` when it leaves.
+	 * Subscribed to by `EvaPictureInPicture` to keep its icon state in sync.
+	 */
+	public pictureInPictureSubject = new BehaviorSubject<boolean>(false);
+
+
 	// ─── Buffering Detection ──────────────────────────────────────────────────
 
 	/** Timeout reference used by the position-polling buffering detection. Cleared on each `timeupdate`. */
@@ -714,6 +725,71 @@ export class EvaApi {
 		}
 	}
 
+	// ─── Picture in picture ────────────────────────────────────────────────────────────
+
+	/**
+	 * Toggles Picture-in-Picture mode for the assigned video element.
+	 *
+	 * - If this player's video element is currently in PiP, exits PiP via
+	 *   `document.exitPictureInPicture()`.
+	 * - If another element is currently in PiP, exits that first, then enters PiP
+	 *   on this player's video element.
+	 * - If PiP is not active, enters PiP via `requestPictureInPicture()`.
+	 *
+	 * No-ops if:
+	 * - The player is not yet ready.
+	 * - `document.pictureInPictureEnabled` is `false` (API not supported or blocked).
+	 * - `assignedVideoElement.disablePictureInPicture` is `true`.
+	 *
+	 * State is tracked via native `enterpictureinpicture` / `leavepictureinpicture`
+	 * events, not by the Promise resolution, to correctly handle external PiP changes.
+	 *
+	 * @returns A `Promise<void>` that resolves when the PiP state change completes.
+	 */
+	public async changePictureInPictureStatus(): Promise<void> {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+
+		if (!document.pictureInPictureEnabled) {
+			console.warn('[EvaApi] Picture-in-Picture is not supported or is disabled in this browser.');
+			return;
+		}
+
+		if (this.assignedVideoElement.disablePictureInPicture) {
+			console.warn('[EvaApi] Picture-in-Picture is disabled on this video element.');
+			return;
+		}
+
+		try {
+			if (document.pictureInPictureElement === this.assignedVideoElement) {
+				// This player is already in PiP — exit
+				await document.exitPictureInPicture();
+			} else {
+				// Another element may be in PiP — the browser handles exiting it automatically
+				// before entering PiP on a new element, but we exit explicitly for safety
+				if (document.pictureInPictureElement) {
+					await document.exitPictureInPicture();
+				}
+				await this.assignedVideoElement.requestPictureInPicture();
+			}
+		} catch (error) {
+			console.error('[EvaApi] Picture-in-Picture toggle failed:', error);
+		}
+	}
+
+	public assignPictureInPictureWindow(p: PictureInPictureEvent) {
+		this.pipWindow = p.pictureInPictureWindow;
+		this.pictureInPictureSubject.next(true);
+	}
+
+	public removePictureInPictureWindow(_p: PictureInPictureEvent) {
+		this.pipWindow = null;
+		this.pictureInPictureSubject.next(false);
+	}
+
+
+
 	// ─── Utilities ────────────────────────────────────────────────────────────
 
 	/**
@@ -828,10 +904,15 @@ export class EvaApi {
 			clearTimeout(this.trackTimeout);
 		}
 
+		if (this.pipWindow) {
+			this.pipWindow = null;
+		}
+
 		// Clear the registered streaming quality function
 		this.qualityFn = null;
 
 		// Complete all subjects — notifies subscribers and prevents further emissions
+		this.pictureInPictureSubject.complete();
 		this.videoStateSubject.complete();
 		this.videoVolumeSubject.complete();
 		this.playbackRateSubject.complete();

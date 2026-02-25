@@ -4,11 +4,11 @@ set -euo pipefail
 PACKAGE_PATH="./dist/ez-vid-ang"
 
 # Ensure tag argument is provided
-if [ $# -eq 0 ]; then
-  echo "❌ Usage: ./release.sh <tag>"
-  echo "Example: ./release.sh v19"
-  exit 1
-fi
+#if [ $# -eq 0 ]; then
+#  echo "❌ Usage: ./release.sh <tag>"
+#  echo "Example: ./release.sh v19"
+#  exit 1
+#fi
 
 TAG="$1"
 

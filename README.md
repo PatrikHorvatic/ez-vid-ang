@@ -57,29 +57,60 @@ Add the required styles to your angular.json:
 > *eva-icons-and-fonts.scss* is optional if you provide custom icons and fonts for all components. It includes a prepared *.woff* file and utility classes for default icon usage.
 <br/>
 
-Import the needed modules into your standalone component or NgModule:
+Import the needed components and types into your standalone component or NgModule:
 ```
 import { Component } from '@angular/core';
-import { EvaPlayer } from 'ez-vid-ang';
+import {
+  EvaActiveChapter,
+  EvaBackward,
+  EvaBuffering,
+  EvaChapterMarker,
+  EvaOverlayPlay,
+  EvaControlsContainer, EvaControlsDivider,
+  EvaForward, EvaFullscreen, EvaHlsDirective,
+  EvaMute, EvaMuteAria, EvaPlaybackSpeed, EvaPlayer,
+  EvaPlayPause, EvaQualitySelector, EvaScrubBar,
+  EvaScrubBarBufferingTime, EvaScrubBarCurrentTime,
+  EvaSubtitleDisplay,
+  EvaTimeDisplay, EvaTrack, EvaTrackSelector,
+  EvaVideoElementConfiguration, EvaVideoSource, EvaVolume
+} from "ez-vid-ang";
 
 @Component({
   selector: 'lt-home-page',
   templateUrl: './home-page.html',
   styleUrl: './home-page.scss',
   imports: [
-    EvaCoreModule,
-    EvaControlsModule,
-    EvaBufferingModule,
-    EvaStreamingModule
+EvaActiveChapter,
+    EvaBackward,
+    EvaBuffering,
+    EvaOverlayPlay,
+    EvaControlsContainer,
+    EvaControlsDivider,
+    EvaForward,
+    EvaFullscreen,
+    EvaHlsDirective,
+    EvaMute,
+    EvaPlaybackSpeed,
+    EvaPlayer,
+    EvaPlayPause,
+    EvaQualitySelector,
+    EvaScrubBar,
+    EvaScrubBarBufferingTime,
+    EvaScrubBarCurrentTime,
+    EvaSubtitleDisplay,
+    EvaTimeDisplay, 
+    EvaTrackSelector,
+    EvaVolume
   ]
 })
 export class HomePage {}
 
 ```
 
-## Modules
+## Components
 
-Library has four groups of componentse. You can click on the name to go to the documentation:
+Library has four groups of components. You can click on the name to go to the documentation:
 - [**EvaCore**](documentation/core) – Main player component, directives, and providers
 - [**EvaControls**](documentation/controls) – Video control components and pipes
 - [**EvaBuffering**](documentation/buffering) – Loading and buffering indicators

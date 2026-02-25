@@ -1,12 +1,10 @@
-# EvaBackwardComponent
+# EvaBackward
 
 ## Overview
 
-`EvaBackwardComponent` is an Angular component that renders a backward seek button for the Eva video player. Clicking the button seeks the video backward by a configurable number of seconds via `EvaApi`.
+`EvaBackward` is acomponent that renders a backward seek button for the Eva video player. Clicking the button seeks the video backward by a configurable number of seconds via `EvaApi`.
 
 **Selector:** `eva-backward`
-
----
 
 ## Inputs
 
@@ -22,8 +20,6 @@
 |---|---|
 | `ariaLabel` | Provided by `transformEvaBackwardAria` |
 
----
-
 ## Host Bindings
 
 | Binding | Description |
@@ -34,8 +30,6 @@
 | `eva-icon` | Applied when `evaCustomIcon` is `false`. Base icon class. |
 | `eva-icon-replay_10` | Applied when `evaCustomIcon` is `false` and `evaForwardSeconds` is `10`. |
 | `eva-icon-replay_30` | Applied when `evaCustomIcon` is `false` and `evaForwardSeconds` is `30`. |
-
----
 
 ## Icon Classes
 
@@ -48,8 +42,6 @@ The built-in icon is determined by the value of `evaForwardSeconds`:
 
 For any other value, no built-in icon class is applied — use `evaCustomIcon` and provide your own.
 
----
-
 ## Keyboard Support
 
 | Key | Action |
@@ -57,32 +49,28 @@ For any other value, no built-in icon class is applied — use `evaCustomIcon` a
 | `Enter` | Seek backward by `evaForwardSeconds` |
 | `Space` | Seek backward by `evaForwardSeconds` |
 
----
-
 ## Behaviour
 
 On click or keyboard activation, the component calls `EvaApi.seekBack(evaForwardSeconds())`, delegating the seek logic entirely to the API layer.
 
----
-
 ## Usage Examples
 
-Default — seek backward 10 seconds:
 ```html
-<eva-backward />
-```
+<eva-player>
+  
+  <eva-controls-container>
+    <!-- Default — seek backward 10 seconds: -->
+    <eva-backward />
 
-Seek backward 30 seconds:
-```html
-<eva-backward [evaForwardSeconds]="30" />
-```
+    <!-- Seek backward 30 seconds: -->
+    <eva-backward [evaForwardSeconds]="30" />
 
-Custom icon and ARIA label:
-```html
-<eva-backward
-  [evaCustomIcon]="true"
-  [evaAria]="{ ariaLabel: 'Rewind 10 seconds' }"
->
-	<!-- your custom icon/content -->
-</eva-backward>
+    <!-- Custom icon and ARIA label: -->
+    <eva-backward  [evaCustomIcon]="true" [evaAria]="{ ariaLabel: 'Rewind 10 seconds' }">
+	    <!-- your custom icon/content -->
+    </eva-backward>
+
+  </eva-controls-container>
+</eva-player>
+
 ```

@@ -1,4 +1,4 @@
-## EvaControlsContainerComponent
+## EvaControlsContainer
 
 A wrapper component for the player control bar that manages its visibility. When auto-hide is enabled, the container hides after a configurable period of inactivity and reappears on any user interaction. The `evaAutohide` input can be toggled at runtime.
 
@@ -19,10 +19,10 @@ A wrapper component for the player control bar that manages its visibility. When
 
 ```html
 <!-- Always visible -->
-<eva-controls-container />
+<eva-controls-container></eva-controls-container>
 
 <!-- Auto-hide after 4 seconds of inactivity -->
-<eva-controls-container [evaAutohide]="true" [evaAutohideTime]="4000" />
+<eva-controls-container [evaAutohide]="true" [evaAutohideTime]="4000"></eva-controls-container>
 ```
 
 ### Auto-hide Behaviour

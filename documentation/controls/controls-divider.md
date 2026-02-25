@@ -1,4 +1,4 @@
-## EvaControlsDividerComponent
+## EvaControlsDivider
 
 A visual and semantic separator for use between controls inside `eva-controls-container`. Renders as a `role="separator"` element with a horizontal orientation, providing both visual spacing and accessible structure to the controls bar.
 
@@ -11,15 +11,17 @@ A visual and semantic separator for use between controls inside `eva-controls-co
 ### Usage
 
 ```html
-<eva-controls-container>
-  <eva-play-pause />
-  <eva-time-display evaTimeProperty="current" evaTimeFormating="mm:ss" />
-
-  <eva-controls-divider />
-
-  <eva-volume />
-  <eva-fullscreen />
-</eva-controls-container>
+<eva-player>
+  <eva-controls-container>
+    <eva-play-pause />
+    <eva-time-display evaTimeProperty="current" evaTimeFormating="mm:ss" />
+  
+    <eva-controls-divider />
+  
+    <eva-volume />
+    <eva-fullscreen />
+  </eva-controls-container>
+</eva-player>
 ```
 
 ### Inputs

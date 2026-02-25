@@ -25,7 +25,7 @@ Setting `EvaApi.isActiveChapterPresent = true` in `ngOnInit` enables the per-fra
 
         <!-- With custom icon -->
         <eva-active-chapter>
-          <img src="your_image_source.png" />
+          <img src="your_image_source" />
         </eva-active-chapter>
     </eva-controls-container>
 </eva-player>

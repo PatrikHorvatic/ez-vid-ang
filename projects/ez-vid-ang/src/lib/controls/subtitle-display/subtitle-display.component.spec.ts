@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SubtitleDisplayComponent } from './subtitle-display.component';
+import { EvaSubtitleDisplay } from './subtitle-display.component';
 
-describe('SubtitleDisplayComponent', () => {
-  let component: SubtitleDisplayComponent;
-  let fixture: ComponentFixture<SubtitleDisplayComponent>;
+describe('EvaSubtitleDisplay', () => {
+  let component: EvaSubtitleDisplay;
+  let fixture: ComponentFixture<EvaSubtitleDisplay>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [SubtitleDisplayComponent]
+      declarations: [EvaSubtitleDisplay]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(SubtitleDisplayComponent);
+    fixture = TestBed.createComponent(EvaSubtitleDisplay);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

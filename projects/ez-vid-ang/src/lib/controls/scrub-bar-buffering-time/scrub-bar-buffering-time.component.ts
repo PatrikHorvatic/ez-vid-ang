@@ -32,7 +32,7 @@ import { EvaApi } from '../../api/eva-api';
   styleUrl: './scrub-bar-buffering-time.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EvaScrubBarBufferingTimeComponent implements OnInit, OnDestroy {
+export class EvaScrubBarBufferingTime implements OnInit, OnDestroy {
   private evaAPI = inject(EvaApi);
 
   /** The current buffered amount expressed as a CSS percentage string (e.g. `"42%"`). Bound to the template. */

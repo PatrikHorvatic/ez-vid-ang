@@ -1,18 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { ActiveChapterComponent } from './active-chapter.component';
+import { EvaActiveChapter } from './active-chapter.component';
 
 describe('ActiveChapterComponent', () => {
-  let component: ActiveChapterComponent;
-  let fixture: ComponentFixture<ActiveChapterComponent>;
+  let component: EvaActiveChapter;
+  let fixture: ComponentFixture<EvaActiveChapter>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ActiveChapterComponent]
+      declarations: [EvaActiveChapter]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(ActiveChapterComponent);
+    fixture = TestBed.createComponent(EvaActiveChapter);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

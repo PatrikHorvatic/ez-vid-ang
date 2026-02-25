@@ -98,3 +98,35 @@ All properties are optional. Only truthy values are applied to the element.
   [evaVideoConfig]="{ autoplay: true, muted: true, startingVolume: 0.8, poster: '/thumb.jpg' }"
 />
 ```
+
+---
+
+## EvaCueChangeDirective
+
+Attaches a native `cuechange` listener to a `<track>` element and forwards cue changes to `EvaApi.onCueChange()`. This is what drives the subtitle display — when the active VTT cue changes, `currentSubtitleCue` on `EvaApi` is updated and `EvaSubtitleDisplay` re-renders.
+
+The listener is managed reactively via Angular's `effect()`. Toggling `evaCueChangeActive` at runtime cleanly attaches or detaches the handler with no `ngOnChanges` required.
+### Selector
+
+```
+track[evaCueChange]
+```
+
+### Usage
+
+```html
+
+```
+
+### Inputs
+
+| Input | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `evaCueChangeActive` | `boolean` | No | `false` | When `true`, attaches a `cuechange` listener. When `false`, removes it and clears the active cue. |
+
+### EvaApi Integration
+
+| Called method | When |
+|---|---|
+| `EvaApi.onCueChange(track)` | On every `cuechange` event while `evaCueChangeActive` is `true`. |
+| `EvaApi.onCueChange(null)` | Implicitly, when `evaCueChangeActive` switches to `false` via the effect cleanup. |

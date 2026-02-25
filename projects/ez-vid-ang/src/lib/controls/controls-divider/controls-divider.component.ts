@@ -38,7 +38,7 @@ import { EvaControlsDividerAria, EvaControlsDividerAriaTransformed, transformEva
     "[attr.aria-label]": "evaAria().ariaLabel"
   }
 })
-export class EvaControlsDividerComponent {
+export class EvaControlsDivider {
   /**
    * ARIA label for the separator element.
    *

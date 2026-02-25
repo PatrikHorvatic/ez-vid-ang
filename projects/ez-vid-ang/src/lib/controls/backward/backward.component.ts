@@ -47,7 +47,7 @@ import { EvaBackwardAria, EvaBackwardAriaTransformed, transformEvaBackwardAria, 
     "(keydown)": "backwardClickedKeyboard($event)"
   }
 })
-export class EvaBackwardComponent {
+export class EvaBackward {
   private evaAPI = inject(EvaApi);
 
   /**

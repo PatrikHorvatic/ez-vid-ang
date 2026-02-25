@@ -47,7 +47,7 @@ import { EvaForwardAria, EvaForwardAriaTransformed, transformEvaForwardAria, val
     "(keydown)": "forwardClickedKeyboard($event)"
   }
 })
-export class EvaForwardComponent {
+export class EvaForward {
   private evaAPI = inject(EvaApi);
 
   /**

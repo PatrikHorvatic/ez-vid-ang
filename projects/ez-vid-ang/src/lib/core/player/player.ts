@@ -1,12 +1,12 @@
 import { AfterViewInit, Component, ElementRef, inject, input, OnChanges, OnDestroy, SimpleChanges, viewChild, viewChildren } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
 import { EvaTrack, EvaVideoElementConfiguration, EvaVideoSource } from '../../types';
 import { validateTracks } from '../../utils/utilities';
+import { EvaCueChangeDirective } from '../directives/cue-change.directive';
 import { EvaMediaEventListenersDirective } from '../directives/media-event-listeners.directive';
 import { EvaVideoConfigurationDirective } from '../directives/video-configuration.directive';
-import { Subscription } from 'rxjs';
-import { EvaCueChangeDirective } from '../directives/cue-change.directive';
 
 /**
  * Root player component for the Eva video player.

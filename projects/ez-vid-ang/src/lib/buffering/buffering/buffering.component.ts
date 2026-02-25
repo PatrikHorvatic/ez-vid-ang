@@ -30,7 +30,7 @@ import { EvaApi } from '../../api/eva-api';
     "[class.eva-display-buffering]": "evaAPI.isBuffering()"
   }
 })
-export class EvaBufferingComponent {
+export class EvaBuffering {
   protected evaAPI = inject(EvaApi);
 
   /**

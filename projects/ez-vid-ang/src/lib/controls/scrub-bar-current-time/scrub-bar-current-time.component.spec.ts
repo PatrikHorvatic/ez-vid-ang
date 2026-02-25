@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { EvaScrubBarCurrentTimeComponent } from './scrub-bar-current-time.component';
+import { EvaScrubBarCurrentTime } from './scrub-bar-current-time.component';
 
 describe('ScrubBarCurrentTimeComponent', () => {
-  let component: EvaScrubBarCurrentTimeComponent;
-  let fixture: ComponentFixture<EvaScrubBarCurrentTimeComponent>;
+  let component: EvaScrubBarCurrentTime;
+  let fixture: ComponentFixture<EvaScrubBarCurrentTime>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [EvaScrubBarCurrentTimeComponent]
+      declarations: [EvaScrubBarCurrentTime]
     })
       .compileComponents();
 
-    fixture = TestBed.createComponent(EvaScrubBarCurrentTimeComponent);
+    fixture = TestBed.createComponent(EvaScrubBarCurrentTime);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

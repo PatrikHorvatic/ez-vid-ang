@@ -23,7 +23,7 @@ import { EvaApi } from '../../api/eva-api';
   styleUrl: './scrub-bar-current-time.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class EvaScrubBarCurrentTimeComponent {
+export class EvaScrubBarCurrentTime {
   private evaAPI = inject(EvaApi);
 
   /**

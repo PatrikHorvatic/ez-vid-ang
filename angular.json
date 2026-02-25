@@ -35,6 +35,7 @@
   },
   "schematics": {
     "@schematics/angular:component": {
+      "changeDetection": "OnPush",
       "style": "scss",
       "standalone": false,
       "type": "component"

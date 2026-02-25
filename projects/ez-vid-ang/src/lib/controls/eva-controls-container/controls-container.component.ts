@@ -36,7 +36,7 @@ import { transformTimeoutDuration } from '../../utils/utilities';
     "[class.hide]": "hideControls()"
   }
 })
-export class EvaControlsContainerComponent implements OnInit, OnDestroy, OnChanges {
+export class EvaControlsContainer implements OnInit, OnDestroy, OnChanges {
 
   private evaAPI = inject(EvaApi);
 

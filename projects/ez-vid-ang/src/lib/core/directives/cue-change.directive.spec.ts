@@ -1,8 +1,8 @@
-import { CueChangeDirective } from './cue-change.directive';
+import { EvaCueChangeDirective } from './cue-change.directive';
 
-describe('CueChangeDirective', () => {
+describe('EvaCueChangeDirective', () => {
   it('should create an instance', () => {
-    const directive = new CueChangeDirective();
+    const directive = new EvaCueChangeDirective();
     expect(directive).toBeTruthy();
   });
 });

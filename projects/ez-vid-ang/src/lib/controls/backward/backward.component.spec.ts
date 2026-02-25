@@ -1,18 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { BackwardComponent } from './backward.component';
+import { EvaBackward } from './backward.component';
 
 describe('BackwardComponent', () => {
-  let component: BackwardComponent;
-  let fixture: ComponentFixture<BackwardComponent>;
+  let component: EvaBackward;
+  let fixture: ComponentFixture<EvaBackward>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [BackwardComponent]
+      declarations: [EvaBackward]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(BackwardComponent);
+    fixture = TestBed.createComponent(EvaBackward);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

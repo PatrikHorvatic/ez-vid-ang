@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ForwardComponent } from './forward.component';
+import { EvaForward } from './forward.component';
 
-describe('ForwardComponent', () => {
-  let component: ForwardComponent;
-  let fixture: ComponentFixture<ForwardComponent>;
+describe('EvaForward', () => {
+  let component: EvaForward;
+  let fixture: ComponentFixture<EvaForward>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ForwardComponent]
+      declarations: [EvaForward]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(ForwardComponent);
+    fixture = TestBed.createComponent(EvaForward);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

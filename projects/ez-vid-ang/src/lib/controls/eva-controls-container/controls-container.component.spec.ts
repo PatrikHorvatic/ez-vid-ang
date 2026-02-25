@@ -1,18 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { EvaControlsContainerComponent } from './controls-container.component';
+import { EvaControlsContainer } from './controls-container.component';
 
 describe('EvaControlsContainerComponent', () => {
-  let component: EvaControlsContainerComponent;
-  let fixture: ComponentFixture<EvaControlsContainerComponent>;
+  let component: EvaControlsContainer;
+  let fixture: ComponentFixture<EvaControlsContainer>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [EvaControlsContainerComponent]
+      declarations: [EvaControlsContainer]
     })
       .compileComponents();
 
-    fixture = TestBed.createComponent(EvaControlsContainerComponent);
+    fixture = TestBed.createComponent(EvaControlsContainer);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

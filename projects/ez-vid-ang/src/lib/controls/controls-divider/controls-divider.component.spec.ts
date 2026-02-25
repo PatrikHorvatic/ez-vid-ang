@@ -1,18 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { ControlsDividerComponent } from './controls-divider.component';
+import { EvaControlsDivider } from './controls-divider.component';
 
 describe('ControlsDividerComponent', () => {
-  let component: ControlsDividerComponent;
-  let fixture: ComponentFixture<ControlsDividerComponent>;
+  let component: EvaControlsDivider;
+  let fixture: ComponentFixture<EvaControlsDivider>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ControlsDividerComponent]
+      declarations: [EvaControlsDivider]
     })
-    .compileComponents();
+      .compileComponents();
 
-    fixture = TestBed.createComponent(ControlsDividerComponent);
+    fixture = TestBed.createComponent(EvaControlsDivider);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

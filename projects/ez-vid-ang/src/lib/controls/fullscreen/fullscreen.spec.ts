@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { EvaFullscreen } from './fullscreen';
 
 describe('EvaFullscreen', () => {

@@ -105,6 +105,7 @@ export class EvaVolume implements OnInit, OnDestroy {
 
   /** Subscription to volume changes from `EvaApi`. Cleaned up in `ngOnDestroy`. */
   private videoVolumeSub: Subscription | null = null;
+  private playerReady$: Subscription | null = null;
 
   /** Cleanup function returned by `Renderer2.listen` for the `mousemove`/`touchmove` document listener. */
   private mouseMoveListener?: (() => void) | undefined;
@@ -121,11 +122,17 @@ export class EvaVolume implements OnInit, OnDestroy {
    * external volume changes (e.g. from the mute button).
    */
   ngOnInit(): void {
-    // Initialize volume signal
     const initialVolume = this.evaAPI.getVideoVolume();
     this.videoVolume = signal(initialVolume);
-    this.ariaValue.set(String(Math.round(initialVolume * 100)));
 
+    if (!this.evaAPI.isPlayerReady) {
+      this.playerReady$ = this.evaAPI.playerReadyEvent.subscribe(() => {
+        // Initialize volume signal
+        const initialVolume = this.evaAPI.getVideoVolume();
+        this.videoVolume.set(initialVolume);
+        this.ariaValue.set(String(Math.round(initialVolume * 100)));
+      });
+    }
     // Subscribe to volume changes from API
     this.videoVolumeSub = this.evaAPI.videoVolumeSubject.subscribe(volume => {
       if (volume !== null) {
@@ -142,6 +149,7 @@ export class EvaVolume implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     // Clean up subscription
     this.videoVolumeSub?.unsubscribe();
+    this.playerReady$?.unsubscribe();
 
     // Clean up event listeners if component destroyed while dragging
     this.removeDocumentListeners();

@@ -1,5 +1,5 @@
 <video #evaVideoElement [id]="id()" evaMediaEventListeners evaVideoConfiguration
-	[evaVideoConfig]="evaVideoConfiguration()">
+	[evaVideoConfig]="evaVideoConfiguration()" (videoConfigurationDone)="videoConfigReady()">
 	@for (vs of evaVideoSources(); track $index) {
 	<source #evaVideoSources [type]="vs.type" [src]="vs.src" />
 	}

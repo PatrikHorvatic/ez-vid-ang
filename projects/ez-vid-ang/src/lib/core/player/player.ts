@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, inject, input, OnChanges, OnDestroy, SimpleChanges, viewChild, viewChildren } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, inject, input, OnChanges, OnDestroy, SimpleChanges, viewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
@@ -98,7 +98,7 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
   /**
    * References to the `<track>` elements rendered in the template for subtitle support.
    */
-  private readonly evaVideoTrackElements = viewChildren<ElementRef<HTMLTrackElement>>("evaVideoTracks");
+  // private readonly evaVideoTrackElements = viewChildren<ElementRef<HTMLTrackElement>>("evaVideoTracks");
 
 
   private subtitleChangeSubject: Subscription | null = null;
@@ -118,8 +118,16 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
       this.playerMainAPI.updateAndPrepareTracks(changes["evaVideoTracks"].currentValue);
 
       if (!changes["evaVideoTracks"].firstChange) {
-        this.prepareSubtitles();
+        // this.prepareSubtitles();
       }
+    }
+  }
+
+  ngOnInit(): void {
+    // prevent NG0100
+    const defaultTrack = this.evaVideoTracks().find(t => t.default && t.kind === 'subtitles');
+    if (defaultTrack) {
+      this.activeSubtitleLabel = defaultTrack.label ?? null;
     }
   }
 
@@ -141,8 +149,6 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
         }
       }
     });
-
-    this.playerMainAPI.onPlayerReady();
   }
 
   /** Reserved for future teardown logic. */
@@ -155,24 +161,8 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
     this.playerMainAPI.destroy();
   }
 
-  private prepareSubtitles() {
-    if (this.subtitlesTimeout) {
-      clearTimeout(this.subtitlesTimeout);
-    }
-
-    this.subtitlesTimeout = setTimeout(() => {
-      let trackRef = this.evaVideoTrackElements().find(a => {
-        let tt = a.nativeElement.track;
-        return tt && tt.mode === "showing" && tt.kind === "subtitles"
-      });
-      if (!trackRef) {
-        this.playerMainAPI.currentSubtitleCue.set(null);
-        return;
-      }
-
-    }, 200);
+  protected videoConfigReady() {
+    this.playerMainAPI.onPlayerReady();
   }
-
-
 
 }

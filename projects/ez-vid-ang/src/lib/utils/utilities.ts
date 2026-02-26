@@ -40,7 +40,7 @@ export function validateAndTransformPlaybackSpeeds(v: Array<number>): Array<numb
 
 export function validateAndPrepareStartingVideoVolume(v: number | undefined): number {
 	if (v === undefined) {
-		return 0.75;
+		return 1;
 	}
 	if (v < 0) {
 		return 0;
@@ -109,7 +109,7 @@ export function videoConfigurationDefaultSetter(v: EvaVideoElementConfiguration 
 		v.preload = "auto";
 	}
 	if (!v.startingVolume) {
-		v.startingVolume = 0.75;
+		v.startingVolume = 1;
 	}
 	return v;
 }

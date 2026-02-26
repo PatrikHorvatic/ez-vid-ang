@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy,
 import { EvaApi } from '../../api/eva-api';
 import { EvaPlaybackSpeedAria, EvaPlaybackSpeedAriaTransformed, transformEvaPlaybackSpeedAria } from '../../utils/aria-utilities';
 import { transformDefaultPlaybackSpeed, validateAndTransformPlaybackSpeeds } from '../../utils/utilities';
+import { Subscription } from 'rxjs';
 
 /**
  * Playback speed selector component for the Eva video player.
@@ -107,22 +108,29 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
   /** Bound reference to the click-outside handler, stored for removal in `ngOnDestroy`. */
   private clickOutsideListener?: (event: MouseEvent) => void;
 
+  private playerReady$: Subscription | null = null;
+
   /**
    * Sets the initial playback speed based on `evaDefaultPlaybackSpeed` and `evaPlaybackSpeeds`,
    * then attaches a document-level click listener to close the dropdown when clicking outside.
    */
   ngOnInit(): void {
-    // Set initial speed
-    const speeds = this.evaPlaybackSpeeds();
-    const defaultSpeed = this.evaDefaultPlaybackSpeed();
-    const index = speeds.indexOf(defaultSpeed);
+    if (!this.evaAPI.isPlayerReady) {
+      this.playerReady$ = this.evaAPI.playerReadyEvent.subscribe(() => {
+        const speeds = this.evaPlaybackSpeeds();
+        const defaultSpeed = this.evaDefaultPlaybackSpeed();
+        const index = speeds.indexOf(defaultSpeed);
 
-    if (index !== -1) {
-      this.currentSpeed.set(defaultSpeed);
-      this.selectedIndex.set(index);
-    } else if (speeds.length > 0) {
-      this.currentSpeed.set(speeds[0]);
-      this.selectedIndex.set(0);
+        if (index !== -1) {
+          this.currentSpeed.set(defaultSpeed);
+          this.selectedIndex.set(index);
+        } else if (speeds.length > 0) {
+          this.currentSpeed.set(speeds[0]);
+          this.selectedIndex.set(0);
+        }
+
+        this.evaAPI.setPlaybackSpeed(index !== 1 ? defaultSpeed : speeds[0]);
+      });
     }
 
     // Listen for clicks outside
@@ -132,6 +140,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
 
   /** Removes the document-level click-outside listener to prevent memory leaks. */
   ngOnDestroy(): void {
+    this.playerReady$?.unsubscribe();
     if (this.clickOutsideListener) {
       document.removeEventListener('click', this.clickOutsideListener, true);
     }

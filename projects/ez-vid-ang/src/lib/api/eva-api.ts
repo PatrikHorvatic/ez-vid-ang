@@ -174,6 +174,8 @@ export class EvaApi {
 	 */
 	public pictureInPictureSubject = new BehaviorSubject<boolean>(false);
 
+	private lastActiveVolume: number = 1;
+
 
 	// ─── Buffering Detection ──────────────────────────────────────────────────
 
@@ -335,6 +337,7 @@ export class EvaApi {
 	 */
 	public setPlaybackSpeed(speed: number) {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
+			console.log("nemam element za playback speed na vrijednost: " + speed);
 			return;
 		}
 		this.assignedVideoElement.playbackRate = speed;
@@ -353,19 +356,19 @@ export class EvaApi {
 
 	/**
 	 * Returns the current video volume as a normalized value (`0` to `1`).
-	 * Falls back to `0.75` (the default initial volume) if the player is not yet ready.
+	 * Falls back to `1` (the default initial volume) if the player is not yet ready.
 	 * Called from `EvaMute` and `EvaVolume` on initialization.
 	 */
 	public getVideoVolume(): number {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
-			return 0.75;
+			return 1;
 		}
 		return this.assignedVideoElement.volume;
 	}
 
 	/**
 	 * Toggles mute/unmute by setting volume to `0` if currently audible,
-	 * or restoring it to `0.75` if currently muted.
+	 * or restoring it to last volume value if currently muted.
 	 * Called from `EvaMute`.
 	 */
 	public muteOrUnmuteVideo() {
@@ -377,7 +380,7 @@ export class EvaApi {
 			this.assignedVideoElement.volume = 0;
 		}
 		else {
-			this.assignedVideoElement.volume = 0.75;
+			this.assignedVideoElement.volume = this.lastActiveVolume;
 		}
 	}
 
@@ -393,12 +396,15 @@ export class EvaApi {
 		}
 		if (volume < 0) {
 			this.assignedVideoElement.volume = 0;
+			this.lastActiveVolume = 0;
 		}
 		else if (volume > 1) {
 			this.assignedVideoElement.volume = 1;
+			this.lastActiveVolume = 1;
 		}
 		else {
 			this.assignedVideoElement.volume = volume;
+			this.lastActiveVolume = volume;
 		}
 	}
 

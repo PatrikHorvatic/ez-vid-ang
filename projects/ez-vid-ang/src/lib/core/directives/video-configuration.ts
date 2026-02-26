@@ -1,8 +1,8 @@
-import { AfterViewInit, Directive, ElementRef, inject, input, OnChanges, SecurityContext, SimpleChanges } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, inject, input, OnChanges, output, SecurityContext, SimpleChanges } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { EvaApi } from '../../api/eva-api';
 import { EvaVideoElementConfiguration } from '../../types';
 import { validateAndPrepareStartingVideoVolume } from '../../utils/utilities';
-import { DomSanitizer } from '@angular/platform-browser';
 
 /**
  * Directive that applies an `EvaVideoElementConfiguration` object to a native
@@ -59,6 +59,8 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
   private elementRef = inject(ElementRef<HTMLVideoElement>);
   private sanitizer = inject(DomSanitizer);
 
+  readonly videoConfigurationDone = output();
+
   /**
    * The configuration object to apply to the native `<video>` element.
    *
@@ -93,6 +95,7 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
   ngAfterViewInit(): void {
     this.isViewInitialized = true;
     this.applyConfiguration();
+    this.videoConfigurationDone.emit();
   }
 
   /**
@@ -114,6 +117,14 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
       return;
     }
     const config = this.evaVideoConfig();
+
+    // Volume — validated and clamped to [0, 1] by validateAndPrepareStartingVideoVolume,
+    // assigned as a typed number, no sanitization needed
+    if (config.startingVolume) {
+      let v = validateAndPrepareStartingVideoVolume(config.startingVolume);
+      this.elementRef.nativeElement.volume = v;
+      this.evaAPI.setVideoVolume(v);
+    }
 
     // Numeric properties — assigned as typed numbers, no sanitization needed
     if (config.width) {
@@ -161,10 +172,6 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
       this.elementRef.nativeElement.poster = this.sanitizer.sanitize(SecurityContext.URL, config.poster) ?? '';
     }
 
-    // Volume — validated and clamped to [0, 1] by validateAndPrepareStartingVideoVolume,
-    // assigned as a typed number, no sanitization needed
-    if (config.startingVolume) {
-      this.elementRef.nativeElement.volume = validateAndPrepareStartingVideoVolume(config.startingVolume);
-    }
+
   }
 }

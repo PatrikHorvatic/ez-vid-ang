@@ -176,11 +176,11 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
     if (this.evaAPI.assignedVideoElement) {
       Array.from(this.evaAPI.assignedVideoElement.textTracks)
         .forEach(textTrack => {
-          if (textTrack.label === tr.label) {
-            textTrack.mode = "showing";
-          } else {
-            textTrack.mode = "hidden";
-          }
+          // if (textTrack.label === tr.label) {
+          //   textTrack.mode = "showing";
+          // } else {
+          textTrack.mode = "hidden";
+          // }
         });
     }
 

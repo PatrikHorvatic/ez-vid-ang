@@ -89,7 +89,7 @@ Add the required styles to your angular.json:
 > **If you want to use DASH streaming directive you must install v5 of the dash.js.**
 > 
 > ```
-> npm i dashjs/
+> npm i dashjs
 >```
 > **And add the required script to your angular.json**
 > ```

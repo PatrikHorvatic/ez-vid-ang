@@ -118,6 +118,15 @@ Library has four groups of components. You can click on the name to go to the do
 - [**EvaStreaming**](documentation/streaming) – Directives for live streaming support
 
 ---
+### 💖 Support This Project
 
 If you wish to make a donation you can click the widget.
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/K3K01AFMO6)
+
+Your support helps:
+- Maintain the project
+- Add new features
+- Fix bugs
+- Provide long-term updates
+
+Thank you for your generosity! 🙏

@@ -7,7 +7,7 @@ After the manifest is parsed, the directive registers its quality levels and set
 HLS streaming is fully optional. If this directive is absent, `EvaPlayer` falls back to sources provided via `evaVideoSources`.
 
 > [!IMPORTANT]
-> **Prerequisite:** hls.js must be available globally. Install via `npm install hls.js` and include it in your build, or load it from a CDN.
+> **Prerequisite:** hls.js must be available globally. Install via `npm install hls.js` and include it in your build, or load it from a CDN. The code is always tested on the latest version.
 
 ### Selector
 

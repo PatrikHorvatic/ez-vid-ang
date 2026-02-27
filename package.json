@@ -1,6 +1,6 @@
 {
   "name": "ez-vid-ang",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "license": "MIT",
   "description": "Highly configurable, performant and easy-to-use Angular component library for video playback and streaming.",
   "author": {

@@ -58,7 +58,32 @@ Add the required styles to your angular.json:
 ```
 > [!NOTE]
 > *eva-icons-and-fonts.scss* is optional if you provide custom icons and fonts for all components. It includes a prepared *.woff* file and utility classes for default icon usage.
-<br/>
+
+
+> [!IMPORTANT]
+> **If you want to use HLS streaming directive you must install latest version of the hls.js.**
+> 
+> ```
+> npm i hls.js
+>```
+> **And add the required script to your angular.json**
+> ```
+> {
+>   "projects": {
+>     "your_project": {
+>       "architect": {
+>         "build": {
+>           "options": {
+>             "scripts": [
+>               "node_modules/hls.js/dist/hls.min.js"
+>             ]
+>           }
+>         }
+>       }
+>     }
+>   }
+> }
+> ```
 
 Import the needed components and types into your standalone component or NgModule:
 ```

@@ -85,6 +85,31 @@ Add the required styles to your angular.json:
 > }
 > ```
 
+> [!IMPORTANT]
+> **If you want to use DASH streaming directive you must install v5 of the dash.js.**
+> 
+> ```
+> npm i dashjs/
+>```
+> **And add the required script to your angular.json**
+> ```
+> {
+>   "projects": {
+>     "your_project": {
+>       "architect": {
+>         "build": {
+>           "options": {
+>             "scripts": [
+>               "node_modules/dashjs/dist/modern/esm/dash.all.min.js"
+>             ]
+>           }
+>         }
+>       }
+>     }
+>   }
+> }
+> ```
+
 Import the needed components and types into your standalone component or NgModule:
 ```
 import { Component } from '@angular/core';

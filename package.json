@@ -1,8 +1,8 @@
 {
   "name": "ez-vid-ang",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "license": "MIT",
-  "description": "Highly configurable and easy-to-use Angular component library for video playback and streaming.",
+  "description": "Highly configurable, performant and easy-to-use Angular component library for video playback and streaming.",
   "author": {
     "name": "Patrik Horvatić",
     "email": "patrik.horvatic.development@gmail.com"
@@ -17,11 +17,15 @@
   "homepage": "https://github.com/PatrikHorvatic/ez-vid-ang",
   "keywords": [
     "EzVidAng",
+    "eva",
+    "Easy Video Angular",
     "video",
     "player",
     "angular",
+    "standalone",
     "signals",
-    "zoneless"
+    "zoneless",
+    "multilanguage"
   ],
   "scripts": {
     "ng": "ng",

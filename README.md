@@ -16,6 +16,9 @@ Highly configurable, performant and easy-to-use Angular component library for vi
 ▶️ **Inspired by modern players** – Familiar UX similar to popular platforms<br/>
 📱 **Responsive design** - Works across all screen sizes and devices<br/>
 
+## Example project
+
+Example project can be found on [Stackblitz](https://stackblitz.com/edit/stackblitz-starters-sr5wp23n)
 
 ## Version compatibility
 

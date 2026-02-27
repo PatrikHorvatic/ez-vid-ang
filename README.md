@@ -116,3 +116,8 @@ Library has four groups of components. You can click on the name to go to the do
 - [**EvaControls**](documentation/controls) – Video control components and pipes
 - [**EvaBuffering**](documentation/buffering) – Loading and buffering indicators
 - [**EvaStreaming**](documentation/streaming) – Directives for live streaming support
+
+---
+
+If you wish to make a donation you can click the widget.
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/K3K01AFMO6)

@@ -51,7 +51,3 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`EvaControlsContainer`**: Removed resolved `@todo` annotation and orphaned inline comment about `NodeJS.Timeout` (the type is already `ReturnType<typeof setTimeout>`).
 
 ---
-
-## [21.2.0] - previous release
-
-See git history for changes prior to this version.

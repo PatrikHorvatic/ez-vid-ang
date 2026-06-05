@@ -129,7 +129,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
           this.selectedIndex.set(0);
         }
 
-        this.evaAPI.setPlaybackSpeed(index !== 1 ? defaultSpeed : speeds[0]);
+        this.evaAPI.setPlaybackSpeed(index !== -1 ? defaultSpeed : speeds[0]);
       });
     }
 

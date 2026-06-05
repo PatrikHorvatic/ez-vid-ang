@@ -51,8 +51,7 @@ import { validateAndPrepareStartingVideoVolume } from '../../utils/utilities';
  * />
  */
 @Directive({
-  selector: 'video[evaVideoConfiguration]',
-  standalone: true
+  selector: 'video[evaVideoConfiguration]'
 })
 export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit {
   protected evaAPI = inject(EvaApi);
@@ -83,7 +82,7 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
    * @param changes - The `SimpleChanges` map provided by Angular.
    */
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.isViewInitialized && changes['videoConfig']) {
+    if (this.isViewInitialized && changes['evaVideoConfig']) {
       this.applyConfiguration();
     }
   }
@@ -113,15 +112,15 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
    * No-ops if `evaVideoConfig()` returns a falsy value.
    */
   private applyConfiguration(): void {
-    if (!this.evaVideoConfig()) {
+    const config = this.evaVideoConfig();
+    if (!config) {
       return;
     }
-    const config = this.evaVideoConfig();
 
     // Volume — validated and clamped to [0, 1] by validateAndPrepareStartingVideoVolume,
     // assigned as a typed number, no sanitization needed
     if (config.startingVolume) {
-      let v = validateAndPrepareStartingVideoVolume(config.startingVolume);
+      const v = validateAndPrepareStartingVideoVolume(config.startingVolume);
       this.elementRef.nativeElement.volume = v;
       this.evaAPI.setVideoVolume(v);
     }

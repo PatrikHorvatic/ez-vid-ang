@@ -4,14 +4,12 @@ import {
   Component,
   computed,
   ElementRef,
-  HostListener,
   inject,
   input,
   NgZone,
   OnDestroy,
   OnInit,
   signal,
-  WritableSignal
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
@@ -71,12 +69,17 @@ import { transformTimeoutDuration } from '../../utils/utilities';
     "tabindex": "0",
     "role": "slider",
     "[attr.aria-label]": "ariaLabel()",
-    "aria-level": "polite",
     "[attr.aria-valuenow]": "getPercentage()",
     "aria-valuemin": "0",
     "aria-valuemax": "100",
     "[attr.aria-valuetext]": "getPercentage()",
     "[class.hide]": "hideControls()",
+    "(mousedown)": "mouseDownScrub($event)",
+    "(document:mouseup)": "mouseUpScrubBar($event)",
+    "(touchstart)": "touchStartScrub($event)",
+    "(document:touchcancel)": "touchCancelScrub($event)",
+    "(document:touchend)": "touchEndScrub($event)",
+    "(keydown)": "arrowAdjustTime($event)",
   }
 })
 export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
@@ -154,19 +157,19 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
   readonly evaChapters = input<EvaChapterMarker[]>([]);
 
   /** Whether the scrub bar is currently hidden. Applies the `hide` class to the host. */
-  protected hideControls: WritableSignal<boolean> = signal(false);
+  protected hideControls = signal(false);
 
   /** The formatted time string to display in the hover tooltip, or `null` when not hovering. */
-  protected hoverTime: WritableSignal<string | null> = signal(null);
+  protected hoverTime = signal<string | null>(null);
 
   /** The chapter title at the current hover position, or `null` if no chapter is active there. */
-  protected hoverChapter: WritableSignal<string | null> = signal(null);
+  protected hoverChapter = signal<string | null>(null);
 
   /** The horizontal pixel offset of the hover tooltip relative to the scrub bar's left edge. */
-  protected hoverLeft: WritableSignal<number> = signal(0);
+  protected hoverLeft = signal(0);
 
   /** The active chapter markers rendered on the scrub bar. Populated from `evaChapters` or a VTT track. */
-  protected chapters: WritableSignal<EvaChapterMarker[]> = signal([]);
+  protected chapters = signal<EvaChapterMarker[]>([]);
 
   /** Resolves the `aria-label` from the transformed aria input. */
   protected ariaLabel = computed<string>(() => {
@@ -211,8 +214,6 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
     const registerListeners = () => {
       document.addEventListener('mousemove', this.onDocumentMouseMove);
       document.addEventListener('touchmove', this.onDocumentTouchMove, { passive: true });
-      // this.elementRef.nativeElement.addEventListener('mousemove', this.onHostMouseMove);
-      // this.elementRef.nativeElement.addEventListener('mouseleave', this.onHostMouseLeave);
     };
 
     if (this.ngZone) {
@@ -231,8 +232,6 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
 
     document.removeEventListener('mousemove', this.onDocumentMouseMove);
     document.removeEventListener('touchmove', this.onDocumentTouchMove);
-    // this.elementRef.nativeElement.removeEventListener('mousemove', this.onHostMouseMove);
-    // this.elementRef.nativeElement.removeEventListener('mouseleave', this.onHostMouseLeave);
   }
 
   /**
@@ -274,7 +273,6 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    * If sliding is enabled, begins a drag seek. Otherwise performs an immediate click-to-seek.
    * No-ops for live streams.
    */
-  @HostListener('mousedown', ['$event'])
   protected mouseDownScrub(e: MouseEvent) {
     if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
     if (this.evaAPI.isLive()) { return; }
@@ -291,7 +289,6 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    * Finalizes a drag seek if one is in progress and sliding is enabled.
    * No-ops for live streams.
    */
-  @HostListener('document:mouseup', ['$event'])
   protected mouseUpScrubBar(e: MouseEvent) {
     if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
     if (this.evaAPI.isLive()) { return; }
@@ -306,7 +303,6 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    * If sliding is enabled, begins a drag seek. Otherwise performs an immediate touch-to-seek.
    * No-ops for live streams.
    */
-  @HostListener('touchstart', ['$event'])
   protected touchStartScrub(_e: TouchEvent) {
     if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
     if (this.evaAPI.isLive()) { return; }
@@ -323,7 +319,6 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    * Ends a touch seek if one is in progress and sliding is enabled.
    * No-ops for live streams.
    */
-  @HostListener('document:touchcancel', ['$event'])
   protected touchCancelScrub(_e: TouchEvent) {
     if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
     if (this.evaAPI.isLive()) { return; }
@@ -338,7 +333,6 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    * Ends a touch seek if one is in progress and sliding is enabled.
    * No-ops for live streams.
    */
-  @HostListener('document:touchend', ['$event'])
   protected touchEndScrub(_e: TouchEvent) {
     if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
     if (this.evaAPI.isLive()) { return; }
@@ -350,20 +344,19 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
 
   /**
    * Handles `keydown` on the host element.
-   * - `ArrowRight` / `ArrowUp` (38, 39) — seek forward via `EvaApi.seekForward()`
-   * - `ArrowLeft` / `ArrowDown` (37, 40) — seek back via `EvaApi.seekBack()`
+   * - `ArrowRight` / `ArrowUp` — seek forward via `EvaApi.seekForward()`
+   * - `ArrowLeft` / `ArrowDown` — seek back via `EvaApi.seekBack()`
    * No-ops for live streams.
    */
-  @HostListener('keydown', ['$event'])
   protected arrowAdjustTime(e: KeyboardEvent) {
     if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
     if (this.evaAPI.isLive()) { return; }
 
-    if (e.keyCode === 38 || e.keyCode === 39) {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
       e.preventDefault();
       this.evaAPI.seekForward();
       this.emitChapterAtTime(this.evaAPI.time().current);
-    } else if (e.keyCode === 37 || e.keyCode === 40) {
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
       e.preventDefault();
       this.evaAPI.seekBack();
       this.emitChapterAtTime(this.evaAPI.time().current);

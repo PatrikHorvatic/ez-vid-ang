@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
@@ -71,7 +71,7 @@ export class EvaFullscreen implements OnInit, OnDestroy {
   readonly evaAria = input<EvaFullscreenAriaTransformed, EvaFullscreenAria>(transformEvaFullscreenAria(undefined), { transform: transformEvaFullscreenAria });
 
   /** Reactive signal tracking whether the player is currently in fullscreen mode. */
-  protected isFullscreen: WritableSignal<boolean> = signal(false);
+  protected isFullscreen = signal(false);
 
   /**
    * Resolves the `aria-label` based on the current fullscreen state.
@@ -113,18 +113,16 @@ export class EvaFullscreen implements OnInit, OnDestroy {
    */
   protected async fullscreenClicked() {
     try {
-      // Get the player container element
-      const playerContainer = this.findPlayerContainer();
-
+      const videoElement = this.evaAPI.assignedVideoElement;
+      if (!videoElement) {
+        console.warn('Video element not assigned');
+        return;
+      }
+      const playerContainer = videoElement.closest('eva-player') as HTMLElement | null;
       if (!playerContainer) {
         console.warn('Player container not found');
         return;
       }
-
-      // Get the video element if available
-      const videoElement = this.evaAPI.assignedVideoElement;
-
-      // Toggle fullscreen
       await this.fullscreenService.toggleFullscreen(playerContainer, videoElement);
     } catch (error) {
       console.error('Failed to toggle fullscreen:', error);
@@ -133,41 +131,12 @@ export class EvaFullscreen implements OnInit, OnDestroy {
 
   /**
    * Handles keyboard events on the host element.
-   * Triggers fullscreen toggle on `Enter` (13) or `Space` (32) keypress.
+   * Triggers fullscreen toggle on `Enter` or `Space` keypress.
    */
   protected fullscreenClickedKeyboard(k: KeyboardEvent) {
-    // On press Enter (13) or Space (32)
-    if (k.keyCode === 13 || k.keyCode === 32) {
+    if (k.key === 'Enter' || k.key === ' ') {
       k.preventDefault();
       this.fullscreenClicked();
     }
-  }
-
-  /**
-   * Attempts to locate the `eva-player` container element in the DOM.
-   *
-   * First queries for `eva-player` globally. If not found, falls back to
-   * traversing up from the current `eva-fullscreen` element using `closest()`.
-   *
-   * @returns The player `HTMLElement` if found, otherwise `null`.
-   */
-  private findPlayerContainer(): HTMLElement | null {
-    // Try to find eva-player as parent
-    const playerElement = document.querySelector('eva-player') as HTMLElement;
-
-    if (playerElement) {
-      return playerElement;
-    }
-
-    // Fallback: try to find from current element
-    const currentElement = document.querySelector('eva-fullscreen');
-    if (currentElement) {
-      const closestPlayer = currentElement.closest('eva-player') as HTMLElement;
-      if (closestPlayer) {
-        return closestPlayer;
-      }
-    }
-
-    return null;
   }
 }

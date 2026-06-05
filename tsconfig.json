@@ -21,7 +21,6 @@
     "exactOptionalPropertyTypes": true,
     "removeComments": false,
     "allowSyntheticDefaultImports": true,
-    "downlevelIteration": true,
     "skipLibCheck": false,
     "isolatedModules": true,
     "paths": {

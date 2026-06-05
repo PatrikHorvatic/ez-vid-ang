@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaMuteAria, EvaMuteAriaTransformed, transformEvaMuteAria, validateAndTransformVolumeRange } from '../../utils/aria-utilities';
@@ -99,20 +99,9 @@ export class EvaMute implements OnInit, OnDestroy {
 
   /** Resolves the `aria-valuetext` based on the current volume — muted or unmuted. */
   protected muteAriaValueText = computed<string>(() => {
-    if (this.evaAria()) {
-      if (!this.videoVolume) {
-        return this.evaAria()!.ariaValueTextUnmuted ? this.evaAria()!.ariaValueTextUnmuted! : "unmuted";
-      }
-      return this.videoVolume() > 0
-        ? this.evaAria()!.ariaValueTextUnmuted ? this.evaAria()!.ariaValueTextUnmuted! : "unmuted"
-        : this.evaAria()!.ariaValueTextMuted ? this.evaAria()!.ariaValueTextMuted! : "muted";
-    }
-    else {
-      if (!this.videoVolume) {
-        return this.evaAria()?.ariaValueTextUnmuted ? this.evaAria()!.ariaValueTextUnmuted! : "unmuted";
-      }
-      return this.videoVolume() > 0 ? "unmuted" : "muted";
-    }
+    return this.videoVolume() > 0
+      ? this.evaAria().ariaValueTextUnmuted
+      : this.evaAria().ariaValueTextMuted;
   });
 
   /** `true` when volume is >= `evaMiddleVolume`. Applies `eva-icon-volume_up`. */
@@ -135,8 +124,8 @@ export class EvaMute implements OnInit, OnDestroy {
     return !this.videoVolume();
   });
 
-  /** Reactive signal holding the current video volume. Initialized in `ngOnInit`. */
-  protected videoVolume!: WritableSignal<number>;
+  /** Reactive signal holding the current video volume. */
+  protected videoVolume = signal(0);
 
   /** Subscription to volume changes from `EvaApi`. Cleaned up in `ngOnDestroy`. */
   private videoVolumeSub: Subscription | null = null;
@@ -146,7 +135,7 @@ export class EvaMute implements OnInit, OnDestroy {
    * to `videoVolumeSubject` to keep the signal in sync with external volume changes.
    */
   ngOnInit(): void {
-    this.videoVolume = signal(this.evaAPI.getVideoVolume());
+    this.videoVolume.set(this.evaAPI.getVideoVolume());
     this.videoVolumeSub = this.evaAPI.videoVolumeSubject.subscribe(volume => {
       if (volume !== null) {
         this.videoVolume.set(volume);
@@ -166,11 +155,10 @@ export class EvaMute implements OnInit, OnDestroy {
 
   /**
    * Handles keyboard events on the host element.
-   * Triggers mute/unmute on `Enter` (13) or `Space` (32) keypress.
+   * Triggers mute/unmute on `Enter` or `Space` keypress.
    */
   protected muteClickKeyboard(k: KeyboardEvent) {
-    // On press Enter (13) or Space (32)
-    if (k.keyCode === 13 || k.keyCode === 32) {
+    if (k.key === 'Enter' || k.key === ' ') {
       k.preventDefault();
       this.muteClicked();
     }

@@ -17,6 +17,7 @@ declare let Hls: {
   Events: {
     MANIFEST_PARSED: string;
     LEVEL_SWITCHED: string;
+    LEVEL_LOADED: string;
   };
 };
 
@@ -44,10 +45,15 @@ export interface EvaHlsConfig {
  * - Registers its quality setter with `EvaApi.registerQualityFn()` so that
  *   `EvaQualitySelector` can switch levels via `EvaApi.setQuality()` without
  *   knowing anything about the streaming library.
+ * - Listens to `LEVEL_LOADED` and updates `EvaApi.isLive` from
+ *   `data.details.live`. This is required because hls.js serves live streams
+ *   via MSE with a finite DVR-window duration, so the browser never reports
+ *   `duration === Infinity` — the only signal reliable for native HLS (Safari).
  *
  * Falls back to setting `src` directly on the video element for browsers with
  * native HLS support (e.g. Safari). In that case no quality levels are registered
- * since native HLS does not expose them.
+ * since native HLS does not expose them, and `EvaApi.isLive` is derived from
+ * `duration === Infinity` in the `loadedmetadata` handler.
  *
  * @example
  * // Minimal usage
@@ -133,6 +139,11 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
    * - Calls `EvaApi.registerQualityLevels()` with the parsed levels.
    * - Calls `EvaApi.registerQualityFn()` with a bound reference to `setQualityLevel()`
    *   so that `EvaQualitySelector` can switch quality via `EvaApi.setQuality()`.
+   *
+   * On `LEVEL_LOADED`:
+   * - Writes `data.details.live` to `EvaApi.isLive`. The event fires each time a
+   *   level playlist is fetched, so for live streams this also fires on every
+   *   playlist refresh, keeping `isLive` accurate across source changes.
    */
   private createPlayer(): void {
     this.destroyPlayer();
@@ -144,24 +155,23 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
     if (!video) return;
 
     if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+      const userConfig = this.evaHlsConfig();
+      const userXhrSetup = userConfig.xhrSetup as ((xhr: XMLHttpRequest, url: string) => void) | undefined;
       const config: EvaHlsConfig = {
         autoStartLoad: true,
-        xhrSetup: (xhr: XMLHttpRequest) => {
+        ...userConfig,
+        xhrSetup: (xhr: XMLHttpRequest, url: string) => {
           const headers = this.evaHlsHeaders();
           for (const key of Object.keys(headers)) {
             xhr.setRequestHeader(key, headers[key]);
           }
+          userXhrSetup?.(xhr, url);
         },
-        ...this.evaHlsConfig(),
       };
 
       this.hls = new Hls(config);
 
       this.hls.on(Hls.Events.MANIFEST_PARSED, (_event: any, data: { levels: any[] }) => {
-        // console.log("MANIFEST PARSED");
-        // console.log(_event);
-        // console.log(data);
-
         const levels: EvaQualityLevel[] = [
           {
             qualityIndex: -1,
@@ -190,7 +200,12 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
         this.evaAPI.registerQualityFn(this.setQualityLevel.bind(this));
       });
 
-      this.hls.on(Hls.Events.LEVEL_SWITCHED, (_event: any, _data: { level: number }) => {
+      this.hls.on(Hls.Events.LEVEL_SWITCHED, (_event: any, data: { level: number }) => {
+        this.evaAPI.currentQualityIndex.set(data.level);
+      });
+
+      this.hls.on(Hls.Events.LEVEL_LOADED, (_event: any, data: { details: { live: boolean } }) => {
+        this.evaAPI.isLive.set(data.details.live);
       });
 
       this.hls.attachMedia(video);

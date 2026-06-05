@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
-import { EvaState } from '../../types';
 import { EvaOverlayPlayAria, EvaOverlayPlayAriaTransformed, transformEvaOverlayPlayAria } from '../../utils/aria-utilities';
 
 /**
@@ -81,7 +80,7 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
   });
 
   /** Reactive signal tracking the current video playback state. Initialized from `EvaApi`. */
-  protected playingState: WritableSignal<EvaState> = signal(this.evaAPI.getCurrentVideoState());
+  protected playingState = signal(this.evaAPI.getCurrentVideoState());
 
   /** Subscription to video state changes from `EvaApi`. Cleaned up in `ngOnDestroy`. */
   private playingStateSub: Subscription | null = null;
@@ -108,11 +107,10 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
 
   /**
    * Handles keyboard events on the host element.
-   * Triggers play/pause on `Enter` (13) or `Space` (32) keypress.
+   * Triggers play/pause on `Enter` or `Space` keypress.
    */
   protected playClickedKeyboard(k: KeyboardEvent) {
-    // On press Enter (13) or Space (32)
-    if (k.keyCode === 13 || k.keyCode === 32) {
+    if (k.key === 'Enter' || k.key === ' ') {
       k.preventDefault();
       this.playClicked();
     }

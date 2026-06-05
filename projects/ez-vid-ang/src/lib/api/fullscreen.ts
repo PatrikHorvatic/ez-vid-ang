@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, fromEvent, Observable } from 'rxjs';
+import { BehaviorSubject, fromEvent, Observable, Subscription } from 'rxjs';
 
 /**
  * Service that manages fullscreen state for the Eva video player.
@@ -30,9 +30,7 @@ import { BehaviorSubject, fromEvent, Observable } from 'rxjs';
  * // To toggle fullscreen from a component:
  * await this.fullscreenService.toggleFullscreen(playerContainer, videoElement);
  */
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable()
 export class EvaFullscreenAPI {
 
   /** Internal subject tracking whether the player is currently in fullscreen mode. */
@@ -55,6 +53,9 @@ export class EvaFullscreenAPI {
 
   /** Whether a supported fullscreen API was detected on construction. */
   private isAvailable = false;
+
+  /** Subscription to the native fullscreen change event. Cleaned up in `destroy()`. */
+  private fullscreenSub: Subscription | null = null;
 
   /**
    * Detects the available fullscreen API variant on construction
@@ -154,17 +155,7 @@ export class EvaFullscreenAPI {
    * On each change, delegates to `onFullscreenChange()` to update the state subject.
    */
   private setupFullscreenListeners(): void {
-    let dispatcher: any;
-
-    switch (this.polyfill.onchange) {
-      case 'mozfullscreenchange':
-        dispatcher = document;
-        break;
-      default:
-        dispatcher = document;
-    }
-
-    fromEvent(dispatcher, this.polyfill.onchange).subscribe(() => {
+    this.fullscreenSub = fromEvent(document, this.polyfill.onchange).subscribe(() => {
       this.onFullscreenChange();
     });
   }
@@ -302,6 +293,7 @@ export class EvaFullscreenAPI {
  * - Completes `isFullscreenSubject` so subscribers receive a completion signal.
  */
   public destroy(): void {
+    this.fullscreenSub?.unsubscribe();
     this.isFullscreenSubject.complete();
   }
 }

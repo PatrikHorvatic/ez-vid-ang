@@ -10,7 +10,7 @@
 	@for (t of evaVideoTracks(); track $index) {
 	<track #evaVideoTracks [default]="t.default" [kind]="t.kind" [label]="t.label" [src]="t.src" [srclang]="t.srclang"
 		[ariaLabel]="t.label" evaCueChange
-		[evaCueChangeActive]="t.kind === 'subtitles' && activeSubtitleLabel === t.label" />
+		[evaCueChangeActive]="t.kind === 'subtitles' && activeSubtitleLabel() === t.label" />
 	}
 </video>
 

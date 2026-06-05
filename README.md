@@ -19,13 +19,12 @@ Example project can be found on [Stackblitz](https://stackblitz.com/edit/stackbl
 
 ## Version compatibility
 
-EzVidAng follows the _[actively supported versions](https://angular.dev/reference/releases#actively-supported-versions)_ defined by the Angular team. When an Angular version reaches end of support, the corresponding EzVidAng version will no longer be maintained.
+EzVidAng updates and develops the library for the 2 latest versions.
 
 | EzVidAng    | Angular    | Node.js                           |
 | ----------- | ---------- | --------------------------------- |
-| ^19.0.0     | ^19.0.0    | [According to Angular docs](https://angular.dev/reference/releases#actively-supported-versions)    |
-| ^20.0.0     | ^20.0.0    | [According to Angular docs](https://angular.dev/reference/releases#actively-supported-versions)    |
-| ^21.0.0     | ^21.0.0    | [According to Angular docs](https://angular.dev/reference/releases#actively-supported-versions)    |
+| ^21.2.x     | ^21.2.x    | [According to Angular docs](https://angular.dev/reference/versions#actively-supported-versions)    |
+| ^22.0.0     | ^22.0.0    | [According to Angular docs](https://angular.dev/reference/versions#actively-supported-versions)    |
 
 
 ## Installing and preparation

@@ -92,6 +92,7 @@ export class EvaCueChangeDirective implements OnDestroy {
     if (this.handler) {
       this.el.nativeElement.track.removeEventListener('cuechange', this.handler);
       this.handler = null;
+      this.evaAPI.onCueChange(null);
     }
   }
 }

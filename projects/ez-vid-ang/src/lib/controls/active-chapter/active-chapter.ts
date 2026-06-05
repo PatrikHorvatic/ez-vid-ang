@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, OnInit, output, signal, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, OnInit, output, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaChapterMarker } from '../../types';
-import { EvaActiveChaptedAria, EvaActiveChaptedAriaTransformed, transformEvaActiveChaptedAria } from '../../utils/aria-utilities';
+import { EvaActiveChapterAria, EvaActiveChapterAriaTransformed, transformEvaActiveChapterAria } from '../../utils/aria-utilities';
 
 /**
  * Displays the currently active chapter and emits it when the user interacts with it.
@@ -16,7 +16,7 @@ import { EvaActiveChaptedAria, EvaActiveChaptedAriaTransformed, transformEvaActi
  * per-frame chapter lookup inside `updateVideoTime`.
  *
  * Keyboard support:
- * - `Enter` (13) and `Space` (32) trigger the same action as a click.
+ * - `Enter` and `Space` trigger the same action as a click.
  *
  * @example
  * // Minimal — displays the active chapter title
@@ -53,9 +53,9 @@ export class EvaActiveChapter implements OnInit, OnDestroy {
    *
    * All properties are optional — defaults are applied via `transformEvaActiveChaptedAria`.
    */
-  readonly evaAria = input<EvaActiveChaptedAriaTransformed, EvaActiveChaptedAria>(
-    transformEvaActiveChaptedAria(undefined),
-    { transform: transformEvaActiveChaptedAria }
+  readonly evaAria = input<EvaActiveChapterAriaTransformed, EvaActiveChapterAria>(
+    transformEvaActiveChapterAria(undefined),
+    { transform: transformEvaActiveChapterAria }
   );
 
   /**
@@ -77,13 +77,10 @@ export class EvaActiveChapter implements OnInit, OnDestroy {
    * Updated by `EvaApi.activeChapterSubject` on every `timeupdate`.
    * `null` when the current time does not fall within any chapter.
    */
-  protected activeChapter: WritableSignal<EvaChapterMarker | null> = signal(null);
+  protected activeChapter = signal<EvaChapterMarker | null>(null);
 
   /** Subscription to `EvaApi.activeChapterSubject`. Cleaned up in `ngOnDestroy`. */
   private chapterSub: Subscription | null = null;
-
-  /** Reserved for future timing-based subscriptions. */
-  private timingSub: Subscription | null = null;
 
   /**
    * Signals to `EvaApi` that this component is present, enabling the per-frame
@@ -104,7 +101,6 @@ export class EvaActiveChapter implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.evaAPI.isActiveChapterPresent = false;
     this.chapterSub?.unsubscribe();
-    this.timingSub?.unsubscribe();
   }
 
   /**
@@ -117,12 +113,12 @@ export class EvaActiveChapter implements OnInit, OnDestroy {
 
   /**
    * Handles keyboard events on the host element.
-   * Triggers `activeChapterClicked()` on `Enter` (13) or `Space` (32) keypress.
+   * Triggers `activeChapterClicked()` on `Enter` or `Space` keypress.
    *
    * @param k - The native `KeyboardEvent` from the host element.
    */
   protected activeChapterClickedKeyboard(k: KeyboardEvent) {
-    if (k.keyCode === 13 || k.keyCode === 32) {
+    if (k.key === 'Enter' || k.key === ' ') {
       k.preventDefault();
       this.activeChapterClicked();
     }

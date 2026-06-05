@@ -1,4 +1,4 @@
-import { EventEmitter, Injectable, signal, WritableSignal } from '@angular/core';
+import { EventEmitter, Injectable, signal } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { EvaChapterMarker, EvaQualityLevel, EvaState, EvaTrack, EvaTrackInternal } from '../types';
 
@@ -26,9 +26,7 @@ import { EvaChapterMarker, EvaQualityLevel, EvaState, EvaTrack, EvaTrackInternal
  * 2. **Position-polling** — on each `timeupdate`, checks whether the playback position has
  *    advanced within 500ms. If not, and `readyState < 3`, buffering is set to `true`.
  */
-@Injectable({
-	providedIn: 'root',
-})
+@Injectable()
 export class EvaApi {
 
 	/** Unique numeric identifier for this service instance. Useful for debugging multiple players. */
@@ -53,13 +51,13 @@ export class EvaApi {
 	public isPlayerReady = false;
 
 	/** Whether the video is currently buffering. Updated by event handlers and position-polling. */
-	public isBuffering: WritableSignal<boolean> = signal(true);
+	public isBuffering = signal(true);
 
 	/** Whether the video has enough data to begin playback (`canplay` event has fired). */
-	public canPlay: WritableSignal<boolean> = signal(false);
+	public canPlay = signal(false);
 
 	/** Whether a seek operation is currently in progress. */
-	public isSeeking: WritableSignal<boolean> = signal(false);
+	public isSeeking = signal(false);
 
 	/** Whether the video metadata (`duration`, `dimensions`, tracks) has been loaded. */
 	protected isMetadataLoaded = false;
@@ -74,7 +72,7 @@ export class EvaApi {
 	public pendingPlayAfterSeek: boolean = false;
 
 	/** Whether the current source is a live stream (`duration === Infinity`). Set from `loadedmetadata`. */
-	public isLive: WritableSignal<boolean> = signal(false);
+	public isLive = signal(false);
 
 	/**
 	 * Current playback time state. Updated on every `timeupdate` event.
@@ -82,7 +80,7 @@ export class EvaApi {
 	 * - `total` — total video duration in seconds (`Infinity` for live streams)
 	 * - `remaining` — seconds remaining until end
 	 */
-	public time: WritableSignal<{ current: number, total: number, remaining: number }> = signal({
+	public time = signal({
 		current: 0,
 		remaining: 0,
 		total: 0
@@ -148,7 +146,7 @@ export class EvaApi {
 	  * The currently selected quality level index.
 	  * `-1` represents Auto (ABR). Updated by `setQuality()`.
 	  */
-	public currentQualityIndex: WritableSignal<number> = signal(-1);
+	public currentQualityIndex = signal(-1);
 
 	/** The current `EvaState` value, mirrored as a plain field for synchronous reads. */
 	private currentVideoState: EvaState = EvaState.LOADING;
@@ -161,7 +159,7 @@ export class EvaApi {
 	public triggerUserInteraction = new Subject<MouseEvent | TouchEvent | PointerEvent>();
 
 
-	public currentSubtitleCue: WritableSignal<string | null> = signal(null);
+	public currentSubtitleCue = signal<string | null>(null);
 
 
 	/** The active `PictureInPictureWindow` instance. `null` when PiP is not active. */
@@ -200,10 +198,10 @@ export class EvaApi {
 
 		this.trackTimeout = setTimeout(() => {
 			if (this.validateVideoAndPlayerBeforeAction()) {
-				let listOfChapters = this.loadChaptersFromTrack();
+				const listOfChapters = this.loadChaptersFromTrack();
 				this.chapterMarkerChangesSubject.next(listOfChapters);
 				if (!this.isLive()) {
-					let currentTime = Math.floor(this.time().current);
+					const currentTime = Math.floor(this.time().current);
 					const chapter = listOfChapters.find(c => currentTime >= c.startTime && currentTime < c.endTime);
 					this.activeChapterSubject.next(chapter ? chapter : null);
 				}
@@ -324,7 +322,7 @@ export class EvaApi {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
-		const newTime = Math.min(this.time().current - n, this.time().total);
+		const newTime = Math.max(this.time().current - n, 0);
 		this.assignedVideoElement.currentTime = newTime;
 		this.time.update(a => ({ ...a, current: newTime, remaining: a.total - newTime }));
 	}
@@ -337,7 +335,6 @@ export class EvaApi {
 	 */
 	public setPlaybackSpeed(speed: number) {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
-			console.log("nemam element za playback speed na vrijednost: " + speed);
 			return;
 		}
 		this.assignedVideoElement.playbackRate = speed;
@@ -565,8 +562,8 @@ export class EvaApi {
 
 		if (!this.isLive()) {
 			if (this.isActiveChapterPresent) {
-				let currentTime = Math.floor(this.time().current);
-				let listOfChapters = this.chapterMarkerChangesSubject.value;
+				const currentTime = Math.floor(this.time().current);
+				const listOfChapters = this.chapterMarkerChangesSubject.value;
 				const chapter = listOfChapters.find(c => currentTime >= c.startTime && currentTime < c.endTime);
 				// prevent triggering unneccesery change detection in signals.
 				if (this.activeChapterSubject.value !== chapter) {
@@ -799,18 +796,6 @@ export class EvaApi {
 	// ─── Utilities ────────────────────────────────────────────────────────────
 
 	/**
-	 * Returns whether the current source is a live stream.
-	 * Equivalent to reading `isLive()` but with a player readiness guard.
-	 * Returns `false` if the player is not yet ready.
-	 */
-	public checkIfItIsLiveStram(): boolean {
-		if (!this.validateVideoAndPlayerBeforeAction()) {
-			return false;
-		}
-		return this.isLive();
-	}
-
-	/**
 	 * Returns the video duration in seconds.
 	 *
 	 * Possible return values:
@@ -850,10 +835,6 @@ export class EvaApi {
 		this.videoSubtitlesSubject.next(label);
 	}
 
-
-	/** Reserved for future subtitle initialization logic. */
-	public setFirstSubtitles() {
-	}
 
 	/**
 	 * Marks the player as ready and emits `playerReadyEvent`.
@@ -923,9 +904,12 @@ export class EvaApi {
 		this.videoVolumeSubject.complete();
 		this.playbackRateSubject.complete();
 		this.videoTracksSubject.complete();
+		this.videoSubtitlesSubject.complete();
 		this.videoBufferSubject.complete();
 		this.videoTimeChangeSubject.complete();
 		this.qualityLevelsSubject.complete();
+		this.activeChapterSubject.complete();
+		this.chapterMarkerChangesSubject.complete();
 		this.componentsContainerVisibilityStateSubject.complete();
 		this.controlsSelectorComponentActive.complete();
 		this.triggerUserInteraction.complete();

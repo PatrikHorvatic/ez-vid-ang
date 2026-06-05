@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, input, OnDestroy, OnInit, Renderer2, signal, viewChild, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, input, OnDestroy, OnInit, Renderer2, signal, viewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaVolumeAria, EvaVolumeAriaTransformed, transformEvaVolumeAria } from '../../utils/aria-utilities';
@@ -47,13 +47,19 @@ import { EvaVolumeAria, EvaVolumeAriaTransformed, transformEvaVolumeAria } from 
   host: {
     "tabindex": "0",
     "role": "slider",
-    "aria-level": "polite",
     "aria-orientation": "horizontal",
     "aria-valuemin": "0",
     "aria-valuemax": "100",
     "[attr.aria-label]": "ariaLabel()",
-    "[attr.aria-valuetext]": "ariaValue()",
-    "[class.eva-volume-focused]": "isFocused()"
+    "[attr.aria-valuenow]": "ariaValue()",
+    "[attr.aria-valuetext]": "ariaValue() + ' percent'",
+    "[class.eva-volume-focused]": "isFocused()",
+    "(click)": "onClick($event)",
+    "(mousedown)": "onMouseDown($event)",
+    "(keydown)": "onKeyDown($event)",
+    "(touchstart)": "onTouchStart($event)",
+    "(focus)": "onFocus()",
+    "(blur)": "onBlur()"
   }
 })
 export class EvaVolume implements OnInit, OnDestroy {
@@ -98,10 +104,10 @@ export class EvaVolume implements OnInit, OnDestroy {
    * Used to distinguish a click (no movement) from a drag (position changed).
    * Reset to `-1` after drag ends.
    */
-  protected mouseDownPosition: WritableSignal<number> = signal(-1);
+  protected mouseDownPosition = signal(-1);
 
-  /** Reactive signal holding the current video volume as a normalized value (`0` to `1`). Initialized in `ngOnInit`. */
-  protected videoVolume!: WritableSignal<number>;
+  /** Reactive signal holding the current video volume as a normalized value (`0` to `1`). */
+  protected videoVolume = signal(0);
 
   /** Subscription to volume changes from `EvaApi`. Cleaned up in `ngOnDestroy`. */
   private videoVolumeSub: Subscription | null = null;
@@ -122,8 +128,7 @@ export class EvaVolume implements OnInit, OnDestroy {
    * external volume changes (e.g. from the mute button).
    */
   ngOnInit(): void {
-    const initialVolume = this.evaAPI.getVideoVolume();
-    this.videoVolume = signal(initialVolume);
+    this.videoVolume.set(this.evaAPI.getVideoVolume());
 
     if (!this.evaAPI.isPlayerReady) {
       this.playerReady$ = this.evaAPI.playerReadyEvent.subscribe(() => {

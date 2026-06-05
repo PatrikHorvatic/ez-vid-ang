@@ -254,7 +254,7 @@ export type EvaTrack =
  *
  * Compatible with both HLS and DASH:
  * - HLS → populated from hls.js `levels[]`
- * - DASH → populated from dash.js `getBitrateInfoListFor('video')`
+ * - DASH → populated from dash.js `getRepresentationsByType('video')`
  *
  * `qualityIndex` is the raw index used by the underlying player library to
  * switch levels. Pass `-1` (or set `isAuto` to `true`) for the "Auto" sentinel.

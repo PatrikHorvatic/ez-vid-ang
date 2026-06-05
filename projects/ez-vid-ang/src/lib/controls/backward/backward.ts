@@ -8,9 +8,9 @@ import { EvaBackwardAria, EvaBackwardAriaTransformed, transformEvaBackwardAria, 
  * Renders as a `role="button"` element with `tabindex="0"` that seeks the video
  * backward by a configurable number of seconds when clicked.
  *
- * Built-in icon classes are applied based on the value of `evaForwardSeconds`:
- * - `eva-icon-replay_10` — when `evaForwardSeconds` is `10`
- * - `eva-icon-replay_30` — when `evaForwardSeconds` is `30`
+ * Built-in icon classes are applied based on the value of `evaBackwardSeconds`:
+ * - `eva-icon-replay_10` — when `evaBackwardSeconds` is `10`
+ * - `eva-icon-replay_30` — when `evaBackwardSeconds` is `30`
  *
  * Both can be suppressed via `evaCustomIcon` to use your own icon.
  *
@@ -22,7 +22,7 @@ import { EvaBackwardAria, EvaBackwardAriaTransformed, transformEvaBackwardAria, 
  *
  * @example
  * // Seek backward 30 seconds
- * <eva-backward [evaForwardSeconds]="30" />
+ * <eva-backward [evaBackwardSeconds]="30" />
  *
  * @example
  * // Custom icon and ARIA label
@@ -41,8 +41,8 @@ import { EvaBackwardAria, EvaBackwardAriaTransformed, transformEvaBackwardAria, 
     "role": "button",
     "[attr.aria-label]": "evaAria().ariaLabel",
     "[class.eva-icon]": "!evaCustomIcon()",
-    "[class.eva-icon-replay_10]": "!evaCustomIcon() && evaForwardSeconds() === 10",
-    "[class.eva-icon-replay_30]": "!evaCustomIcon() && evaForwardSeconds() === 30",
+    "[class.eva-icon-replay_10]": "!evaCustomIcon() && evaBackwardSeconds() === 10",
+    "[class.eva-icon-replay_30]": "!evaCustomIcon() && evaBackwardSeconds() === 30",
     "(click)": "backwardClicked()",
     "(keydown)": "backwardClickedKeyboard($event)"
   }
@@ -75,19 +75,19 @@ export class EvaBackward {
    *
    * @default 10
    */
-  readonly evaForwardSeconds = input<number, number>(10, { transform: validateAndTransformEvaForwardAndBackwardSeconds });
+  readonly evaBackwardSeconds = input<number, number>(10, { transform: validateAndTransformEvaForwardAndBackwardSeconds });
 
-  /** Seeks the video backward by `evaForwardSeconds` seconds via `EvaApi`. */
+  /** Seeks the video backward by `evaBackwardSeconds` seconds via `EvaApi`. */
   protected async backwardClicked() {
-    this.evaAPI.seekBack(this.evaForwardSeconds());
+    this.evaAPI.seekBack(this.evaBackwardSeconds());
   }
 
   /**
    * Handles keyboard events on the host element.
-   * Triggers the backward seek on `Enter` (13) or `Space` (32) keypress.
+   * Triggers the backward seek on `Enter` or `Space` keypress.
    */
   protected async backwardClickedKeyboard(k: KeyboardEvent) {
-    if (k.keyCode === 13 || k.keyCode === 32) {
+    if (k.key === 'Enter' || k.key === ' ') {
       k.preventDefault();
       this.backwardClicked();
     }

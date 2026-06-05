@@ -1,4 +1,4 @@
-import { Component, inject, input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { transformTimeoutDuration } from '../../utils/utilities';
@@ -32,6 +32,7 @@ import { transformTimeoutDuration } from '../../utils/utilities';
   selector: 'eva-controls-container',
   templateUrl: './controls-container.html',
   styleUrl: './controls-container.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "[class.hide]": "hideControls()"
   }
@@ -56,12 +57,11 @@ export class EvaControlsContainer implements OnInit, OnDestroy, OnChanges {
    * Transformed via `transformTimeoutDuration`.
    *
    * @default 3000
-   * @todo Add explicit `NodeJS.Timeout` type for `hideTimeout`.
    */
   readonly evaAutohideTime = input<number, number>(3000, { transform: transformTimeoutDuration });
 
   /** Whether the controls container is currently hidden. Applies the `hide` class to the host. */
-  protected hideControls: WritableSignal<boolean> = signal(false);
+  protected hideControls = signal(false);
   private isControlerSelectorActive: boolean = false;
 
   /** Subscription to user interaction events from `EvaApi`. Cleaned up in `ngOnDestroy` or when auto-hide is disabled. */
@@ -72,7 +72,6 @@ export class EvaControlsContainer implements OnInit, OnDestroy, OnChanges {
    * Reference to the active auto-hide timeout.
    * Cleared whenever a new user interaction is detected or auto-hide is disabled.
    */
-  /**This is NodeJS.Timeout type! */
   private hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
   /**

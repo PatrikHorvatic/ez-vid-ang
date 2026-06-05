@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, inject, input, OnChanges, OnDestroy, SimpleChanges, viewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, inject, input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges, viewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
@@ -37,9 +37,10 @@ import { EvaVideoConfigurationDirective } from '../directives/video-configuratio
   templateUrl: './player.html',
   styleUrl: './player.scss',
   imports: [EvaMediaEventListenersDirective, EvaVideoConfigurationDirective, EvaCueChangeDirective],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [EvaApi, EvaFullscreenAPI]
 })
-export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
+export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
 
   /** The scoped `EvaApi` instance provided to this player's component subtree. */
   public playerMainAPI = inject(EvaApi);
@@ -85,25 +86,15 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
    */
   readonly evaNotSupportedText = input<string>("I'm sorry; your browser doesn't support HTML video.");
 
-  // readonly evaBuffering = viewChild<EvaBufferingComponent>('evaBuffering');
-
   /**
    * Reference to the native `<video>` element rendered in the template.
    * Assigned to `EvaApi` in `ngAfterViewInit`.
    */
   private readonly evaVideoElement = viewChild.required<ElementRef<HTMLVideoElement>>('evaVideoElement');
 
-  // readonly evaVideoSources = viewChildren<QueryList<HTMLSourceElement>>("evaVideoSources");
-
-  /**
-   * References to the `<track>` elements rendered in the template for subtitle support.
-   */
-  // private readonly evaVideoTrackElements = viewChildren<ElementRef<HTMLTrackElement>>("evaVideoTracks");
-
 
   private subtitleChangeSubject: Subscription | null = null;
-  private subtitlesTimeout: ReturnType<typeof setTimeout> | null = null;
-  protected activeSubtitleLabel: string | null = null;
+  protected activeSubtitleLabel = signal<string | null>(null);
 
   /**
    * Responds to runtime changes of `evaVideoTracks`.
@@ -114,20 +105,14 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
    */
   ngOnChanges(changes: SimpleChanges): void {
     if (changes["evaVideoTracks"]) {
-      //when number of tracks is change we must restart all mutation observers as some may become invalid
       this.playerMainAPI.updateAndPrepareTracks(changes["evaVideoTracks"].currentValue);
-
-      if (!changes["evaVideoTracks"].firstChange) {
-        // this.prepareSubtitles();
-      }
     }
   }
 
   ngOnInit(): void {
-    // prevent NG0100
     const defaultTrack = this.evaVideoTracks().find(t => t.default && t.kind === 'subtitles');
     if (defaultTrack) {
-      this.activeSubtitleLabel = defaultTrack.label ?? null;
+      this.activeSubtitleLabel.set(defaultTrack.label ?? null);
     }
   }
 
@@ -139,23 +124,17 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy {
     this.playerMainAPI.assignElementToApi(this.evaVideoElement().nativeElement);
     this.subtitleChangeSubject = this.playerMainAPI.videoSubtitlesSubject.subscribe(a => {
       if (a) {
-        // if subtitles are disabled
         if (a.id !== "off") {
-          this.activeSubtitleLabel = a.label;
-        }
-        else {
-          this.activeSubtitleLabel = null;
+          this.activeSubtitleLabel.set(a.label);
+        } else {
+          this.activeSubtitleLabel.set(null);
           this.playerMainAPI.onCueChange(null);
         }
       }
     });
   }
 
-  /** Reserved for future teardown logic. */
   ngOnDestroy(): void {
-    if (this.subtitlesTimeout) {
-      clearTimeout(this.subtitlesTimeout);
-    }
     this.subtitleChangeSubject?.unsubscribe();
     this.playerFullscreenAPI.destroy();
     this.playerMainAPI.destroy();

@@ -87,7 +87,7 @@ export class EvaForward {
    * Triggers the forward seek on `Enter` (13) or `Space` (32) keypress.
    */
   protected async forwardClickedKeyboard(k: KeyboardEvent) {
-    if (k.keyCode === 13 || k.keyCode === 32) {
+    if (k.key === 'Enter' || k.key === ' ') {
       k.preventDefault();
       this.forwardClicked();
     }

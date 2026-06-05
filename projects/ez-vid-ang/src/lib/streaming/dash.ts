@@ -13,11 +13,47 @@ import { EvaQualityLevel } from '../types';
 
 declare let dashjs: {
   MediaPlayer: {
-    (): { create: () => any };
+    (): {
+      create: () => {
+        initialize(view?: HTMLMediaElement, source?: string, autoPlay?: boolean): void;
+        on(type: string, listener: (e: unknown) => void): void;
+        attachSource(urlOrManifest: string | object, startTime?: number | string): void;
+        updateSettings(settings: Record<string, unknown>): void;
+        setAutoPlay(value: boolean): void;
+        setProtectionData(value: unknown): void;
+        getRepresentationsByType(type: 'video' | 'audio'): Array<{
+          index: number;
+          bandwidth: number;
+          width: number;
+          height: number;
+          frameRate: number;
+          codecs: string | null;
+        }>;
+        setRepresentationForTypeByIndex(type: 'video' | 'audio', index: number, forceReplace?: boolean): void;
+        reset(): void;
+      };
+    };
     events: { STREAM_INITIALIZED: string };
   };
   Debug: { LOG_LEVEL_NONE: number };
 };
+
+/**
+ * Subset of dash.js `updateSettings` options exposed by `EvaDashDirective`.
+ *
+ * @see https://cdn.dashjs.org/latest/jsdoc/module-Settings.html
+ */
+export type EvaDashConfig = Record<string, unknown>;
+
+/** Subset of a dash.js 5.x `Representation` object used for quality level mapping. */
+interface DashRepresentation {
+  index: number;
+  bandwidth: number;
+  width: number;
+  height: number;
+  frameRate: number;
+  codecs: string | null;
+}
 
 /**
  * DRM license server configuration for protected DASH streams.
@@ -101,6 +137,15 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
    */
   readonly evaDashDRMLicenseServer = input<EvaDRMLicenseServer | undefined>(undefined);
 
+  /**
+   * dash.js settings overrides applied via `updateSettings()` after the player is initialized.
+   * Merged on top of the directive's defaults (debug level).
+   *
+   * @see https://cdn.dashjs.org/latest/jsdoc/module-Settings.html
+   * @default {}
+   */
+  readonly evaDashConfig = input<EvaDashConfig>({});
+
   /** The active dash.js player instance. `null` when not initialized or after destruction. */
   private dash: any = null;
 
@@ -121,6 +166,9 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['evaDashSrc'] && !changes['evaDashSrc'].firstChange) {
       changes['evaDashSrc'].currentValue ? this.createPlayer() : this.destroyPlayer();
+    }
+    if (changes['evaDashConfig'] && !changes['evaDashConfig'].firstChange && this.dash) {
+      this.dash.updateSettings(this.evaDashConfig());
     }
   }
 
@@ -145,20 +193,23 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
     this.destroyPlayer();
 
     const src = this.evaDashSrc();
-    if (!src || (!src.includes('.mpd') && !src.includes('mpd-time-csf'))) return;
+    if (!src) return;
 
     const video = this.evaAPI.assignedVideoElement;
     if (!video) return;
 
     this.dash = dashjs.MediaPlayer().create();
-    this.dash.updateSettings({ debug: { logLevel: dashjs.Debug.LOG_LEVEL_NONE } });
+    this.dash.updateSettings({
+      debug: { logLevel: dashjs.Debug.LOG_LEVEL_NONE },
+      ...this.evaDashConfig(),
+    });
     this.dash.initialize(video);
     this.dash.setAutoPlay(false);
 
     this.dash.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
-      const videoList = this.dash.getBitrateInfoListFor('video');
+      const representations: DashRepresentation[] = this.dash.getRepresentationsByType('video');
 
-      if (videoList.length > 0) {
+      if (representations.length > 0) {
         const levels: EvaQualityLevel[] = [
           {
             qualityIndex: -1,
@@ -170,17 +221,18 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
             isAuto: true,
             selected: true,
           },
-          ...videoList.map((item: any, index: number) => ({
-            qualityIndex: index,
-            label: item.height ? `${item.height}p` : `Level ${index}`,
-            width: item.width ?? 0,
-            height: item.height ?? 0,
-            bitrate: item.bitrate ?? 0,
+          ...representations.map(rep => ({
+            qualityIndex: rep.index,
+            label: rep.height ? `${rep.height}p` : `Level ${rep.index}`,
+            width: rep.width ?? 0,
+            height: rep.height ?? 0,
+            bitrate: rep.bandwidth ?? 0,
             mediaType: 'video' as const,
+            frameRate: rep.frameRate,
+            ...(rep.codecs ? { codec: rep.codecs } : {}),
           })),
         ];
 
-        // Register levels and quality setter with EvaApi
         this.evaAPI.registerQualityLevels(levels);
         this.evaAPI.registerQualityFn(this.setQualityLevel.bind(this));
       }
@@ -221,7 +273,7 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
    * Called internally by `EvaApi.setQuality()` via the registered quality function.
    *
    * - Pass `-1` to restore Auto (ABR) mode — re-enables `autoSwitchBitrate` for video.
-   * - Any other index disables ABR and sets the quality directly via `setQualityFor`.
+   * - Any other index disables ABR and pins the quality via `setRepresentationForTypeByIndex`.
    *
    * @param qualityIndex - The `qualityIndex` from an `EvaQualityLevel` object.
    */
@@ -229,24 +281,14 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
     if (!this.dash) return;
 
     if (qualityIndex === -1) {
-      // Restore Auto (ABR) mode
       this.dash.updateSettings({
-        streaming: {
-          abr: {
-            autoSwitchBitrate: { video: true },
-          },
-        },
+        streaming: { abr: { autoSwitchBitrate: { video: true } } },
       });
     } else {
-      // Disable ABR and set quality manually
       this.dash.updateSettings({
-        streaming: {
-          abr: {
-            autoSwitchBitrate: { video: false },
-          },
-        },
+        streaming: { abr: { autoSwitchBitrate: { video: false } } },
       });
-      this.dash.setQualityFor('video', qualityIndex);
+      this.dash.setRepresentationForTypeByIndex('video', qualityIndex);
     }
   }
 

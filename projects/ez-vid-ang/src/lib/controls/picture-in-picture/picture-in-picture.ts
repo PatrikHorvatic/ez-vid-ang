@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaPictureInPictureAria, EvaPictureInPictureTransformed, transformEvaPictureInPictureAria } from '../../utils/aria-utilities';
@@ -84,7 +84,7 @@ export class EvaPictureInPicture implements OnInit, OnDestroy {
    * Whether this player's video element is currently in Picture-in-Picture mode.
    * Updated by subscribing to `EvaApi.pictureInPictureSubject`.
    */
-  protected isPictureInPictureActive: WritableSignal<boolean> = signal(false);
+  protected isPictureInPictureActive = signal(false);
 
   /**
    * Static `aria-label` for the host button element.
@@ -134,12 +134,12 @@ export class EvaPictureInPicture implements OnInit, OnDestroy {
 
   /**
    * Handles keyboard events on the host element.
-   * Triggers `pipClicked()` on `Enter` (13) or `Space` (32) keypress.
+   * Triggers `pipClicked()` on `Enter` or `Space` keypress.
    *
    * @param k - The native `KeyboardEvent` from the host element.
    */
   protected pipClickedKeyboard(k: KeyboardEvent): void {
-    if (k.keyCode === 13 || k.keyCode === 32) {
+    if (k.key === 'Enter' || k.key === ' ') {
       k.preventDefault();
       this.pipClicked();
     }

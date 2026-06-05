@@ -11,7 +11,7 @@ export type EvaFullscreenAriaTransformed = {
 }
 
 /**Transforms aria input to an object with all the values.
- * 
+ *
  * Default values:
  * - enterFullscreen: 'Enter fullscreen',
  * - exitFullscreen: 'Exit fullscreen'
@@ -24,8 +24,8 @@ export function transformEvaFullscreenAria(v: EvaFullscreenAria | undefined): Ev
 		};
 	}
 	return {
-		enterFullscreen: v.enterFullscreen ? v.enterFullscreen : "Enter fullscreen",
-		exitFullscreen: v.exitFullscreen ? v.exitFullscreen : "Exit fullscreen"
+		enterFullscreen: v.enterFullscreen ?? "Enter fullscreen",
+		exitFullscreen: v.exitFullscreen ?? "Exit fullscreen"
 	}
 }
 
@@ -57,9 +57,9 @@ export function transformEvaMuteAria(v: EvaMuteAria | undefined): EvaMuteAriaTra
 	}
 
 	return {
-		ariaLabel: v.ariaLabel ? v.ariaLabel : "mute",
-		ariaValueTextMuted: v.ariaValueTextMuted ? v.ariaValueTextMuted : "Muted",
-		ariaValueTextUnmuted: v.ariaValueTextUnmuted ? v.ariaValueTextUnmuted : "Unmuted",
+		ariaLabel: v.ariaLabel ?? "mute",
+		ariaValueTextMuted: v.ariaValueTextMuted ?? "Muted",
+		ariaValueTextUnmuted: v.ariaValueTextUnmuted ?? "Unmuted",
 	}
 }
 
@@ -123,15 +123,15 @@ export function transformEvaPlayPauseAria(v: EvaPlayPauseAria | undefined): EvaP
 
 	return {
 		ariaLabel: {
-			play: v.ariaLabel?.play ? v.ariaLabel.play : "play",
-			pause: v.ariaLabel?.pause ? v.ariaLabel.pause : "pause",
+			play: v.ariaLabel?.play ?? "play",
+			pause: v.ariaLabel?.pause ?? "pause",
 		},
 		ariaValueText: {
-			ended: v.ariaValueText?.ended ? v.ariaValueText?.ended : "ended",
-			errored: v.ariaValueText?.errored ? v.ariaValueText?.errored : "errored",
-			paused: v.ariaValueText?.paused ? v.ariaValueText?.paused : "paused",
-			loading: v.ariaValueText?.loading ? v.ariaValueText?.loading : "loading",
-			playing: v.ariaValueText?.playing ? v.ariaValueText?.playing : "playing",
+			ended: v.ariaValueText?.ended ?? "ended",
+			errored: v.ariaValueText?.errored ?? "errored",
+			paused: v.ariaValueText?.paused ?? "paused",
+			loading: v.ariaValueText?.loading ?? "loading",
+			playing: v.ariaValueText?.playing ?? "playing",
 		}
 	}
 
@@ -159,16 +159,16 @@ export function transformEvaPictureInPictureAria(v: EvaPictureInPictureAria | un
 			ariaLabel: "Picture in picture",
 			ariaValueText: {
 				ariaLabelActivated: "Picture in picture is active",
-				ariaLabelDeactivated: "Picture in picture is invactive",
+				ariaLabelDeactivated: "Picture in picture is inactive",
 			}
 		}
 	}
 
 	return {
-		ariaLabel: v.ariaLabel ? v.ariaLabel : "Picture in picture",
+		ariaLabel: v.ariaLabel ?? "Picture in picture",
 		ariaValueText: {
-			ariaLabelActivated: v.ariaValueText && v.ariaValueText.ariaLabelActivated ? v.ariaValueText.ariaLabelActivated : "Picture in picture is active",
-			ariaLabelDeactivated: v.ariaValueText && v.ariaValueText.ariaLabelDeactivated ? v.ariaValueText.ariaLabelDeactivated : "Picture in picture is invactive",
+			ariaLabelActivated: v.ariaValueText?.ariaLabelActivated ?? "Picture in picture is active",
+			ariaLabelDeactivated: v.ariaValueText?.ariaLabelDeactivated ?? "Picture in picture is inactive",
 		}
 	}
 }
@@ -197,7 +197,7 @@ export function transformEvaForwardAria(v: EvaForwardAria | undefined): EvaForwa
 	}
 
 	return {
-		ariaLabel: v.ariaLabel ? v.ariaLabel : "Forward 10 seconds"
+		ariaLabel: v.ariaLabel ?? "Forward 10 seconds"
 	}
 }
 export type EvaBackwardAria = {
@@ -216,7 +216,7 @@ export function transformEvaBackwardAria(v: EvaBackwardAria | undefined): EvaBac
 	}
 
 	return {
-		ariaLabel: v.ariaLabel ? v.ariaLabel : "Backward 10 seconds"
+		ariaLabel: v.ariaLabel ?? "Backward 10 seconds"
 	}
 }
 
@@ -236,17 +236,17 @@ export function transformEvaPlaybackSpeedAria(v: EvaPlaybackSpeedAria | undefine
 	}
 
 	return {
-		ariaLabel: v.ariaLabel ? v.ariaLabel : "Playback speed"
+		ariaLabel: v.ariaLabel ?? "Playback speed"
 	}
 }
 
 
 /**Aria labels for your timers. Based on time property input you should add value to the property:
- * 
+ *
  * - current -> ariaLabelCurrent
  * - total -> ariaLabelTotal
  * - remaining -> ariaLabelRemaining
- * 
+ *
  * ariaLabel property inside the time display component has a default values for each time property.
  */
 export type EvaTimeDisplayAria = {
@@ -271,29 +271,29 @@ export function transformEvaTimeDisplayAria(v: EvaTimeDisplayAria | undefined): 
 	}
 
 	return {
-		ariaLabelCurrent: v.ariaLabelCurrent ? v.ariaLabelCurrent : "Current time display",
-		ariaLabelTotal: v.ariaLabelTotal ? v.ariaLabelTotal : "Duration display",
-		ariaLabelRemaining: v.ariaLabelRemaining ? v.ariaLabelRemaining : "Remaining time display"
+		ariaLabelCurrent: v.ariaLabelCurrent ?? "Current time display",
+		ariaLabelTotal: v.ariaLabelTotal ?? "Duration display",
+		ariaLabelRemaining: v.ariaLabelRemaining ?? "Remaining time display"
 	}
 }
 
-export type EvaActiveChaptedAria = {
+export type EvaActiveChapterAria = {
 	ariaLabel?: string
 }
 
-export type EvaActiveChaptedAriaTransformed = {
+export type EvaActiveChapterAriaTransformed = {
 	ariaLabel: string
 }
 
-export function transformEvaActiveChaptedAria(v: EvaActiveChaptedAria | undefined): EvaActiveChaptedAriaTransformed {
+export function transformEvaActiveChapterAria(v: EvaActiveChapterAria | undefined): EvaActiveChapterAriaTransformed {
 	if (!v) {
 		return {
-			ariaLabel: "Controls divider"
+			ariaLabel: "Active chapter"
 		}
 	}
 
 	return {
-		ariaLabel: v.ariaLabel ? v.ariaLabel : "Controls divider"
+		ariaLabel: v.ariaLabel ?? "Active chapter"
 	}
 }
 
@@ -313,7 +313,7 @@ export function transformEvaControlsDividerAria(v: EvaControlsDividerAria | unde
 	}
 
 	return {
-		ariaLabel: v.ariaLabel ? v.ariaLabel : "Controls divider"
+		ariaLabel: v.ariaLabel ?? "Controls divider"
 	}
 }
 
@@ -333,7 +333,7 @@ export function transformEvaScrubBarAria(v: EvaScrubBarAria | undefined): EvaScr
 	}
 
 	return {
-		ariaLabel: v.ariaLabel ? v.ariaLabel : "Scrub bar"
+		ariaLabel: v.ariaLabel ?? "Scrub bar"
 	}
 }
 
@@ -353,7 +353,7 @@ export function transformEvaVolumeAria(v: EvaVolumeAria | undefined): EvaVolumeA
 	}
 
 	return {
-		ariaLabel: v.ariaLabel ? v.ariaLabel : "Volume control"
+		ariaLabel: v.ariaLabel ?? "Volume control"
 	}
 }
 
@@ -378,6 +378,6 @@ export function transformEvaOverlayPlayAria(v: EvaOverlayPlayAria | undefined): 
 	}
 
 	return {
-		ariaLabel: v.ariaLabel ? v.ariaLabel : "Overlay play"
+		ariaLabel: v.ariaLabel ?? "Overlay play"
 	};
 }

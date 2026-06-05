@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaTrack, EvaTrackInternal } from '../../types';
@@ -81,17 +81,14 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * A unique ID generated per component instance for use in ARIA relationships
    * (e.g. `aria-controls`, `aria-labelledby`) in the template.
    */
-  protected readonly uniqueId = `track-selector-${Math.random().toString(36).substr(2, 9)}`;
+  protected readonly uniqueId = `track-selector-${Math.random().toString(36).slice(2, 11)}`;
 
   /**
    * The label of the currently selected track, or `evaTrackOffText` if no track is selected.
    * Returns `null` if `localTracks` is not yet initialized.
    */
   protected currentTrack = computed<string | null>(() => {
-    if (!this.localTracks) { return null; }
-    if (!this.localTracks()) { return null; }
-
-    let t = this.localTracks().filter(a => a.selected === true);
+    const t = this.localTracks().filter(a => a.selected === true);
     if (!t[0]) {
       return this.evaTrackOffText();
     }
@@ -99,7 +96,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
   });
 
   /** The local list of track options rendered in the dropdown, including the "Off" option. */
-  protected localTracks!: WritableSignal<EvaTrackInternal[]>;
+  protected localTracks = signal<EvaTrackInternal[]>([]);
 
   /** Whether the track dropdown is currently open. Applies the `open` class to the host. */
   protected isOpen = signal(false);
@@ -122,7 +119,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * to close the dropdown when clicking outside.
    */
   ngOnInit(): void {
-    this.localTracks = signal(
+    this.localTracks.set(
       this.extractTracksFromAssignedVideoElement(
         this.evaAPI.videoTracksSubject.getValue()
       )
@@ -175,13 +172,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
     // Update the video element's text tracks
     if (this.evaAPI.assignedVideoElement) {
       Array.from(this.evaAPI.assignedVideoElement.textTracks)
-        .forEach(textTrack => {
-          // if (textTrack.label === tr.label) {
-          //   textTrack.mode = "showing";
-          // } else {
-          textTrack.mode = "hidden";
-          // }
-        });
+        .forEach(textTrack => { textTrack.mode = "hidden"; });
     }
 
     this.evaAPI.subtitlesChanged(tr);
@@ -340,14 +331,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * @param v - The raw track list from `EvaApi.videoTracksSubject`.
    */
   private extractTracksFromAssignedVideoElement(v: EvaTrack[] | null): EvaTrackInternal[] {
-    if (v === null) {
-      return [{
-        id: "off",
-        label: this.evaTrackOffText(),
-        selected: true
-      }];
-    }
-    if (v.length === 0) {
+    if (!v || v.length === 0) {
       return [{
         id: "off",
         label: this.evaTrackOffText(),

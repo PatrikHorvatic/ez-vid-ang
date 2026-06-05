@@ -1,8 +1,4 @@
-import { EvaTrack, EvaVideoElementConfiguration, EvaVideoSource } from "../types";
-
-export function videoSourceDefaultSetter(v: Array<EvaVideoSource>): EvaVideoSource[] {
-	return v;
-}
+import { EvaTrack } from "../types";
 
 export function transformTimeoutDuration(v: number): number {
 	if (!v) {
@@ -51,69 +47,6 @@ export function validateAndPrepareStartingVideoVolume(v: number | undefined): nu
 	return v;
 }
 
-export function videoConfigurationDefaultSetter(v: EvaVideoElementConfiguration | undefined): EvaVideoElementConfiguration {
-	if (!v) {
-		return {
-			width: window.innerWidth,
-			height: window.innerHeight,
-			autoplay: false,
-			controls: false,
-			controlsList: "play timeline volume",
-			crossorigin: "anonymous",
-			disablePictureInPicture: false,
-			disableRemotePlayback: false,
-			loop: false,
-			muted: false,
-			playinline: false,
-			poster: "",
-			preload: "auto",
-		}
-	}
-	if (!v.width) {
-		v.width = window.innerWidth;
-	}
-	if (!v.height) {
-		v.height = window.innerHeight;
-	}
-	if (!v.autoplay) {
-		v.autoplay = false;
-	}
-	if (!v.controls) {
-		v.controls = false;
-	}
-	if (!v.controlsList) {
-		v.controlsList = "play timeline volume";
-	}
-	if (!v.crossorigin) {
-		v.crossorigin = "anonymous";
-	}
-	if (!v.disablePictureInPicture) {
-		v.disablePictureInPicture = false;
-	}
-	if (!v.disableRemotePlayback) {
-		v.disableRemotePlayback = false;
-	}
-	if (!v.loop) {
-		v.loop = false;
-	}
-	if (!v.muted) {
-		v.muted = false;
-	}
-	if (!v.playinline) {
-		v.playinline = false;
-	}
-	if (!v.poster) {
-		v.poster = "";
-	}
-	if (!v.preload) {
-		v.preload = "auto";
-	}
-	if (!v.startingVolume) {
-		v.startingVolume = 1;
-	}
-	return v;
-}
-
 /**
  * Validates and transforms an array of tracks
  * - Ensures only one track has default=true
@@ -129,9 +62,9 @@ export function validateTracks(tracks: EvaTrack[]): EvaTrack[] {
 	const defaultTracks = tracks.filter(track => track.default === true);
 	if (defaultTracks.length > 1) {
 		console.warn('Multiple tracks marked as default. Only the first will be used.');
-		// Reset all defaults, then set only the first one
+		// Capture index before mapping creates new object references
+		const firstDefaultIndex = tracks.indexOf(defaultTracks[0]);
 		tracks = tracks.map(track => ({ ...track, default: false }));
-		const firstDefaultIndex = tracks.findIndex(track => defaultTracks.includes(track));
 		if (firstDefaultIndex !== -1) {
 			tracks[firstDefaultIndex] = { ...tracks[firstDefaultIndex], default: true };
 		}

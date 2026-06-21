@@ -29,10 +29,10 @@ Mouse and touch event listeners are registered outside Angular's zone to avoid u
 <!-- Minimal usage -->
 <eva-scrub-bar />
 
-<!-- You can add other scrub bars -->
+<!-- With buffer and current time indicators (recommended) -->
 <eva-scrub-bar>
-    <eva-scrub-bar-buffering-time />
-    <eva-scrub-bar-current-time />
+  <eva-scrub-bar-buffering-time />
+  <eva-scrub-bar-current-time />
 </eva-scrub-bar>
 
 <!-- With chapters and custom time format -->
@@ -43,7 +43,45 @@ Mouse and touch event listeners are registered outside Angular's zone to avoid u
 
 <!-- Auto-hide in sync with controls container -->
 <eva-scrub-bar [hideWithControlsContainer]="true" [evaAutohideTime]="4000">
+  <eva-scrub-bar-buffering-time />
+  <eva-scrub-bar-current-time />
 </eva-scrub-bar>
+
+<!-- Click-to-seek only (no drag) with no hover tooltip -->
+<eva-scrub-bar [evaSlidingEnabled]="false" [evaShowTimeOnHover]="false">
+  <eva-scrub-bar-current-time />
+</eva-scrub-bar>
+
+<!-- Custom ARIA label and HH:mm:ss hover tooltip for long videos -->
+<eva-scrub-bar
+  [evaAria]="{ ariaLabel: 'Video progress' }"
+  evaTimeFormat="HH:mm:ss"
+  [evaShowChapters]="true"
+>
+  <eva-scrub-bar-buffering-time />
+  <eva-scrub-bar-current-time />
+</eva-scrub-bar>
+
+<!-- Full player layout with scrub bar outside the controls container -->
+<eva-player id="my-player" [evaVideoSources]="sources">
+  <eva-buffering />
+  <eva-overlay-play />
+
+  <eva-scrub-bar [hideWithControlsContainer]="true" [evaShowChapters]="true">
+    <eva-scrub-bar-buffering-time />
+    <eva-scrub-bar-current-time />
+  </eva-scrub-bar>
+
+  <eva-subtitle-display />
+
+  <eva-controls-container evaUserInteractionEvents [evaAutohide]="true">
+    <eva-play-pause />
+    <eva-time-display evaTimeProperty="current" evaTimeFormating="mm:ss" />
+    <eva-controls-divider />
+    <eva-time-display evaTimeProperty="total" evaTimeFormating="mm:ss" />
+    <eva-fullscreen />
+  </eva-controls-container>
+</eva-player>
 ```
 
 ### Chapter Markers

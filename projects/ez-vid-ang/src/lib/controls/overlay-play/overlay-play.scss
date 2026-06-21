@@ -24,12 +24,12 @@
 
 	background-color: rgba(0, 0, 0, 0);
 	z-index: 301;
-	visibility: hidden;
+	// visibility: hidden;
 	opacity: 0;
 }
 
 :host(.eva-display-overlay-play) {
 	background-color: var(--eva-overlay-play-background-color) !important;
 	opacity: 1 !important;
-	visibility: visible !important;
+	// visibility: visible !important;
 }

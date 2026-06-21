@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
 import { EvaFullscreenAria, EvaFullscreenAriaTransformed, transformEvaFullscreenAria } from '../../utils/aria-utilities';
 
@@ -50,7 +49,6 @@ import { EvaFullscreenAria, EvaFullscreenAriaTransformed, transformEvaFullscreen
   }
 })
 export class EvaFullscreen implements OnInit, OnDestroy {
-  private evaAPI = inject(EvaApi);
   private fullscreenService = inject(EvaFullscreenAPI);
 
   /**
@@ -113,17 +111,7 @@ export class EvaFullscreen implements OnInit, OnDestroy {
    */
   protected async fullscreenClicked() {
     try {
-      const videoElement = this.evaAPI.assignedVideoElement;
-      if (!videoElement) {
-        console.warn('Video element not assigned');
-        return;
-      }
-      const playerContainer = videoElement.closest('eva-player') as HTMLElement | null;
-      if (!playerContainer) {
-        console.warn('Player container not found');
-        return;
-      }
-      await this.fullscreenService.toggleFullscreen(playerContainer, videoElement);
+      await this.fullscreenService.toggleFullscreen();
     } catch (error) {
       console.error('Failed to toggle fullscreen:', error);
     }

@@ -2,6 +2,7 @@ import { Directive, ElementRef, inject, OnDestroy, OnInit } from '@angular/core'
 import { fromEvent, Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaVideoEvent } from '../../types';
+import { EvaFullscreenAPI } from '../../api/fullscreen';
 
 /**
  * Directive that bridges native `HTMLVideoElement` media events to the `EvaApi` layer.
@@ -41,9 +42,11 @@ import { EvaVideoEvent } from '../../types';
 })
 export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
   private evaAPI = inject(EvaApi);
+  private fullscreenService = inject(EvaFullscreenAPI);
   private elementRef = inject(ElementRef<HTMLVideoElement>);
 
   private subs: Subscription[] = [];
+  // private lastTapTime: number = 0;
 
   ngOnInit(): void {
     const el = this.elementRef.nativeElement;
@@ -58,6 +61,7 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
     on(EvaVideoEvent.LOADED_METADATA, e => this.evaAPI.loadedVideoMetadata(e));
     on(EvaVideoEvent.PAUSE, () => this.evaAPI.pauseVideo());
     on(EvaVideoEvent.PLAY, () => this.evaAPI.playVideo());
+    on(EvaVideoEvent.DOUBLE_CLICK, () => this.fullscreenService.toggleFullscreen());
     on(EvaVideoEvent.PLAYING, () => this.evaAPI.playingVideo());
     on(EvaVideoEvent.PROGRESS, () => this.evaAPI.checkBufferStatus());
     on(EvaVideoEvent.RATECHANGE, e => this.evaAPI.playbackRateVideoChanged(e));
@@ -69,6 +73,26 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
     on(EvaVideoEvent.WAITING, () => this.evaAPI.videoWaiting());
     on(EvaVideoEvent.ENTERED_PICTURE_IN_PICTURE, e => this.evaAPI.assignPictureInPictureWindow(e as PictureInPictureEvent));
     on(EvaVideoEvent.LEFT_PICTURE_IN_PICTURE, e => this.evaAPI.removePictureInPictureWindow(e as PictureInPictureEvent));
+
+    // this.subs.push(
+    //   fromEvent<TouchEvent>(el, 'touchend')
+    //     .subscribe((e) => {
+    //       console.log(e);
+    //       const now = e.timeStamp;
+    //       if (now - this.lastTapTime <= 300) {
+    //         const rect = el.getBoundingClientRect();
+    //         const tapX = e.changedTouches[0].clientX;
+    //         if (tapX < rect.left + rect.width / 2) {
+    //           this.evaAPI.seekBack(10);
+    //         } else {
+    //           this.evaAPI.seekForward(10);
+    //         }
+    //         this.lastTapTime = 0;
+    //       } else {
+    //         this.lastTapTime = now;
+    //       }
+    //     }));
+
   }
 
   ngOnDestroy(): void {

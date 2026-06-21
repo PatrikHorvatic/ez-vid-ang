@@ -15,12 +15,76 @@ The `EvaPlayer` component is the top-level host of the Eva video player library.
 ### Usage
 
 ```html
+<!-- Minimal player -->
 <eva-player
   id="main-player"
   [evaVideoSources]="sources"
-  [evaVideoConfiguration]="{ autoplay: true, muted: true }"
+/>
+
+<!-- With video configuration and subtitle tracks -->
+<eva-player
+  id="main-player"
+  [evaVideoSources]="sources"
+  [evaVideoConfiguration]="{ autoplay: true, muted: true, poster: '/thumb.jpg' }"
   [evaVideoTracks]="tracks"
 />
+
+<!-- With keyboard shortcuts enabled -->
+<eva-player
+  id="main-player"
+  [evaVideoSources]="sources"
+  [evaKeyboardShortcutsEnabled]="true"
+  [evaKeyboardShortcutsConfiguration]="{ backwardsKeyOne: 'ArrowLeft', forwardKeyOne: 'ArrowRight' }"
+/>
+
+<!-- Full-featured player with all controls -->
+<eva-player
+  id="main-player"
+  [evaVideoSources]="sources"
+  [evaVideoConfiguration]="{ autoplay: false, muted: false, preload: 'auto', crossorigin: 'anonymous' }"
+  [evaVideoTracks]="tracks"
+  [evaKeyboardShortcutsEnabled]="true"
+>
+  <eva-overlay-play />
+  <eva-buffering />
+
+  <eva-scrub-bar [hideWithControlsContainer]="true" [evaShowChapters]="true">
+    <eva-scrub-bar-buffering-time />
+    <eva-scrub-bar-current-time />
+  </eva-scrub-bar>
+
+  <eva-subtitle-display />
+
+  <eva-controls-container evaUserInteractionEvents [evaAutohide]="true">
+    <eva-play-pause />
+    <eva-backward />
+    <eva-forward />
+    <eva-mute />
+    <eva-volume />
+    <eva-time-display evaTimeProperty="current" evaTimeFormating="mm:ss" />
+    <eva-controls-divider />
+    <eva-time-display evaTimeProperty="remaining" evaTimeFormating="mm:ss" />
+    <eva-playback-speed [evaPlaybackSpeeds]="[0.5, 1, 1.5, 2]" />
+    <eva-track-selector />
+    <eva-picture-in-picture />
+    <eva-fullscreen />
+  </eva-controls-container>
+</eva-player>
+
+<!-- HLS streaming with quality selector -->
+<eva-player
+  evaHls
+  id="hls-player"
+  [evaVideoSources]="[]"
+  evaHlsSrc="https://example.com/stream.m3u8"
+>
+  <eva-controls-container>
+    <eva-play-pause />
+    <eva-controls-divider />
+    <eva-quality-selector />
+    <eva-fullscreen />
+  </eva-controls-container>
+</eva-player>
 ```
 
 ---
@@ -32,6 +96,8 @@ The `EvaPlayer` component is the top-level host of the Eva video player library.
 | `id` | `string` | ✅ Yes | — | Unique identifier for this player instance. Required to distinguish multiple players on the same page. |
 | `evaVideoSources` | `EvaVideoSource[]` | ✅ Yes | — | List of video sources to load into the player. |
 | `evaVideoConfiguration` | `EvaVideoElementConfiguration` | No | `{}` | Configuration object applied to the native `<video>` element. |
+| `evaKeyboardShortcutsEnabled` | `boolean` | No | `false` | When `true`, enables keyboard shortcuts on the player. See [`EvaKeyboardShortcutsConfiguration`](#evakeyboardshortcutsconfiguration). |
+| `evaKeyboardShortcutsConfiguration` | `EvaKeyboardShortcutsConfiguration` | No | See [defaults](#default-keyboard-shortcuts) | Configures which keys trigger player actions. Missing properties fall back to defaults. |
 | `evaVideoTracks` | `EvaTrack[]` | No | `[]` | List of subtitle/text tracks to attach to the video element. Runtime changes are automatically forwarded to child components. |
 | `evaNotSupportedText` | `string` | No | `"I'm sorry; your browser doesn't support HTML video."` | Fallback text displayed inside the `<video>` element for browsers that do not support HTML5 video. |
 
@@ -228,6 +294,44 @@ type EvaChapterMarker = {
   title: string;      // shown in hover tooltip
 }
 ```
+
+---
+
+### `EvaKeyboardShortcutsConfiguration`
+
+Configures which keys trigger player actions when keyboard shortcuts are enabled. All properties are optional — any omitted property falls back to its default key.
+
+```ts
+interface EvaKeyboardShortcutsConfiguration {
+  backwardsKeyOne?: string;
+  forwardKeyOne?: string;
+  backwardsKeyTwo?: string;
+  forwardKeyTwo?: string;
+  muteKey?: string;
+  playPause?: string;
+  fullscreen?: string;
+  oneFrameForward?: string;
+  oneFrameBackward?: string;
+}
+```
+
+<a name="default-keyboard-shortcuts"></a>
+#### Default Keyboard Shortcuts
+
+| Property | Default Key | Action |
+|---|---|---|
+| `backwardsKeyOne` | `J` | Seek backward 10 seconds (primary). |
+| `forwardKeyOne` | `L` | Seek forward 10 seconds (primary). |
+| `backwardsKeyTwo` | `ArrowLeft` | Seek backward 10 seconds (secondary). |
+| `forwardKeyTwo` | `ArrowRight` | Seek forward 10 seconds (secondary). |
+| `muteKey` | `M` | Toggle mute. |
+| `playPause` | `Space` | Toggle play/pause. Matched via `KeyboardEvent.code`. |
+| `fullscreen` | `F` | Toggle fullscreen. |
+| `oneFrameBackward` | `,` | Step backward one frame (1/30s). |
+| `oneFrameForward` | `.` | Step forward one frame (1/30s). |
+| `0`–`9` | `0`–`9` | Jump to 0%–90% of total duration. Ignored for live streams. |
+
+Key matching is case-insensitive. Shortcuts are suppressed when focus is inside an `<input>`, `<textarea>`, or `contenteditable` element.
 
 ---
 

@@ -4,7 +4,8 @@ Here you can see how you can configure your Eva video player. All of the compone
 
 ```html
 <eva-player #evaVideoPlayer [id]="'vid'" [evaVideoSources]="[]" [evaVideoConfiguration]="videoConfiguration()"
-	[evaVideoTracks]="videoTracks()" evaHls [evaHlsSrc]="hlsSource()">
+	[evaVideoTracks]="videoTracks()" [evaKeyboardShortcutsEnabled]="true"
+	[evaKeyboardShortcutsConfiguration]="keyboardConfig()" evaHls [evaHlsSrc]="hlsSource()">
 	<eva-overlay-play [evaCustomIcon]="true">
 		<p>Overlay play custom content</p>
 	</eva-overlay-play>
@@ -68,6 +69,7 @@ import {
   EvaChapterMarker,
   EvaControlsContainer, EvaControlsDivider,
   EvaForward, EvaFullscreen, EvaHlsDirective,
+  EvaKeyboardShortcutsConfiguration,
   EvaMute, EvaMuteAria, EvaPlaybackSpeed, EvaPlayer,
   EvaPlayPause, EvaQualitySelector, EvaScrubBar,
   EvaScrubBarBufferingTime, EvaScrubBarCurrentTime,
@@ -149,6 +151,15 @@ export class TestingPage implements AfterViewInit {
       label: "Chapters"
     }
   ]);
+
+  protected keyboardConfig: WritableSignal<EvaKeyboardShortcutsConfiguration> = signal({
+    backwardsKeyOne: 'J',
+    forwardKeyOne: 'L',
+    backwardsKeyTwo: 'ArrowLeft',
+    forwardKeyTwo: 'ArrowRight',
+    backwardSeconds: 10,
+    forwardSeconds: 10,
+  });
 
   protected videoConfiguration: WritableSignal<EvaVideoElementConfiguration> = signal({
     autoplay: false,

@@ -28,3 +28,34 @@ iOS is handled specially — `webkitEnterFullscreen` must be called on the `<vid
 | `exitFullscreen` | `() => Promise<void>` | Exits fullscreen via `document`. |
 | `toggleFullscreen` | `(element: HTMLElement, videoElement?: HTMLVideoElement) => Promise<void>` | Exits if currently fullscreen, enters otherwise. |
 | `destroy` | `() => void` | Completes `isFullscreenSubject`. Called from `EvaPlayer.ngOnDestroy`. |
+
+### Usage
+
+Most consumers interact with fullscreen through the `<eva-fullscreen />` component, which handles `EvaFullscreenAPI` internally. Direct service usage is only needed when building custom controls or triggering fullscreen programmatically.
+
+```typescript
+import { Component, inject } from '@angular/core';
+import { EvaFullscreenAPI } from 'ez-vid-ang';
+
+@Component({ ... })
+export class CustomFullscreenButton {
+  private fullscreenService = inject(EvaFullscreenAPI);
+
+  async toggle() {
+    await this.fullscreenService.toggleFullscreen();
+  }
+}
+```
+
+```html
+<!-- Conditionally show fullscreen button based on browser support -->
+@if (fullscreenService.isFullscreenSupported()) {
+  <button (click)="toggle()">Toggle Fullscreen</button>
+}
+
+<!-- React to fullscreen state changes -->
+<!-- In component: isFullscreen$ = this.fullscreenService.isFullscreenObs; -->
+@if (isFullscreen$ | async) {
+  <span>Currently in fullscreen</span>
+}
+```

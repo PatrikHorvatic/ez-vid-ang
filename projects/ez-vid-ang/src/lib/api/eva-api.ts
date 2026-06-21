@@ -38,7 +38,7 @@ export class EvaApi {
 	 *
 	 * **Important:** Do not access this before `isPlayerReady` is `true`.
 	 */
-	public assignedVideoElement!: HTMLVideoElement;
+	public assignedVideoElement: HTMLVideoElement | null = null;
 
 	/**
 	 * Emits this `EvaApi` instance when the player is fully initialized and the
@@ -287,13 +287,13 @@ export class EvaApi {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
-		if (this.assignedVideoElement.paused) {
-			this.assignedVideoElement.play();
+		if (this.assignedVideoElement!.paused) {
+			this.assignedVideoElement!.play();
 			this.currentVideoState = EvaState.PLAYING;
 			this.videoStateSubject.next(this.currentVideoState);
 		}
 		else {
-			this.assignedVideoElement.pause();
+			this.assignedVideoElement!.pause();
 			this.currentVideoState = EvaState.PAUSED;
 			this.videoStateSubject.next(this.currentVideoState);
 		}
@@ -309,7 +309,7 @@ export class EvaApi {
 			return;
 		}
 		const newTime = Math.min(this.time().current + n, this.time().total);
-		this.assignedVideoElement.currentTime = newTime;
+		this.assignedVideoElement!.currentTime = newTime;
 		this.time.update(a => ({ ...a, current: newTime, remaining: a.total - newTime }));
 	}
 
@@ -323,7 +323,31 @@ export class EvaApi {
 			return;
 		}
 		const newTime = Math.max(this.time().current - n, 0);
-		this.assignedVideoElement.currentTime = newTime;
+		this.assignedVideoElement!.currentTime = newTime;
+		this.time.update(a => ({ ...a, current: newTime, remaining: a.total - newTime }));
+	}
+
+	/**
+	 * Jumps to a percentage of total duration based on a digit key.
+	 * `"0"` seeks to 0%, `"5"` to 50%, `"9"` to 90%, etc.
+	 * Ignored for live streams (duration is `Infinity`).
+	 * Updates `time` signal immediately for responsive UI feedback.
+	 *
+	 * @param key - A single digit character (`"0"`–`"9"`).
+	 */
+	public jumpToVideoPercentage(key: string) {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return;
+		}
+		if (this.isLive()) {
+			return;
+		}
+		const digit = parseInt(key, 10);
+		if (isNaN(digit) || digit < 0 || digit > 9) {
+			return;
+		}
+		const newTime = (digit / 10) * this.time().total;
+		this.assignedVideoElement!.currentTime = newTime;
 		this.time.update(a => ({ ...a, current: newTime, remaining: a.total - newTime }));
 	}
 
@@ -337,7 +361,7 @@ export class EvaApi {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
-		this.assignedVideoElement.playbackRate = speed;
+		this.assignedVideoElement!.playbackRate = speed;
 	}
 
 	/**
@@ -348,7 +372,7 @@ export class EvaApi {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return 1;
 		}
-		return this.assignedVideoElement.playbackRate;
+		return this.assignedVideoElement!.playbackRate;
 	}
 
 	/**
@@ -360,7 +384,7 @@ export class EvaApi {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return 1;
 		}
-		return this.assignedVideoElement.volume;
+		return this.assignedVideoElement!.volume;
 	}
 
 	/**
@@ -373,11 +397,11 @@ export class EvaApi {
 			return;
 		}
 
-		if (this.assignedVideoElement.volume > 0) {
-			this.assignedVideoElement.volume = 0;
+		if (this.assignedVideoElement!.volume > 0) {
+			this.assignedVideoElement!.volume = 0;
 		}
 		else {
-			this.assignedVideoElement.volume = this.lastActiveVolume;
+			this.assignedVideoElement!.volume = this.lastActiveVolume;
 		}
 	}
 
@@ -392,15 +416,15 @@ export class EvaApi {
 			return;
 		}
 		if (volume < 0) {
-			this.assignedVideoElement.volume = 0;
+			this.assignedVideoElement!.volume = 0;
 			this.lastActiveVolume = 0;
 		}
 		else if (volume > 1) {
-			this.assignedVideoElement.volume = 1;
+			this.assignedVideoElement!.volume = 1;
 			this.lastActiveVolume = 1;
 		}
 		else {
-			this.assignedVideoElement.volume = volume;
+			this.assignedVideoElement!.volume = volume;
 			this.lastActiveVolume = volume;
 		}
 	}
@@ -431,13 +455,13 @@ export class EvaApi {
 		this.isMetadataLoaded = true;
 		this.time.set({
 			current: 0,
-			remaining: this.assignedVideoElement.duration === Infinity
+			remaining: this.assignedVideoElement!.duration === Infinity
 				? 0
-				: Number.isNaN(this.assignedVideoElement.duration) ? 0 : this.assignedVideoElement.duration,
-			total: this.assignedVideoElement.duration
+				: Number.isNaN(this.assignedVideoElement!.duration) ? 0 : this.assignedVideoElement!.duration,
+			total: this.assignedVideoElement!.duration
 		});
 
-		this.isLive.set(this.assignedVideoElement.duration === Infinity);
+		this.isLive.set(this.assignedVideoElement!.duration === Infinity);
 	}
 
 	/**
@@ -534,7 +558,7 @@ export class EvaApi {
 
 		if (this.pendingPlayAfterSeek) {
 			this.pendingPlayAfterSeek = false;
-			this.assignedVideoElement.play().catch(e => {
+			this.assignedVideoElement!.play().catch(e => {
 				if (e.name !== 'AbortError') throw e;
 			});
 		}
@@ -551,7 +575,7 @@ export class EvaApi {
 		}
 		this.videoTimeChangeSubject.next(this.videoTimeChangeSubject.value + 1);
 
-		const crnt = this.assignedVideoElement.currentTime;
+		const crnt = this.assignedVideoElement!.currentTime;
 		this.time.update(a => {
 			return {
 				current: crnt,
@@ -622,7 +646,7 @@ export class EvaApi {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
-		this.playbackRateSubject.next(this.assignedVideoElement.playbackRate);
+		this.playbackRateSubject.next(this.assignedVideoElement!.playbackRate);
 	}
 
 	/**
@@ -633,7 +657,7 @@ export class EvaApi {
 	 */
 	public volumeChanged(_e: Event) {
 		this.videoVolumeSubject.next(
-			this.assignedVideoElement.volume
+			this.assignedVideoElement!.volume
 		);
 	}
 
@@ -653,7 +677,7 @@ export class EvaApi {
 	 * @param currentTime - The current playback position in seconds.
 	 */
 	private detectBuffering(currentTime: number) {
-		if (this.assignedVideoElement.paused || this.assignedVideoElement.ended) {
+		if (this.assignedVideoElement!.paused || this.assignedVideoElement!.ended) {
 			this.isBuffering.set(false);
 			if (this.bufferingTimeout) {
 				clearTimeout(this.bufferingTimeout);
@@ -662,7 +686,7 @@ export class EvaApi {
 		}
 
 		// Don't check buffering if readyState indicates video can play
-		if (this.assignedVideoElement.readyState >= 3) { // HAVE_FUTURE_DATA or HAVE_ENOUGH_DATA
+		if (this.assignedVideoElement!.readyState >= 3) { // HAVE_FUTURE_DATA or HAVE_ENOUGH_DATA
 			this.isBuffering.set(false);
 		}
 
@@ -674,9 +698,9 @@ export class EvaApi {
 
 		this.bufferingTimeout = setTimeout(() => {
 			if (this.currentPlayPos === this.lastPlayPos &&
-				!this.assignedVideoElement.paused &&
-				!this.assignedVideoElement.ended &&
-				this.assignedVideoElement.readyState < 3) {
+				!this.assignedVideoElement!.paused &&
+				!this.assignedVideoElement!.ended &&
+				this.assignedVideoElement!.readyState < 3) {
 				this.isBuffering.set(true);
 			}
 		}, 500); // 500ms to avoid false positives from brief stalls
@@ -699,19 +723,19 @@ export class EvaApi {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
-		this.videoBufferSubject.next(this.assignedVideoElement.buffered);
+		this.videoBufferSubject.next(this.assignedVideoElement!.buffered);
 
-		if (this.assignedVideoElement.paused || this.assignedVideoElement.ended) {
+		if (this.assignedVideoElement!.paused || this.assignedVideoElement!.ended) {
 			return;
 		}
 
-		if (this.assignedVideoElement.readyState >= 3) {
+		if (this.assignedVideoElement!.readyState >= 3) {
 			this.isBuffering.set(false);
 			return;
 		}
 
-		const currentTime = this.assignedVideoElement.currentTime;
-		const buffered = this.assignedVideoElement.buffered;
+		const currentTime = this.assignedVideoElement!.currentTime;
+		const buffered = this.assignedVideoElement!.buffered;
 
 		let hasEnoughBuffer = false;
 
@@ -723,7 +747,7 @@ export class EvaApi {
 			}
 		}
 
-		if (!hasEnoughBuffer && this.assignedVideoElement.readyState < 3) {
+		if (!hasEnoughBuffer && this.assignedVideoElement!.readyState < 3) {
 			this.isBuffering.set(true);
 		}
 	}
@@ -759,7 +783,7 @@ export class EvaApi {
 			return;
 		}
 
-		if (this.assignedVideoElement.disablePictureInPicture) {
+		if (this.assignedVideoElement!.disablePictureInPicture) {
 			console.warn('[EvaApi] Picture-in-Picture is disabled on this video element.');
 			return;
 		}
@@ -774,7 +798,7 @@ export class EvaApi {
 				if (document.pictureInPictureElement) {
 					await document.exitPictureInPicture();
 				}
-				await this.assignedVideoElement.requestPictureInPicture();
+				await this.assignedVideoElement!.requestPictureInPicture();
 			}
 		} catch (error) {
 			console.error('[EvaApi] Picture-in-Picture toggle failed:', error);
@@ -811,7 +835,7 @@ export class EvaApi {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return NaN;
 		}
-		return this.assignedVideoElement.duration;
+		return this.assignedVideoElement!.duration;
 	}
 
 	/** Returns the current `EvaState` synchronously. */
@@ -922,7 +946,7 @@ export class EvaApi {
 	   If cues are not yet available, waits for the track's `load` event.
 	  */
 	private loadChaptersFromTrack(): EvaChapterMarker[] {
-		const textTracks = this.assignedVideoElement.textTracks;
+		const textTracks = this.assignedVideoElement!.textTracks;
 		let l: EvaChapterMarker[] = [];
 		for (let i = 0; i < textTracks.length; i++) {
 			const track = textTracks[i];

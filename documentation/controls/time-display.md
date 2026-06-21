@@ -33,6 +33,30 @@ A time display component that renders a single time value — current, total, or
   evaLiveText="● LIVE"
   [evaAria]="{ ariaLabelRemaining: 'Time remaining' }"
 />
+
+<!-- Current / Total pattern (YouTube-style) -->
+<eva-controls-container>
+  <eva-play-pause />
+  <eva-time-display evaTimeProperty="current" evaTimeFormating="mm:ss" />
+  <span>/</span>
+  <eva-time-display evaTimeProperty="total" evaTimeFormating="mm:ss" />
+</eva-controls-container>
+
+<!-- Current on the left, remaining on the right -->
+<eva-controls-container>
+  <eva-play-pause />
+  <eva-time-display evaTimeProperty="current" evaTimeFormating="HH:mm:ss" />
+  <eva-controls-divider />
+  <eva-time-display evaTimeProperty="remaining" evaTimeFormating="HH:mm:ss" />
+  <eva-fullscreen />
+</eva-controls-container>
+
+<!-- Live stream with custom badge text -->
+<eva-time-display
+  evaTimeProperty="current"
+  evaTimeFormating="mm:ss"
+  evaLiveText="🔴 LIVE"
+/>
 ```
 
 ### Accessibility

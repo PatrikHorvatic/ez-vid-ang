@@ -40,6 +40,37 @@ export interface EvaVideoElementConfiguration {
 }
 
 /**
+ * Configuration for keyboard shortcuts on the Eva video player.
+ * All properties are optional — omitted keys fall back to their defaults
+ * via `validateAndTransformEvaKeyboardShortcutsConfiguration`.
+ */
+export interface EvaKeyboardShortcutsConfiguration {
+	/** Seconds to seek when a backward key is pressed. @default 10 */
+	backwardSeconds?: number,
+	/** Primary backward seek key. Matched via `KeyboardEvent.key`. @default "J" */
+	backwardsKeyOne?: string,
+	/** Primary forward seek key. Matched via `KeyboardEvent.key`. @default "L" */
+	forwardKeyOne?: string,
+	/** Secondary backward seek key. Matched via `KeyboardEvent.key`. @default "ArrowLeft" */
+	backwardsKeyTwo?: string,
+	/** Secondary forward seek key. Matched via `KeyboardEvent.key`. @default "ArrowRight" */
+	forwardKeyTwo?: string,
+	/** Seconds to seek when a forward key is pressed. @default 10 */
+	forwardSeconds?: number,
+	/** Mute toggle key. Matched via `KeyboardEvent.key`. @default "M" */
+	muteKey?: string,
+	/** Play/pause toggle key. Matched via `KeyboardEvent.code`. @default "Space" */
+	playPause?: string,
+	/** Fullscreen toggle key. Matched via `KeyboardEvent.key`. @default "F" */
+	fullscreen?: string,
+	/** Step forward one frame key. Matched via `KeyboardEvent.key`. @default "." */
+	oneFrameForward?: string
+	/** Step backward one frame key. Matched via `KeyboardEvent.key`. @default "," */
+	oneFrameBackward?: string,
+
+}
+
+/**
  * Internal representation of a text track option within the dropdown.
  * Derived from `EvaTrack` with a simplified structure for local state management.
  */
@@ -113,6 +144,7 @@ export enum EvaVideoEvent {
 	STALLED = 'stalled',
 	SUSPEND = 'suspend',
 	TIME_UPDATE = 'timeupdate',
+	DOUBLE_CLICK = 'dblclick',
 	VOLUME_CHANGE = 'volumechange',
 	WAITING = 'waiting',
 	WAITING_FOR_KEY = 'waitingforkey'

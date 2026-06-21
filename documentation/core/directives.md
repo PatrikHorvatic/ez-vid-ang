@@ -34,21 +34,51 @@ The following events are subscribed but reserved for future implementation: `abo
 
 A directive that listens for user interaction events on the native `HTMLVideoElement` and forwards them to `EvaApi.triggerUserInteraction`. Other components such as `eva-controls-container` subscribe to this subject to drive auto-hide behaviour.
 
+Also handles **double-click to toggle fullscreen** (desktop) and **double-tap to seek** (mobile).
+
 If the player is not yet ready on init, listener setup is automatically deferred until `EvaApi.playerReadyEvent` fires.
 ### Selector
 
 ```html
 <eva-controls-container evaUserInteractionEvents />
 ```
+
+### Usage
+
+```html
+<!-- Required for auto-hide to work — must be placed on eva-controls-container -->
+<eva-controls-container evaUserInteractionEvents [evaAutohide]="true">
+  <eva-play-pause />
+  <eva-fullscreen />
+</eva-controls-container>
+
+<!-- Auto-hide with scrub bar synced to the same interaction events -->
+<eva-player id="my-player" [evaVideoSources]="sources">
+  <eva-scrub-bar [hideWithControlsContainer]="true">
+    <eva-scrub-bar-buffering-time />
+    <eva-scrub-bar-current-time />
+  </eva-scrub-bar>
+
+  <eva-controls-container evaUserInteractionEvents [evaAutohide]="true" [evaAutohideTime]="4000">
+    <eva-play-pause />
+    <eva-mute />
+    <eva-volume />
+    <eva-fullscreen />
+  </eva-controls-container>
+</eva-player>
+```
+
 ### Listened Events
 
-All three streams are merged into a single observable and torn down automatically when the directive is destroyed.
+All streams are merged into observables and torn down automatically when the directive is destroyed.
 
 | Event | Target | Notes |
 |---|---|---|
-| `mousemove` | `HTMLVideoElement` | Throttled to one emission per 100ms. |
-| `touchstart` | `HTMLVideoElement` | Fires on any touch interaction. |
-| `click` | `HTMLVideoElement` | Fires on any pointer click. |
+| `mousemove` | `HTMLVideoElement` | Throttled to one emission per 100ms. Forwarded to `EvaApi.triggerUserInteraction`. |
+| `touchstart` | `HTMLVideoElement` | Fires on any touch interaction. Forwarded to `EvaApi.triggerUserInteraction`. |
+| `click` | `HTMLVideoElement` | Fires on any pointer click. Forwarded to `EvaApi.triggerUserInteraction`. |
+| `dblclick` | `HTMLVideoElement` | Toggles fullscreen via `EvaFullscreenAPI`. |
+| `touchend` | `HTMLVideoElement` | Detects double-tap (two taps within 300ms). Tap on the **left half** of the video seeks back 10s; tap on the **right half** seeks forward 10s. |
 
 
 ---
@@ -130,3 +160,66 @@ track[evaCueChange]
 |---|---|
 | `EvaApi.onCueChange(track)` | On every `cuechange` event while `evaCueChangeActive` is `true`. |
 | `EvaApi.onCueChange(null)` | Implicitly, when `evaCueChangeActive` switches to `false` via the effect cleanup. |
+
+---
+
+## EvaKeyboardShortcuts
+
+A directive that enables configurable keyboard shortcuts on the player. Listens on the `document` for `keydown` events and delegates to `EvaApi` and `EvaFullscreenAPI` methods. The listener is added and removed dynamically via an `effect()` based on the `evaKeyboardShortcutsEnabled` input.
+
+Shortcuts are suppressed when focus is inside an `<input>`, `<textarea>`, or `contenteditable` element.
+
+Applied as a host directive on `EvaPlayer` — consumers configure it via inputs on `<eva-player>` directly.
+
+### Selector
+
+```html
+<eva-player [evaKeyboardShortcutsEnabled]="true" />
+```
+
+### Inputs
+
+| Input | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `evaKeyboardShortcutsEnabled` | `boolean` | ✅ Yes | — | When `true`, attaches a `keydown` listener on the document. When `false`, removes it. |
+| `evaKeyboardShortcutsConfiguration` | `EvaKeyboardShortcutsConfiguration` | ✅ Yes | — | Configures which keys trigger player actions. See [`EvaKeyboardShortcutsConfiguration`](player.md#evakeyboardshortcutsconfiguration) for defaults and available properties. |
+
+### Keyboard Actions
+
+| Action | Default Key | `EvaApi` / Service call |
+|---|---|---|
+| Seek backward 10s (primary) | `J` | `EvaApi.seekBack(10)` |
+| Seek forward 10s (primary) | `L` | `EvaApi.seekForward(10)` |
+| Seek backward 10s (secondary) | `ArrowLeft` | `EvaApi.seekBack(10)` |
+| Seek forward 10s (secondary) | `ArrowRight` | `EvaApi.seekForward(10)` |
+| Toggle mute | `M` | `EvaApi.muteOrUnmuteVideo()` |
+| Toggle play/pause | `Space` | `EvaApi.playOrPauseVideo()` |
+| Toggle fullscreen | `F` | `EvaFullscreenAPI.toggleFullscreen()` |
+| Step backward one frame | `,` | `EvaApi.seekBack(1/30)` |
+| Step forward one frame | `.` | `EvaApi.seekForward(1/30)` |
+| Jump to 0%–90% of duration | `0`–`9` | `EvaApi.jumpToVideoPercentage(key)` |
+
+### Usage
+
+```html
+<!-- Enable with default key bindings -->
+<eva-player
+  id="player"
+  [evaVideoSources]="sources"
+  [evaKeyboardShortcutsEnabled]="true"
+/>
+
+<!-- Enable with custom key bindings -->
+<eva-player
+  id="player"
+  [evaVideoSources]="sources"
+  [evaKeyboardShortcutsEnabled]="true"
+  [evaKeyboardShortcutsConfiguration]="{ backwardsKey: 'ArrowLeft', forwardKey: 'ArrowRight' }"
+/>
+```
+
+### Notes
+
+- Key matching uses `KeyboardEvent.key` (case-insensitive) for all shortcuts except `playPause`, which uses `KeyboardEvent.code` to reliably detect the Space bar.
+- The listener is attached to `document`, not the host element, so shortcuts work regardless of which element has focus.
+- Cleanup is handled via `DestroyRef` — the listener is always removed when the directive is destroyed.

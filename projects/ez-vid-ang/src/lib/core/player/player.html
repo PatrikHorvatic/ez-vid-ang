@@ -1,5 +1,7 @@
-<video #evaVideoElement [id]="id()" evaMediaEventListeners evaVideoConfiguration
-	[evaVideoConfig]="evaVideoConfiguration()" (videoConfigurationDone)="videoConfigReady()">
+<video #evaVideoElement [id]="id()" evaMediaEventListeners evaVideoConfiguration evaKeyboardShortcuts
+	[evaKeyboardShortcutsEnabled]="evaKeyboardShortcutsEnabled()"
+	[evaKeyboardShortcutsConfiguration]="evaKeyboardShortcutsConfiguration()" [evaVideoConfig]="evaVideoConfiguration()"
+	(videoConfigurationDone)="videoConfigReady()">
 	@for (vs of evaVideoSources(); track $index) {
 	<source #evaVideoSources [type]="vs.type" [src]="vs.src" />
 	}

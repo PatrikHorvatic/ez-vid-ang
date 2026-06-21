@@ -21,11 +21,26 @@ A playback speed selector component that renders a dropdown of available speeds.
 <!-- Minimal usage -->
 <eva-playback-speed [evaPlaybackSpeeds]="[0.5, 1, 1.5, 2]" />
 
-<!-- With a default speed and custom ARIA label -->
+<!-- With custom ARIA label -->
 <eva-playback-speed
   [evaPlaybackSpeeds]="[0.5, 1, 1.5, 2]"
   [evaAria]="{ ariaLabel: 'Video speed' }"
 />
+
+<!-- Fine-grained speed options for educational content -->
+<eva-playback-speed [evaPlaybackSpeeds]="[0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2]" />
+
+<!-- Speeds for a podcast player (only faster options) -->
+<eva-playback-speed [evaPlaybackSpeeds]="[1, 1.25, 1.5, 2, 3]" />
+
+<!-- Inside a full controls bar -->
+<eva-controls-container>
+  <eva-play-pause />
+  <eva-time-display evaTimeProperty="current" evaTimeFormating="mm:ss" />
+  <eva-controls-divider />
+  <eva-playback-speed [evaPlaybackSpeeds]="[0.5, 1, 1.5, 2]" />
+  <eva-fullscreen />
+</eva-controls-container>
 ```
 
 ### Keyboard Support

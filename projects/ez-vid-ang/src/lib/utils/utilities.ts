@@ -1,4 +1,4 @@
-import { EvaTrack } from "../types";
+import { EvaKeyboardShortcutsConfiguration, EvaTrack } from "../types";
 
 export function transformTimeoutDuration(v: number): number {
 	if (!v) {
@@ -83,4 +83,41 @@ export function validateTracks(tracks: EvaTrack[]): EvaTrack[] {
 	});
 
 	return uniqueTracks;
+}
+
+/** Returns a fully populated `EvaKeyboardShortcutsConfiguration` with all default key bindings. */
+export function prepareDefaultKeyboardShortcutsConfiguration(): Required<EvaKeyboardShortcutsConfiguration> {
+	return {
+		backwardSeconds: 10,
+		forwardSeconds: 10,
+		backwardsKeyOne: "J",
+		forwardKeyOne: "L",
+		backwardsKeyTwo: "ARROWLEFT",
+		forwardKeyTwo: "ARROWRIGHT",
+		muteKey: "M",
+		fullscreen: "F",
+		playPause: "SPACE",
+		oneFrameBackward: ",",
+		oneFrameForward: ".",
+	}
+}
+
+/** Input transform that fills missing keys with defaults. `backwardSeconds` and `forwardSeconds` are clamped to a minimum of `1` (values `<= 0` fall back to `10`). Returns the full default config when `conf` is `null`/`undefined`. */
+export function validateAndTransformEvaKeyboardShortcutsConfiguration(conf: EvaKeyboardShortcutsConfiguration): Required<EvaKeyboardShortcutsConfiguration> {
+	if (!conf) {
+		return prepareDefaultKeyboardShortcutsConfiguration();
+	}
+	return {
+		backwardSeconds: (conf.backwardSeconds && conf.backwardSeconds > 0) ? conf.backwardSeconds : 10,
+		forwardSeconds: (conf.forwardSeconds && conf.forwardSeconds > 0) ? conf.forwardSeconds : 10,
+		backwardsKeyOne: conf.backwardsKeyOne ?? "J",
+		forwardKeyOne: conf.forwardKeyOne ?? "L",
+		backwardsKeyTwo: conf.backwardsKeyTwo ?? "ARROWLEFT",
+		forwardKeyTwo: conf.forwardKeyTwo ?? "ARROWRIGHT",
+		muteKey: conf.muteKey ?? "M",
+		fullscreen: conf.fullscreen ?? "F",
+		playPause: conf.playPause ?? "SPACE",
+		oneFrameBackward: conf.oneFrameBackward ?? ",",
+		oneFrameForward: conf.oneFrameForward ?? ".",
+	}
 }

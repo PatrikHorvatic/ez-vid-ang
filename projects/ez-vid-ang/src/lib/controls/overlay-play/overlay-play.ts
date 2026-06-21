@@ -38,12 +38,12 @@ import { EvaOverlayPlayAria, EvaOverlayPlayAriaTransformed, transformEvaOverlayP
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "tabindex": "0",
+    "role": "button",
     "[attr.aria-label]": "ariaLabel()",
     "[class.eva-icon]": "!evaCustomIcon()",
     "[class.eva-icon-play_arrow]": "!evaCustomIcon() && evaIconPlay()",
     "[class.eva-display-overlay-play]": "evaIconPlay() && !evaAPI.isBuffering()",
-    "(click)": "playClicked()",
-    "(keydown)": "playClickedKeyboard($event)"
+    "(click)": "playClicked()"
   }
 })
 export class EvaOverlayPlay implements OnInit, OnDestroy {
@@ -105,14 +105,5 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
     this.evaAPI.playOrPauseVideo();
   }
 
-  /**
-   * Handles keyboard events on the host element.
-   * Triggers play/pause on `Enter` or `Space` keypress.
-   */
-  protected playClickedKeyboard(k: KeyboardEvent) {
-    if (k.key === 'Enter' || k.key === ' ') {
-      k.preventDefault();
-      this.playClicked();
-    }
-  }
 }
+

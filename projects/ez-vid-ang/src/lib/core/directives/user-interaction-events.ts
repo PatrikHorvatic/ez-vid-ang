@@ -81,16 +81,14 @@ export class EvaUserInteractionEventsDirective implements OnInit, OnDestroy {
    * - All streams are automatically torn down when `destroy$` emits via `takeUntil`.
    */
   private prepareListeners() {
-    const mousemove$ = fromEvent<MouseEvent>(this.evaAPI.assignedVideoElement, 'mousemove')
-      .pipe(throttleTime(100));
-    const touchstart$ = fromEvent<TouchEvent>(this.evaAPI.assignedVideoElement, 'touchstart');
-    const click$ = fromEvent<PointerEvent>(this.evaAPI.assignedVideoElement, 'click');
+    const videoEl = this.evaAPI.assignedVideoElement!;
 
-    // Merge all user interaction events
+    const mousemove$ = fromEvent<MouseEvent>(videoEl, 'mousemove').pipe(throttleTime(100));
+    const touchstart$ = fromEvent<TouchEvent>(videoEl, 'touchstart');
+    const click$ = fromEvent<PointerEvent>(videoEl, 'click');
+
     merge(mousemove$, touchstart$, click$)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((t) => {
-        this.evaAPI.triggerUserInteraction.next(t);
-      });
+      .subscribe((t) => this.evaAPI.triggerUserInteraction.next(t));
   }
 }

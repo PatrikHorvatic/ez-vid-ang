@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, fromEvent, Observable, Subscription } from 'rxjs';
+import { EvaApi } from './eva-api';
 
 /**
  * Service that manages fullscreen state for the Eva video player.
@@ -32,6 +33,8 @@ import { BehaviorSubject, fromEvent, Observable, Subscription } from 'rxjs';
  */
 @Injectable()
 export class EvaFullscreenAPI {
+
+  private evaAPI = inject(EvaApi);
 
   /** Internal subject tracking whether the player is currently in fullscreen mode. */
   private isFullscreenSubject = new BehaviorSubject<boolean>(false);
@@ -258,11 +261,21 @@ export class EvaFullscreenAPI {
    * @param element - The player container element to make fullscreen.
    * @param videoElement - The native `<video>` element, used as a fallback on mobile/iOS.
    */
-  async toggleFullscreen(element: HTMLElement, videoElement?: HTMLVideoElement): Promise<void> {
+  async toggleFullscreen(): Promise<void> {
+    const videoElement = this.evaAPI.assignedVideoElement;
+    if (!videoElement) {
+      console.warn('Video element not assigned');
+      return;
+    }
+    const playerContainer = videoElement.closest('eva-player') as HTMLElement | null;
+    if (!playerContainer) {
+      console.warn('Player container not found');
+      return;
+    }
     if (this.isFullscreen()) {
       await this.exitFullscreen();
     } else {
-      await this.enterFullscreen(element, videoElement);
+      await this.enterFullscreen(playerContainer, videoElement);
     }
   }
 

@@ -23,6 +23,7 @@ export * from "./lib/core/directives/cue-change";
 export * from "./lib/core/directives/media-event-listeners";
 export * from "./lib/core/directives/user-interaction-events";
 export * from "./lib/core/directives/video-configuration";
+export * from "./lib/core/directives/keyboard-shortcuts";
 export * from "./lib/core/player/player";
 export * from "./lib/streaming/dash";
 export * from "./lib/streaming/hls";

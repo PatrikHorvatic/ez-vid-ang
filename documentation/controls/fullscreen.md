@@ -28,6 +28,15 @@ A fullscreen toggle button rendered as a `role="button"` element. Tracks fullscr
 <eva-fullscreen [evaCustomIcon]="true">
   <img src="your-image" />
 </eva-fullscreen>
+
+<!-- Typically placed at the end of the controls bar -->
+<eva-controls-container>
+  <eva-play-pause />
+  <eva-time-display evaTimeProperty="current" evaTimeFormating="mm:ss" />
+  <eva-controls-divider />
+  <eva-picture-in-picture />
+  <eva-fullscreen />
+</eva-controls-container>
 ```
 
 ### Keyboard Support

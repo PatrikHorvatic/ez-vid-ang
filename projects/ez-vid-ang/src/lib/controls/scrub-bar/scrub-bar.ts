@@ -468,14 +468,14 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
     if (!this.evaAPI.canPlay()) return;
 
     this.isSeeking = true;
-    this.wasPlaying = !this.evaAPI.assignedVideoElement.paused;
+    this.wasPlaying = !this.evaAPI.assignedVideoElement!.paused;
 
     if (this.playPromise) {
       this.playPromise.then(() => {
-        this.evaAPI.assignedVideoElement.pause();
+        this.evaAPI.assignedVideoElement!.pause();
       }).catch(() => { });
     } else {
-      this.evaAPI.assignedVideoElement.pause();
+      this.evaAPI.assignedVideoElement!.pause();
     }
 
     this.playPromise = null;
@@ -497,7 +497,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
     const newTime = (percentage * this.evaAPI.time().total) / 100;
     if (isNaN(newTime) || newTime < 0) return;
 
-    this.evaAPI.assignedVideoElement.currentTime = newTime;
+    this.evaAPI.assignedVideoElement!.currentTime = newTime;
   }
 
   /**
@@ -518,7 +518,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
       const newTime = (percentage * this.evaAPI.time().total) / 100;
       if (isNaN(newTime) || newTime < 0) return;
 
-      this.evaAPI.assignedVideoElement.currentTime = newTime;
+      this.evaAPI.assignedVideoElement!.currentTime = newTime;
       this.emitChapterAtTime(newTime);
     }
 
@@ -534,7 +534,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    */
   private touchEnd() {
     this.isSeeking = false;
-    this.emitChapterAtTime(this.evaAPI.assignedVideoElement.currentTime);
+    this.emitChapterAtTime(this.evaAPI.assignedVideoElement!.currentTime);
 
     if (this.wasPlaying) {
       this.wasPlaying = false;

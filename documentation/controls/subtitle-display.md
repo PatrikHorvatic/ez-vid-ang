@@ -12,14 +12,38 @@ Renders the currently active subtitle cue over the video. Reads `EvaApi.currentS
 ### Usage
 
 ```html
+<!-- Basic — must be placed outside eva-controls-container -->
 <eva-player>
-	<!-- The component must not be a part of the controls container! -->
 	<eva-subtitle-display />
 	<eva-controls-container>
-
+		<eva-play-pause />
 	</eva-controls-container>
 </eva-player>
+
+<!-- Full setup with subtitle tracks and track selector -->
+<eva-player
+  id="my-player"
+  [evaVideoSources]="sources"
+  [evaVideoTracks]="[
+    { kind: 'subtitles', srclang: 'en', label: 'English', src: 'en.vtt', default: true },
+    { kind: 'subtitles', srclang: 'es', label: 'Spanish', src: 'es.vtt' }
+  ]"
+  [evaVideoConfiguration]="{ crossorigin: 'anonymous' }"
+>
+  <eva-overlay-play />
+  <eva-buffering />
+  <eva-subtitle-display />
+
+  <eva-controls-container evaUserInteractionEvents [evaAutohide]="true">
+    <eva-play-pause />
+    <eva-controls-divider />
+    <eva-track-selector evaTrackSelectorText="Subtitles" />
+    <eva-fullscreen />
+  </eva-controls-container>
+</eva-player>
 ```
+
+> **Important:** `<eva-subtitle-display />` must NOT be placed inside `<eva-controls-container>`. It needs to be a direct child of `<eva-player>` so it can position itself independently above the controls.
 
 ### Host Behaviour
 

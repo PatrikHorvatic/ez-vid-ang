@@ -34,6 +34,24 @@ The dropdown closes on track selection, outside click, blur, or `Escape`.
   evaTrackSelectorText="Subtitles"
   evaTrackOffText="Disabled"
 />
+
+<!-- With subtitle tracks defined on the player -->
+<eva-player
+  id="my-player"
+  [evaVideoSources]="sources"
+  [evaVideoTracks]="[
+    { kind: 'subtitles', srclang: 'en', label: 'English', src: 'en.vtt' },
+    { kind: 'subtitles', srclang: 'es', label: 'Spanish', src: 'es.vtt', default: true },
+    { kind: 'subtitles', srclang: 'fr', label: 'French', src: 'fr.vtt' }
+  ]"
+>
+  <eva-subtitle-display />
+  <eva-controls-container>
+    <eva-play-pause />
+    <eva-controls-divider />
+    <eva-track-selector evaTrackSelectorText="Subtitles" evaTrackOffText="None" />
+  </eva-controls-container>
+</eva-player>
 ```
 
 ---

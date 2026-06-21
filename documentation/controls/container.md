@@ -23,6 +23,39 @@ A wrapper component for the player control bar that manages its visibility. When
 
 <!-- Auto-hide after 4 seconds of inactivity -->
 <eva-controls-container [evaAutohide]="true" [evaAutohideTime]="4000"></eva-controls-container>
+
+<!-- With user interaction detection for auto-hide (recommended) -->
+<eva-controls-container evaUserInteractionEvents [evaAutohide]="true">
+  <eva-play-pause />
+  <eva-volume />
+  <eva-fullscreen />
+</eva-controls-container>
+
+<!-- Full controls bar with divider separating left and right groups -->
+<eva-controls-container evaUserInteractionEvents [evaAutohide]="true" [evaAutohideTime]="3000">
+  <eva-play-pause />
+  <eva-backward />
+  <eva-forward />
+  <eva-time-display evaTimeProperty="current" evaTimeFormating="mm:ss" />
+
+  <eva-controls-divider />
+
+  <eva-mute />
+  <eva-volume />
+  <eva-playback-speed [evaPlaybackSpeeds]="[0.5, 1, 1.5, 2]" />
+  <eva-track-selector />
+  <eva-quality-selector />
+  <eva-picture-in-picture />
+  <eva-fullscreen />
+</eva-controls-container>
+
+<!-- Minimal player with no auto-hide -->
+<eva-controls-container>
+  <eva-play-pause />
+  <eva-time-display evaTimeProperty="current" evaTimeFormating="mm:ss" />
+  <eva-controls-divider />
+  <eva-time-display evaTimeProperty="total" evaTimeFormating="mm:ss" />
+</eva-controls-container>
 ```
 
 ### Auto-hide Behaviour

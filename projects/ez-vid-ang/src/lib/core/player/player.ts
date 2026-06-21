@@ -2,11 +2,12 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, inject, 
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
-import { EvaTrack, EvaVideoElementConfiguration, EvaVideoSource } from '../../types';
-import { validateTracks } from '../../utils/utilities';
+import { EvaKeyboardShortcutsConfiguration, EvaTrack, EvaVideoElementConfiguration, EvaVideoSource } from '../../types';
+import { prepareDefaultKeyboardShortcutsConfiguration, validateAndTransformEvaKeyboardShortcutsConfiguration, validateTracks } from '../../utils/utilities';
 import { EvaCueChangeDirective } from '../directives/cue-change';
 import { EvaMediaEventListenersDirective } from '../directives/media-event-listeners';
 import { EvaVideoConfigurationDirective } from '../directives/video-configuration';
+import { EvaKeyboardShortcuts } from "../directives/keyboard-shortcuts";
 
 /**
  * Root player component for the Eva video player.
@@ -36,9 +37,9 @@ import { EvaVideoConfigurationDirective } from '../directives/video-configuratio
   selector: 'eva-player',
   templateUrl: './player.html',
   styleUrl: './player.scss',
-  imports: [EvaMediaEventListenersDirective, EvaVideoConfigurationDirective, EvaCueChangeDirective],
+  imports: [EvaMediaEventListenersDirective, EvaVideoConfigurationDirective, EvaCueChangeDirective, EvaKeyboardShortcuts],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [EvaApi, EvaFullscreenAPI]
+  providers: [EvaApi, EvaFullscreenAPI],
 })
 export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
 
@@ -69,6 +70,22 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
    * @default {}
    */
   readonly evaVideoConfiguration = input<EvaVideoElementConfiguration>({});
+
+  /**
+   * Enables keyboard shortcuts on the player.
+   * When `true`, the `EvaKeyboardShortcuts` directive listens for `keydown` events on the document.
+   *
+   * @default false
+   */
+  readonly evaKeyboardShortcutsEnabled = input<boolean>(false);
+
+  /**
+   * Key binding configuration for keyboard shortcuts.
+   * Partial configs are merged with defaults via `validateAndTransformEvaKeyboardShortcutsConfiguration`.
+   *
+   * @default prepareDefaultKeyboardShortcutsConfiguration()
+   */
+  readonly evaKeyboardShortcutsConfiguration = input<Required<EvaKeyboardShortcutsConfiguration>, EvaKeyboardShortcutsConfiguration>(prepareDefaultKeyboardShortcutsConfiguration(), { transform: validateAndTransformEvaKeyboardShortcutsConfiguration });
 
   /**
    * List of subtitle/text tracks to attach to the video element.

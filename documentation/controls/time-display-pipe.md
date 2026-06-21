@@ -23,8 +23,20 @@ value | evaTimeDisplay : formating : timeProperty
 ### Usage
 
 ```html
+<!-- Basic formatting -->
 {{ time.current | evaTimeDisplay:'mm:ss':'current' }}
 {{ time.remaining | evaTimeDisplay:'HH:mm:ss':'remaining' }}
+
+<!-- Total duration in seconds -->
+{{ time.total | evaTimeDisplay:'ss':'total' }}
+
+<!-- Inside a custom component reading EvaApi.time() -->
+<span>{{ playerApi.time().current | evaTimeDisplay:'mm:ss':'current' }}</span>
+<span> / </span>
+<span>{{ playerApi.time().total | evaTimeDisplay:'mm:ss':'total' }}</span>
+
+<!-- Remaining time with hours format -->
+<p>Time left: {{ playerApi.time().remaining | evaTimeDisplay:'HH:mm:ss':'remaining' }}</p>
 ```
 
 ### Format Outputs

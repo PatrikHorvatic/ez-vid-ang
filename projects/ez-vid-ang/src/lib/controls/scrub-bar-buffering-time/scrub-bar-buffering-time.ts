@@ -58,14 +58,14 @@ export class EvaScrubBarBufferingTime implements OnInit, OnDestroy {
       if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
         return;
       }
-      this.updateBufferPercentage(this.evaAPI.assignedVideoElement.buffered);
+      this.updateBufferPercentage(this.evaAPI.assignedVideoElement!.buffered);
     });
 
     this.timeChangeSubscription = this.evaAPI.videoTimeChangeSubject.pipe(throttleTime(2000)).subscribe(() => {
       if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
         return;
       }
-      this.updateBufferPercentage(this.evaAPI.assignedVideoElement.buffered);
+      this.updateBufferPercentage(this.evaAPI.assignedVideoElement!.buffered);
     })
   }
 

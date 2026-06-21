@@ -43,6 +43,7 @@ All player components and directives communicate through `EvaApi` rather than di
 | `playOrPauseVideo` | `() => void` | Toggles play/pause. Updates `videoStateSubject`. |
 | `seekForward` | `(n?: number) => void` | Seeks forward by `n` seconds (default `5`), clamped to total duration. Updates `time` immediately. |
 | `seekBack` | `(n?: number) => void` | Seeks backward by `n` seconds (default `5`), clamped to `0`. Updates `time` immediately. |
+| `jumpToVideoPercentage` | `(key: string) => void` | Jumps to a percentage of total duration based on a digit key (`"0"`–`"9"`). `"0"` seeks to 0%, `"5"` to 50%, etc. Ignored for live streams. |
 | `setPlaybackSpeed` | `(speed: number) => void` | Sets the playback rate on the video element. |
 | `getPlaybackSpeed` | `() => number` | Returns the current playback rate. Falls back to `1` if not ready. |
 | `setVideoVolume` | `(volume: number) => void` | Sets volume, clamped to `[0, 1]`. |

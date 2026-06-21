@@ -22,6 +22,18 @@ A volume slider component for the Eva video player. Rendered as a `role="slider"
 
 <!-- Custom ARIA label -->
 <eva-volume [evaAria]="{ ariaLabel: 'Video volume' }" />
+
+<!-- Paired with mute button (common pattern) -->
+<eva-controls-container>
+  <eva-mute />
+  <eva-volume />
+</eva-controls-container>
+
+<!-- Paired with mute button that has custom thresholds matching volume expectations -->
+<eva-controls-container>
+  <eva-mute [evaLowVolume]="0.2" [evaMiddleVolume]="0.6" />
+  <eva-volume [evaAria]="{ ariaLabel: 'Adjust volume' }" />
+</eva-controls-container>
 ```
 
 ### Interaction

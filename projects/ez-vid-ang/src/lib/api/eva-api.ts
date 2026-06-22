@@ -172,6 +172,9 @@ export class EvaApi {
 	 */
 	public pictureInPictureSubject = new BehaviorSubject<boolean>(false);
 
+	/** Broadcasts the current loop state. Updated by `EvaVideoConfigurationDirective` and `EvaLoop`. */
+	public loopSubject = new BehaviorSubject<boolean>(false);
+
 	private lastActiveVolume: number = 1;
 
 
@@ -187,6 +190,9 @@ export class EvaApi {
 	private currentPlayPos = 0;
 
 	public isActiveChapterPresent: boolean = false;
+
+	/** When `true`, chapters were provided via the `evaChapters` input and VTT-parsed chapters should not overwrite them. */
+	public hasExternalChapters = false;
 	private trackTimeout: ReturnType<typeof setTimeout> | null = null;
 
 	public updateAndPrepareTracks(tracks: EvaTrack[]) {
@@ -197,7 +203,7 @@ export class EvaApi {
 		}
 
 		this.trackTimeout = setTimeout(() => {
-			if (this.validateVideoAndPlayerBeforeAction()) {
+			if (this.validateVideoAndPlayerBeforeAction() && !this.hasExternalChapters) {
 				const listOfChapters = this.loadChaptersFromTrack();
 				this.chapterMarkerChangesSubject.next(listOfChapters);
 				if (!this.isLive()) {
@@ -388,9 +394,9 @@ export class EvaApi {
 	}
 
 	/**
-	 * Toggles mute/unmute by setting volume to `0` if currently audible,
-	 * or restoring it to last volume value if currently muted.
-	 * Called from `EvaMute`.
+	 * Toggles mute/unmute. Saves the current volume before muting (when > 0)
+	 * and restores it on unmute. Falls back to `0.75` if `lastActiveVolume`
+	 * is `0` (e.g. volume was dragged to zero before muting).
 	 */
 	public muteOrUnmuteVideo() {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
@@ -398,10 +404,11 @@ export class EvaApi {
 		}
 
 		if (this.assignedVideoElement!.volume > 0) {
+			this.lastActiveVolume = this.assignedVideoElement!.volume;
 			this.assignedVideoElement!.volume = 0;
 		}
 		else {
-			this.assignedVideoElement!.volume = this.lastActiveVolume;
+			this.assignedVideoElement!.volume = this.lastActiveVolume > 0 ? this.lastActiveVolume : 0.75;
 		}
 	}
 
@@ -452,16 +459,17 @@ export class EvaApi {
 	 * @param e - The native `loadedmetadata` event.
 	 */
 	public loadedVideoMetadata(_e: Event) {
+		if (!this.assignedVideoElement) return;
 		this.isMetadataLoaded = true;
 		this.time.set({
 			current: 0,
-			remaining: this.assignedVideoElement!.duration === Infinity
+			remaining: this.assignedVideoElement.duration === Infinity
 				? 0
-				: Number.isNaN(this.assignedVideoElement!.duration) ? 0 : this.assignedVideoElement!.duration,
-			total: this.assignedVideoElement!.duration
+				: Number.isNaN(this.assignedVideoElement.duration) ? 0 : this.assignedVideoElement.duration,
+			total: this.assignedVideoElement.duration
 		});
 
-		this.isLive.set(this.assignedVideoElement!.duration === Infinity);
+		this.isLive.set(this.assignedVideoElement.duration === Infinity);
 	}
 
 	/**
@@ -656,6 +664,7 @@ export class EvaApi {
 	 * @param e - The native `volumechange` event.
 	 */
 	public volumeChanged(_e: Event) {
+		if (!this.validateVideoAndPlayerBeforeAction()) return;
 		this.videoVolumeSubject.next(
 			this.assignedVideoElement!.volume
 		);
@@ -924,6 +933,7 @@ export class EvaApi {
 
 		// Complete all subjects — notifies subscribers and prevents further emissions
 		this.pictureInPictureSubject.complete();
+		this.loopSubject.complete();
 		this.videoStateSubject.complete();
 		this.videoVolumeSubject.complete();
 		this.playbackRateSubject.complete();

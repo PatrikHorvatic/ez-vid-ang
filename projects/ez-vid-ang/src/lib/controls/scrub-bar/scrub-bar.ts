@@ -7,11 +7,13 @@ import {
   inject,
   input,
   NgZone,
+  OnChanges,
   OnDestroy,
   OnInit,
   signal,
+  SimpleChanges,
 } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { skip, Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaChapterMarker, EvaTimeFormating } from '../../types';
 import { EvaScrubBarAria, EvaScrubBarAriaTransformed, transformEvaScrubBarAria } from '../../utils/aria-utilities';
@@ -82,7 +84,7 @@ import { transformTimeoutDuration } from '../../utils/utilities';
     "(keydown)": "arrowAdjustTime($event)",
   }
 })
-export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
+export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   protected evaAPI = inject(EvaApi);
   private elementRef = inject(ElementRef<HTMLElement>);
 
@@ -206,6 +208,13 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
     this.initChapters();
   }
 
+  /** Re-syncs external chapters when the `evaChapters` input changes at runtime. */
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['evaChapters'] && !changes['evaChapters'].firstChange) {
+      this.syncExternalChapters(this.evaChapters());
+    }
+  }
+
   /**
    * Registers `mousemove` and `touchmove` document listeners outside Angular's zone
    * to handle seeking and hover tooltip updates without triggering change detection on every event.
@@ -303,14 +312,14 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    * If sliding is enabled, begins a drag seek. Otherwise performs an immediate touch-to-seek.
    * No-ops for live streams.
    */
-  protected touchStartScrub(_e: TouchEvent) {
+  protected touchStartScrub(e: TouchEvent) {
     if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
     if (this.evaAPI.isLive()) { return; }
 
     if (this.evaSlidingEnabled()) {
       this.seekStart();
     } else {
-      this.seekEnd(false);
+      this.seekEnd(this.getTouchOffset(e));
     }
   }
 
@@ -411,7 +420,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
 
       if (isOverHost) {
         const offset = e.clientX - rect.left;
-        const scrollWidth = this.elementRef.nativeElement.scrollWidth;
+        const scrollWidth = this.elementRef.nativeElement.clientWidth;
         const percentage = Math.max(Math.min((offset * 100) / scrollWidth, 99.9), 0);
         const time = (percentage * this.evaAPI.time().total) / 100;
         const tooltipHalfWidth = 35;
@@ -491,7 +500,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
     if (!this.isSeeking) return;
 
     const percentage = Math.max(
-      Math.min((offsetX * 100) / this.elementRef.nativeElement.scrollWidth, 99.9),
+      Math.min((offsetX * 100) / this.elementRef.nativeElement.clientWidth, 99.9),
       0
     );
     const newTime = (percentage * this.evaAPI.time().total) / 100;
@@ -503,20 +512,28 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Finalizes a seek operation. Sets `currentTime` to the target position if an offset is provided,
    * then resumes playback if the video was playing before the seek started.
+   * Resets `wasPlaying` on all early-return paths to prevent the video from staying paused
+   * after an invalid seek.
    *
    * @param offsetX - Horizontal pixel offset from the left edge of the scrub bar, or `false` to skip repositioning.
    */
   private seekEnd(offsetX: number | false) {
     this.isSeeking = false;
-    if (!this.evaAPI.canPlay()) return;
+    if (!this.evaAPI.canPlay()) {
+      this.wasPlaying = false;
+      return;
+    }
 
     if (offsetX !== false) {
       const percentage = Math.max(
-        Math.min((offsetX * 100) / this.elementRef.nativeElement.scrollWidth, 99.9),
+        Math.min((offsetX * 100) / this.elementRef.nativeElement.clientWidth, 99.9),
         0
       );
       const newTime = (percentage * this.evaAPI.time().total) / 100;
-      if (isNaN(newTime) || newTime < 0) return;
+      if (isNaN(newTime) || newTime < 0) {
+        this.wasPlaying = false;
+        return;
+      }
 
       this.evaAPI.assignedVideoElement!.currentTime = newTime;
       this.emitChapterAtTime(newTime);
@@ -552,15 +569,28 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    */
   private initChapters() {
     if (!this.evaShowChapters()) { return; }
-    if (this.evaChapters() && this.evaChapters().length > 0) {
-      this.chapters.set(this.evaChapters());
-
-    }
+    this.syncExternalChapters(this.evaChapters());
     this.chapterChanges$ = this.evaAPI.chapterMarkerChangesSubject.subscribe((d) => {
       if (this.evaChapters().length > 0) { return; }
       this.chapters.set(d);
     });
+  }
 
+  /**
+   * Syncs the `evaChapters` input to the local signal and `EvaApi.chapterMarkerChangesSubject`.
+   * Sets `hasExternalChapters` when chapters are provided, clears it when they are removed
+   * so VTT-parsed chapters can take over again.
+   */
+  protected syncExternalChapters(chapters: EvaChapterMarker[]) {
+    if (chapters && chapters.length > 0) {
+      this.chapters.set(chapters);
+      this.evaAPI.hasExternalChapters = true;
+      this.evaAPI.chapterMarkerChangesSubject.next(chapters);
+    } else if (this.evaAPI.hasExternalChapters) {
+      this.evaAPI.hasExternalChapters = false;
+      this.chapters.set([]);
+      this.evaAPI.chapterMarkerChangesSubject.next([]);
+    }
   }
 
   /**
@@ -617,6 +647,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
    * @param event - The `TouchEvent` to extract the offset from.
    */
   private getTouchOffset(event: TouchEvent): number {
+    if (!event.touches.length) return 0;
     const rect = this.elementRef.nativeElement.getBoundingClientRect();
     return event.touches[0].clientX - rect.left;
   }
@@ -638,16 +669,20 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnDestroy {
   /**
    * Subscribes to `EvaApi.triggerUserInteraction` to reset the auto-hide timer
    * on every user interaction, keeping the scrub bar visible during activity.
+   * Skips scheduling a hide when a selector dropdown is active to prevent the
+   * bar from disappearing behind an open dropdown.
    */
   private startListening() {
     this.userInteraction$ = this.evaAPI.triggerUserInteraction.subscribe(() => {
       if (this.hideTimeout) {
         clearTimeout(this.hideTimeout);
       }
-      this.prepareHiding();
+      if (!this.isControlerSelectorActive) {
+        this.prepareHiding();
+      }
     });
 
-    this.controlsSelectorActive$ = this.evaAPI.controlsSelectorComponentActive.subscribe((isActive) => {
+    this.controlsSelectorActive$ = this.evaAPI.controlsSelectorComponentActive.pipe(skip(1)).subscribe((isActive) => {
       this.isControlerSelectorActive = isActive;
       if (this.hideTimeout) {
         clearTimeout(this.hideTimeout);

@@ -34,6 +34,7 @@ import { EvaFullscreenAPI } from '../../api/fullscreen';
  * | `timeupdate`      | `updateVideoTime()`                  |
  * | `volumechange`    | `volumeChanged(event)`               |
  * | `waiting`         | `videoWaiting()`                     |
+ * | `dblclick`              | `EvaFullscreenAPI.toggleFullscreen()` |
  * | `enterpictureinpicture` | `assignPictureInPictureWindow()` |
  * | `leavepictureinpicture` | `removePictureInPictureWindow()` |
  */
@@ -46,7 +47,6 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
   private elementRef = inject(ElementRef<HTMLVideoElement>);
 
   private subs: Subscription[] = [];
-  // private lastTapTime: number = 0;
 
   ngOnInit(): void {
     const el = this.elementRef.nativeElement;
@@ -73,26 +73,6 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
     on(EvaVideoEvent.WAITING, () => this.evaAPI.videoWaiting());
     on(EvaVideoEvent.ENTERED_PICTURE_IN_PICTURE, e => this.evaAPI.assignPictureInPictureWindow(e as PictureInPictureEvent));
     on(EvaVideoEvent.LEFT_PICTURE_IN_PICTURE, e => this.evaAPI.removePictureInPictureWindow(e as PictureInPictureEvent));
-
-    // this.subs.push(
-    //   fromEvent<TouchEvent>(el, 'touchend')
-    //     .subscribe((e) => {
-    //       console.log(e);
-    //       const now = e.timeStamp;
-    //       if (now - this.lastTapTime <= 300) {
-    //         const rect = el.getBoundingClientRect();
-    //         const tapX = e.changedTouches[0].clientX;
-    //         if (tapX < rect.left + rect.width / 2) {
-    //           this.evaAPI.seekBack(10);
-    //         } else {
-    //           this.evaAPI.seekForward(10);
-    //         }
-    //         this.lastTapTime = 0;
-    //       } else {
-    //         this.lastTapTime = now;
-    //       }
-    //     }));
-
   }
 
   ngOnDestroy(): void {

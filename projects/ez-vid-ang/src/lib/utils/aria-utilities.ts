@@ -381,3 +381,41 @@ export function transformEvaOverlayPlayAria(v: EvaOverlayPlayAria | undefined): 
 		ariaLabel: v.ariaLabel ?? "Overlay play"
 	};
 }
+
+// ─── EvaLoop ─────────────────────────────────────────────────────────────────
+
+export type EvaLoopAria = {
+	ariaLabel?: string,
+	ariaValueText?: {
+		active?: string,
+		inactive?: string,
+	}
+}
+
+export type EvaLoopAriaTransformed = {
+	ariaLabel: string,
+	ariaValueText: {
+		active: string,
+		inactive: string,
+	}
+}
+
+export function transformEvaLoopAria(v: EvaLoopAria | undefined): EvaLoopAriaTransformed {
+	if (!v) {
+		return {
+			ariaLabel: "Loop",
+			ariaValueText: {
+				active: "Loop is on",
+				inactive: "Loop is off",
+			}
+		}
+	}
+
+	return {
+		ariaLabel: v.ariaLabel ?? "Loop",
+		ariaValueText: {
+			active: v.ariaValueText?.active ?? "Loop is on",
+			inactive: v.ariaValueText?.inactive ?? "Loop is off",
+		}
+	};
+}

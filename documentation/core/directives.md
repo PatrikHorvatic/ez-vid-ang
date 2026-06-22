@@ -78,7 +78,6 @@ All streams are merged into observables and torn down automatically when the dir
 | `touchstart` | `HTMLVideoElement` | Fires on any touch interaction. Forwarded to `EvaApi.triggerUserInteraction`. |
 | `click` | `HTMLVideoElement` | Fires on any pointer click. Forwarded to `EvaApi.triggerUserInteraction`. |
 | `dblclick` | `HTMLVideoElement` | Toggles fullscreen via `EvaFullscreenAPI`. |
-| `touchend` | `HTMLVideoElement` | Detects double-tap (two taps within 300ms). Tap on the **left half** of the video seeks back 10s; tap on the **right half** seeks forward 10s. |
 
 
 ---
@@ -167,9 +166,11 @@ track[evaCueChange]
 
 A directive that enables configurable keyboard shortcuts on the player. Listens on the `document` for `keydown` events and delegates to `EvaApi` and `EvaFullscreenAPI` methods. The listener is added and removed dynamically via an `effect()` based on the `evaKeyboardShortcutsEnabled` input.
 
-Shortcuts are suppressed when focus is inside an `<input>`, `<textarea>`, or `contenteditable` element.
+Shortcuts are suppressed when focus is inside an `<input>`, `<textarea>`, `<select>`, `contenteditable` element, or any element with an interactive ARIA role (`listbox`, `combobox`, `menu`, `menuitem`, `slider`, `spinbutton`, `textbox`, `searchbox`, `gridcell`).
 
-Applied as a host directive on `EvaPlayer` — consumers configure it via inputs on `<eva-player>` directly.
+In multi-player setups, only the last-interacted player responds to shortcuts. When focus is inside a specific `eva-player`, only that player handles the event.
+
+Applied as a template directive on the `<video>` element inside `EvaPlayer` — consumers configure it via inputs on `<eva-player>` directly.
 
 ### Selector
 
@@ -221,5 +222,7 @@ Applied as a host directive on `EvaPlayer` — consumers configure it via inputs
 ### Notes
 
 - Key matching uses `KeyboardEvent.key` (case-insensitive) for all shortcuts except `playPause`, which uses `KeyboardEvent.code` to reliably detect the Space bar.
+- All configured key values are normalized to uppercase once in `validateAndTransformEvaKeyboardShortcutsConfiguration`, so consumers can pass keys in any casing.
 - The listener is attached to `document`, not the host element, so shortcuts work regardless of which element has focus.
+- **Multi-player scoping:** when focus is inside a specific `eva-player`, only that player handles the event. When focus is outside all players (e.g. on `document.body`), the last-interacted player responds. This prevents multiple players from reacting to the same keystroke.
 - Cleanup is handled via `DestroyRef` — the listener is always removed when the directive is destroyed.

@@ -1,0 +1,39 @@
+<div class="eva-chapter-list-header">
+	<div class="eva-chapter-list-header-left">
+		<span class="eva-chapter-list-title">{{ evaChapterListTitle() }}</span>
+		@if (hasChapters()) {
+		<span class="eva-chapter-list-count">{{ chapters().length }}</span>
+		}
+	</div>
+	<button class="eva-chapter-list-close" type="button" aria-label="Close chapter list"
+		(click)="closePanel()">
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+			<path
+				d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+		</svg>
+	</button>
+</div>
+
+@if (hasChapters()) {
+<div class="eva-chapter-list-items" role="list">
+	@for (chapter of formattedChapters(); track chapter.startTime) {
+	<div class="eva-chapter-list-item" role="listitem" tabindex="0"
+		[class.eva-chapter-list-item-active]="chapter.isActive"
+		(click)="seekToChapter(chapter)"
+		(keydown)="onKeydown($event, chapter)">
+		<span class="eva-chapter-list-item-time">{{ chapter.formattedStart }}</span>
+		<div class="eva-chapter-list-item-info">
+			<span class="eva-chapter-list-item-title">{{ chapter.title || 'Untitled' }}</span>
+			@if (chapter.formattedDuration) {
+			<span class="eva-chapter-list-item-duration">{{ chapter.formattedDuration }}</span>
+			}
+		</div>
+	</div>
+	}
+</div>
+}
+@else {
+<div class="eva-chapter-list-empty">
+	<span>{{ evaChapterListEmptyText() }}</span>
+</div>
+}

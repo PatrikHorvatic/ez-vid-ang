@@ -48,7 +48,12 @@ The `EvaPlayer` component is the top-level host of the Eva video player library.
   <eva-overlay-play />
   <eva-buffering />
 
-  <eva-scrub-bar [hideWithControlsContainer]="true" [evaShowChapters]="true">
+  <eva-chapter-list
+    [evaChapterListOpen]="isChapterListOpen()"
+    (evaChapterListClose)="isChapterListOpen.set(false)"
+  />
+
+  <eva-scrub-bar [hideWithControlsContainer]="true" [evaShowChapters]="true" [evaChapters]="chapters">
     <eva-scrub-bar-buffering-time />
     <eva-scrub-bar-current-time />
   </eva-scrub-bar>
@@ -59,6 +64,8 @@ The `EvaPlayer` component is the top-level host of the Eva video player library.
     <eva-play-pause />
     <eva-backward />
     <eva-forward />
+    <eva-loop />
+    <eva-active-chapter (evaChapterClicked)="isChapterListOpen.update(v => !v)" />
     <eva-mute />
     <eva-volume />
     <eva-time-display evaTimeProperty="current" evaTimeFormating="mm:ss" />
@@ -66,6 +73,7 @@ The `EvaPlayer` component is the top-level host of the Eva video player library.
     <eva-time-display evaTimeProperty="remaining" evaTimeFormating="mm:ss" />
     <eva-playback-speed [evaPlaybackSpeeds]="[0.5, 1, 1.5, 2]" />
     <eva-track-selector />
+    <eva-quality-selector />
     <eva-picture-in-picture />
     <eva-fullscreen />
   </eva-controls-container>
@@ -331,7 +339,11 @@ interface EvaKeyboardShortcutsConfiguration {
 | `oneFrameForward` | `.` | Step forward one frame (1/30s). |
 | `0`–`9` | `0`–`9` | Jump to 0%–90% of total duration. Ignored for live streams. |
 
-Key matching is case-insensitive. Shortcuts are suppressed when focus is inside an `<input>`, `<textarea>`, or `contenteditable` element.
+All key values are normalized to uppercase once in `validateAndTransformEvaKeyboardShortcutsConfiguration`, so consumers can pass keys in any casing (e.g. `"arrowleft"`, `"ArrowLeft"`, and `"ARROWLEFT"` are all equivalent).
+
+Shortcuts are suppressed when focus is inside an `<input>`, `<textarea>`, `<select>`, `contenteditable` element, or any element with an interactive ARIA role (`listbox`, `combobox`, `menu`, `menuitem`, `slider`, `spinbutton`, `textbox`, `searchbox`, `gridcell`).
+
+In multi-player setups, only the last-interacted player responds to shortcuts.
 
 ---
 

@@ -6,6 +6,62 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [22.0.2] - 2026-06-22
+
+### Added
+
+- **`EvaLoop`**: New loop toggle button component. Toggles `HTMLVideoElement.loop` on click or keyboard activation (`Enter`/`Space`). Reflects loop state via `eva-loop-active` host class and dynamic `aria-valuetext`. Syncs with `EvaApi.loopSubject` — stays in sync when `evaVideoConfiguration.loop` changes at runtime. Supports custom icons via content projection.
+- **`EvaApi.loopSubject`**: New `BehaviorSubject<boolean>` that broadcasts the current loop state. Updated by `EvaVideoConfigurationDirective` and `EvaLoop`.
+- **`EvaChapterList`**: New floating panel component that displays all available chapters in a scrollable list. Positioned in the top corner of the video element (`z-index: 1100`), above all other player UI. Opens/closes via `evaChapterListOpen` input (runtime-toggleable). Close button with `(evaChapterListClose)` output. Shows chapter title, start time, and duration. Active chapter is highlighted via `startTime` comparison. Handles edge cases: empty chapters (configurable empty text via `evaChapterListEmptyText`), empty titles (falls back to "Untitled"), invalid times (`NaN`/negative), and negative durations (hidden). Supports left/right positioning via `evaChapterListPosition`. Fully configurable via 25+ SCSS variables. Closes on Escape key and click-outside. Responsive — full-width on mobile (≤ 480px).
+- **`EvaApi.hasExternalChapters`**: New flag that prevents VTT-parsed chapters from overwriting chapters provided via the `evaChapters` input.
+
+### Bug Fixes
+
+- **`EvaScrubBar`**: Hover tooltip, click-to-seek, and drag-to-seek used `scrollWidth` for percentage calculations. When chapter markers had positions exceeding 100% (chapter times beyond video duration), `scrollWidth` was inflated by the overflow, making all calculated times near zero (e.g. always showing "00:00 Intro"). Replaced with `clientWidth` which reflects the visible rendered width.
+- **`EvaScrubBar`**: Chapters provided via the `evaChapters` input were not synced to `EvaApi.chapterMarkerChangesSubject`, so `EvaActiveChapter` and the per-frame chapter lookup in `updateVideoTime()` used VTT-parsed chapters instead of the input chapters. Now pushes input chapters to `chapterMarkerChangesSubject` on init.
+- **`EvaVideoConfigurationDirective`**: Setting `loop: false` in `evaVideoConfiguration` was silently ignored because the guard used `if (config.loop)` (falsy check). Changed to `if (config.loop !== undefined)` so `false` is correctly applied. Loop changes now also broadcast to `EvaApi.loopSubject`.
+- **`EvaKeyboardShortcuts`**: In multi-player setups, all players responded to every keystroke simultaneously. Now only the last-interacted player handles shortcuts. When focus is inside a specific `eva-player`, only that player responds.
+- **`EvaKeyboardShortcuts`**: Number keys and other shortcuts were captured when focus was on custom widgets (dropdowns, sliders, etc.) that are not `<input>` or `<textarea>`. The input guard now also skips `<select>` elements and any element with an interactive ARIA role (`listbox`, `combobox`, `menu`, `menuitem`, `slider`, `spinbutton`, `textbox`, `searchbox`, `gridcell`).
+- **`validateAndTransformEvaKeyboardShortcutsConfiguration`**: Default config values were stored in ALL-UPPERCASE (`"ARROWLEFT"`) but JSDoc documented mixed-case defaults (`"ArrowLeft"`). All key values are now normalized to uppercase via `.toUpperCase()` in the transform, making consumer-provided casing irrelevant. Removed redundant per-keystroke `.toUpperCase()` calls on config values in the keyboard handler.
+- **`EvaFullscreenAPI`**: Stale JSDoc `@example` and `@param` on `toggleFullscreen()` still referenced the old two-argument signature. Updated to reflect the current no-arg signature.
+- **`EvaChapterList`**: Click-outside handler fired on the same click event that opened the panel, causing it to open and immediately close. Fixed with a 50ms debounce after open.
+- **`EvaVideoConfigurationDirective`**: All boolean config properties (`autoplay`, `controls`, `muted`, `disablePictureInPicture`, `disableRemotePlayback`, `playinline`) used truthy checks (`if (config.X)`) which prevented setting them back to `false` at runtime. Changed all to `!== undefined` guards (same fix already applied to `loop`).
+- **`EvaKeyboardShortcuts`**: `lastActiveApi` retained a reference to a destroyed `EvaApi` instance in multi-player teardown scenarios, permanently locking surviving players out of keyboard shortcuts. Now validates the reference is still alive via `isPlayerReady` before comparing.
+- **`EvaKeyboardShortcuts`**: Duplicate `keydown` listeners could accumulate if the `effect()` re-ran with `true` on consecutive change detection cycles. Now calls `removeEventListener` before `addEventListener` to prevent duplicates.
+- **`EvaScrubBar`**: `hasExternalChapters` was never reset when the `evaChapters` input was cleared to `[]`, permanently blocking VTT chapter loading. Now resets the flag and clears chapters via `ngOnChanges` when the input changes at runtime.
+- **`EvaApi.volumeChanged()`**: Accessed `assignedVideoElement!.volume` without calling `validateVideoAndPlayerBeforeAction()`, unlike other event callbacks. Added the guard.
+- **`EvaApi.loadedVideoMetadata()`**: Accessed `assignedVideoElement!.duration` without a null guard. Added an early return if `assignedVideoElement` is null.
+- **`EvaLoop.toggleLoop()`**: Only checked `assignedVideoElement` for null but did not use `validateVideoAndPlayerBeforeAction()`. Now uses the full validation guard.
+- **`EvaChapterList.seekToChapter()`**: Did not coordinate with the seek state (`isSeeking`, `pendingPlayAfterSeek`). Now sets `isSeeking` and resumes playback after seek if the video was playing.
+- **`EvaVideoConfigurationDirective`**: `startingVolume: 0` was silently ignored because the guard used `if (config.startingVolume)` (truthiness check). Changed to `if (config.startingVolume !== undefined)` so `0` is correctly applied.
+- **`EvaScrubBar`**: `seekEnd()` returned early when `newTime` was `NaN` without resetting `wasPlaying`, leaving the video permanently paused after an invalid seek. Now resets `wasPlaying` on all early-return paths.
+- **`EvaApi.muteOrUnmuteVideo()`**: Unmuting restored `lastActiveVolume` which could be `0` if the user had dragged the volume slider to zero. Now saves the current volume before muting (only when > 0) and falls back to `0.75` if `lastActiveVolume` is `0`.
+- **`EvaScrubBar`**: `controlsSelectorComponentActive` subscription (a `BehaviorSubject`) immediately emitted `false` on subscribe, scheduling an auto-hide before any user interaction. Added `skip(1)` to ignore the initial emission.
+- **`EvaScrubBar`**: `getTouchOffset()` accessed `event.touches[0]` without checking that `touches` is non-empty. Added a guard returning `0` when the touch list is empty.
+- **`EvaScrubBar`**: `touchStartScrub` passed `false` to `seekEnd()` when `evaSlidingEnabled` was `false`, discarding the touch position entirely. The video never seeked on tap. Now computes the touch offset via `getTouchOffset()`, matching the mouse path behaviour.
+- **`EvaScrubBar`**: `prepareHiding()` was called unconditionally from the `triggerUserInteraction` subscription, scheduling a hide timeout even while a selector dropdown (quality, speed) was open. The scrub bar would hide behind the open dropdown. Now skips scheduling when `isControlerSelectorActive` is `true`.
+
+### Improved
+
+- **`EvaChapterList`**: Panel now closes on `Escape` key (document-level) and click outside the panel. Both emit `evaChapterListClose` so the consumer's signal stays in sync.
+
+### Internal
+
+- Removed commented-out double-tap-to-seek `touchend` code and unused `lastTapTime` field from `EvaMediaEventListenersDirective`.
+- Fixed broken `keyboard-shortcuts.spec.ts` — replaced direct `new EvaKeyboardShortcuts()` (which crashed outside an injection context) with a `TestBed`-based test using a host component.
+
+### Documentation
+
+- **`documentation/core/eva-api.md`**: Added `loopSubject` to the Subjects table.
+- **`documentation/core/player.md`**: Updated keyboard shortcuts notes with multi-player scoping, casing normalization, and expanded input guard.
+- **`documentation/core/directives.md`**: Updated `EvaKeyboardShortcuts` description with multi-player scoping, expanded suppression list, and template directive correction.
+- **`documentation/core/fullscreen-api.md`**: Updated `toggleFullscreen` signature in the public API table.
+- **`documentation/controls/chapter-list.md`**: Created full documentation with inputs, usage examples with TypeScript integration, chapter item display, keyboard support, and 20+ SCSS variables.
+- **`documentation/controls/loop.md`**: Created full documentation with inputs, 4 usage examples, host classes, keyboard support, SCSS variables, and ARIA types.
+- **`documentation/controls/scrub-bar.md`**: Updated Chapter Markers section to document sync to `chapterMarkerChangesSubject` and VTT-skip behavior when `evaChapters` is provided.
+
+---
+
 ## [22.0.1] - 2026-06-21
 
 ### Added
@@ -34,23 +90,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Documentation
 
-- **`documentation/core/player.md`**: Added `evaKeyboardShortcutsEnabled` and `evaKeyboardShortcutsConfiguration` to the inputs table. Added `EvaKeyboardShortcutsConfiguration` type reference with default keyboard shortcuts table. Expanded usage from 2 to 6 examples including minimal, full-featured player layout, and HLS streaming.
-- **`documentation/core/directives.md`**: Added `EvaKeyboardShortcuts` directive section with inputs, keyboard actions, usage, and notes. Updated `EvaUserInteractionEventsDirective` listened events table with `dblclick` and `touchend` double-tap. Added usage examples for `EvaUserInteractionEventsDirective`.
-- **`documentation/core/eva-api.md`**: Added `jumpToVideoPercentage` to the playback commands table.
-- **`documentation/core/fullscreen-api.md`**: Added programmatic usage examples with TypeScript service injection and template conditional rendering.
-- **`documentation/controls/quality-selector.md`**: Created full documentation with inputs, 4 usage examples (minimal, custom labels, HLS combo, DASH combo), keyboard support, and SCSS variables.
-- **`documentation/controls/container.md`**: Added 3 usage examples: with `evaUserInteractionEvents`, full controls bar with divider, and minimal no-auto-hide layout.
-- **`documentation/controls/scrub-bar.md`**: Added 3 usage examples: click-to-seek only, custom ARIA with HH:mm:ss tooltip, and full player layout with scrub bar outside the controls container.
-- **`documentation/controls/time-display.md`**: Added 3 usage examples: current/total YouTube-style pattern, left/right layout with divider, and live stream with custom badge.
-- **`documentation/controls/time-display-pipe.md`**: Added 3 usage examples: total seconds format, custom component with `EvaApi.time()`, and remaining time with hours.
-- **`documentation/controls/volume.md`**: Added 2 usage examples: paired with mute button, and paired with custom volume thresholds.
-- **`documentation/controls/playback-speed.md`**: Added 3 usage examples: fine-grained speeds for educational content, podcast speeds, and inside a full controls bar.
-- **`documentation/controls/track-selector.md`**: Added a full player example with subtitle tracks, subtitle display, and custom labels.
-- **`documentation/controls/fullscreen.md`**: Added a controls bar placement example showing typical end-of-bar positioning.
-- **`documentation/controls/subtitle-display.md`**: Added a full setup example with subtitle tracks and track selector. Added a note about required placement outside `eva-controls-container`.
-- **`documentation/buffering/buffering.md`**: Added 2 usage examples: text-based loading indicator and full player layout showing recommended component order.
-- **`documentation/example-configuration.md`**: Added `evaKeyboardShortcutsEnabled`, `evaKeyboardShortcutsConfiguration`, and `EvaKeyboardShortcutsConfiguration` import to the full example.
-- Added JSDoc to `EvaKeyboardShortcutsConfiguration` interface and all its properties, `EvaKeyboardShortcuts` directive class, `jumpToVideoPercentage`, `prepareDefaultKeyboardShortcutsConfiguration`, `validateAndTransformEvaKeyboardShortcutsConfiguration`, and `EvaPlayer` keyboard shortcut inputs.
+- Added usage examples across 15 documentation files.
+- Created full documentation for `EvaQualitySelector`.
+- Added `jumpToVideoPercentage` to the `EvaApi` playback commands table.
+- Updated `toggleFullscreen` signature in `EvaFullscreenAPI` docs.
+- Added JSDoc to all new types, functions, and components.
 
 ---
 

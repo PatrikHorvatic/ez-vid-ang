@@ -29,7 +29,7 @@ import { EvaApi } from './eva-api';
  * @example
  * // Injected automatically into EvaPlayer — not intended for direct consumer use.
  * // To toggle fullscreen from a component:
- * await this.fullscreenService.toggleFullscreen(playerContainer, videoElement);
+ * await this.fullscreenService.toggleFullscreen();
  */
 @Injectable()
 export class EvaFullscreenAPI {
@@ -257,9 +257,7 @@ export class EvaFullscreenAPI {
 
   /**
    * Toggles fullscreen mode — exits if currently fullscreen, enters otherwise.
-   *
-   * @param element - The player container element to make fullscreen.
-   * @param videoElement - The native `<video>` element, used as a fallback on mobile/iOS.
+   * Resolves the video element and player container internally via `EvaApi.assignedVideoElement`.
    */
   async toggleFullscreen(): Promise<void> {
     const videoElement = this.evaAPI.assignedVideoElement;

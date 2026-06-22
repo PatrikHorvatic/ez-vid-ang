@@ -26,7 +26,7 @@ iOS is handled specially — `webkitEnterFullscreen` must be called on the `<vid
 | `isFullscreenSupported` | `() => boolean` | Returns whether a supported fullscreen API was detected. Use to conditionally show the fullscreen button. |
 | `enterFullscreen` | `(element: HTMLElement, videoElement?: HTMLVideoElement) => Promise<void>` | Requests fullscreen on `element`. On iOS or mobile without container support, targets `videoElement` instead. |
 | `exitFullscreen` | `() => Promise<void>` | Exits fullscreen via `document`. |
-| `toggleFullscreen` | `(element: HTMLElement, videoElement?: HTMLVideoElement) => Promise<void>` | Exits if currently fullscreen, enters otherwise. |
+| `toggleFullscreen` | `() => Promise<void>` | Exits if currently fullscreen, enters otherwise. Resolves the video element and player container internally via `EvaApi.assignedVideoElement`. |
 | `destroy` | `() => void` | Completes `isFullscreenSubject`. Called from `EvaPlayer.ngOnDestroy`. |
 
 ### Usage

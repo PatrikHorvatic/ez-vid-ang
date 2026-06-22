@@ -119,7 +119,7 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
 
     // Volume — validated and clamped to [0, 1] by validateAndPrepareStartingVideoVolume,
     // assigned as a typed number, no sanitization needed
-    if (config.startingVolume) {
+    if (config.startingVolume !== undefined) {
       const v = validateAndPrepareStartingVideoVolume(config.startingVolume);
       this.elementRef.nativeElement.volume = v;
       this.evaAPI.setVideoVolume(v);
@@ -133,26 +133,27 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
       this.elementRef.nativeElement.height = config.height;
     }
 
-    // Boolean properties — assigned as typed booleans, no sanitization needed
-    if (config.autoplay) {
+    // Boolean properties — use !== undefined so `false` is correctly applied at runtime
+    if (config.autoplay !== undefined) {
       this.elementRef.nativeElement.autoplay = config.autoplay;
     }
-    if (config.controls) {
+    if (config.controls !== undefined) {
       this.elementRef.nativeElement.controls = config.controls;
     }
-    if (config.disablePictureInPicture) {
+    if (config.disablePictureInPicture !== undefined) {
       this.elementRef.nativeElement.disablePictureInPicture = config.disablePictureInPicture;
     }
-    if (config.disableRemotePlayback) {
+    if (config.disableRemotePlayback !== undefined) {
       this.elementRef.nativeElement.disableRemotePlayback = config.disableRemotePlayback;
     }
-    if (config.loop) {
+    if (config.loop !== undefined) {
       this.elementRef.nativeElement.loop = config.loop;
+      this.evaAPI.loopSubject.next(config.loop);
     }
-    if (config.muted) {
+    if (config.muted !== undefined) {
       this.elementRef.nativeElement.muted = config.muted;
     }
-    if (config.playinline) {
+    if (config.playinline !== undefined) {
       this.elementRef.nativeElement.playsInline = config.playinline;
     }
 

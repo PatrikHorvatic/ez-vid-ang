@@ -110,14 +110,14 @@ export function validateAndTransformEvaKeyboardShortcutsConfiguration(conf: EvaK
 	return {
 		backwardSeconds: (conf.backwardSeconds && conf.backwardSeconds > 0) ? conf.backwardSeconds : 10,
 		forwardSeconds: (conf.forwardSeconds && conf.forwardSeconds > 0) ? conf.forwardSeconds : 10,
-		backwardsKeyOne: conf.backwardsKeyOne ?? "J",
-		forwardKeyOne: conf.forwardKeyOne ?? "L",
-		backwardsKeyTwo: conf.backwardsKeyTwo ?? "ARROWLEFT",
-		forwardKeyTwo: conf.forwardKeyTwo ?? "ARROWRIGHT",
-		muteKey: conf.muteKey ?? "M",
-		fullscreen: conf.fullscreen ?? "F",
-		playPause: conf.playPause ?? "SPACE",
-		oneFrameBackward: conf.oneFrameBackward ?? ",",
-		oneFrameForward: conf.oneFrameForward ?? ".",
+		backwardsKeyOne: (conf.backwardsKeyOne ?? "J").toUpperCase(),
+		forwardKeyOne: (conf.forwardKeyOne ?? "L").toUpperCase(),
+		backwardsKeyTwo: (conf.backwardsKeyTwo ?? "ARROWLEFT").toUpperCase(),
+		forwardKeyTwo: (conf.forwardKeyTwo ?? "ARROWRIGHT").toUpperCase(),
+		muteKey: (conf.muteKey ?? "M").toUpperCase(),
+		fullscreen: (conf.fullscreen ?? "F").toUpperCase(),
+		playPause: (conf.playPause ?? "SPACE").toUpperCase(),
+		oneFrameBackward: (conf.oneFrameBackward ?? ",").toUpperCase(),
+		oneFrameForward: (conf.oneFrameForward ?? ".").toUpperCase(),
 	}
 }

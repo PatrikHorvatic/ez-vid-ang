@@ -31,6 +31,7 @@ All player components and directives communicate through `EvaApi` rather than di
 | `activeChapterSubject` | `BehaviorSubject<EvaChapterMarker \| null>` | Broadcasts the chapter active at the current playback position. Updated by `updateVideoTime()` when `isActiveChapterPresent` is `true`. |
 | `chapterMarkerChangesSubject` | `BehaviorSubject<EvaChapterMarker[]>` | Broadcasts the full list of parsed chapter markers when tracks change. |
 | `pictureInPictureSubject` | `BehaviorSubject<boolean>` | Broadcasts PiP state. `true` when the player enters PiP, `false` when it leaves. |
+| `loopSubject` | `BehaviorSubject<boolean>` | Broadcasts the current loop state. Updated by `EvaVideoConfigurationDirective` and `EvaLoop`. |
 | `componentsContainerVisibilityStateSubject` | `BehaviorSubject<boolean>` | Broadcasts controls container visibility state. |
 | `controlsSelectorComponentActive` | `BehaviorSubject<boolean>` | Whether a selector dropdown (e.g. quality, track, playback speed) is currently open. |
 | `triggerUserInteraction` | `Subject<MouseEvent \| TouchEvent \| PointerEvent>` | Emits on user interaction events. Subscribed to by `EvaControlsContainerComponent` and `EvaScrubBar` for auto-hide. Published to by `EvaUserInteractionEventsDirective`. |
@@ -48,7 +49,7 @@ All player components and directives communicate through `EvaApi` rather than di
 | `getPlaybackSpeed` | `() => number` | Returns the current playback rate. Falls back to `1` if not ready. |
 | `setVideoVolume` | `(volume: number) => void` | Sets volume, clamped to `[0, 1]`. |
 | `getVideoVolume` | `() => number` | Returns current volume. Falls back to `0.75` if not ready. |
-| `muteOrUnmuteVideo` | `() => void` | Toggles mute — sets volume to `0` or restores to `0.75`. |
+| `muteOrUnmuteVideo` | `() => void` | Toggles mute — saves volume before muting, restores on unmute. Falls back to `0.75` if previous volume was `0`. |
 
 ### Picture-in-Picture
 

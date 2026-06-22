@@ -88,8 +88,20 @@ Mouse and touch event listeners are registered outside Angular's zone to avoid u
 
 Chapter markers are resolved in the following priority order:
 
-1. `evaChapters` input — used directly if non-empty.
-2. VTT text track — falls back to a `chapters` or `metadata` kind track on the video element. If the player is not yet ready, loading is deferred until `playerReadyEvent` fires.
+1. `evaChapters` input — used directly if non-empty. Also synced to `EvaApi.chapterMarkerChangesSubject` so that `EvaActiveChapter` and the per-frame chapter lookup in `updateVideoTime()` use the same data.
+2. VTT text track — falls back to a `chapters` or `metadata` kind track on the video element. If the player is not yet ready, loading is deferred until `playerReadyEvent` fires. VTT-parsed chapters are skipped when `evaChapters` is provided.
+
+### Auto-hide Behaviour
+
+When `hideWithControlsContainer` is `true`, the scrub bar hides after `evaAutohideTime` ms of inactivity. The hide timer is reset on every user interaction event from `EvaApi.triggerUserInteraction`.
+
+The auto-hide is paused while a selector dropdown (quality, speed, track) is open — the bar will not disappear behind an open dropdown. The hide timer resumes when the dropdown closes.
+
+### Touch Support
+
+Touch seeking works the same as mouse seeking:
+- With `evaSlidingEnabled` = `true` — touch-and-drag to seek.
+- With `evaSlidingEnabled` = `false` — tap to seek to that position.
 
 ### Keyboard Support
 

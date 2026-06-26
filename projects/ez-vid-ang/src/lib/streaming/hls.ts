@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/prefer-optional-chain */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Directive,
   inject,
@@ -26,7 +30,7 @@ declare let Hls: {
  *
  * @see https://github.com/video-dev/hls.js/blob/master/docs/API.md#fine-tuning
  */
-export interface EvaHlsConfig {
+export type EvaHlsConfig = {
   autoStartLoad?: boolean;
   xhrSetup?: (xhr: XMLHttpRequest, url: string) => void;
   maxBufferLength?: number;
@@ -80,7 +84,7 @@ export interface EvaHlsConfig {
   exportAs: 'evaHls'
 })
 export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
-  private evaAPI = inject(EvaApi);
+  private readonly evaAPI = inject(EvaApi);
 
   /**
    * The HLS stream URL (`.m3u8` manifest).
@@ -88,21 +92,21 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
    * **Required.** Changing this at runtime destroys the current hls.js instance
    * and creates a new one with the updated source.
    */
-  readonly evaHlsSrc = input.required<string>();
+  public readonly evaHlsSrc = input.required<string>();
 
   /**
    * Optional HTTP headers attached to every segment request via `xhrSetup`.
    *
    * @default {}
    */
-  readonly evaHlsHeaders = input<{ [key: string]: string }>({});
+  public readonly evaHlsHeaders = input<Record<string, string>>({});
 
   /**
-   * hls.js configuration overrides merged with the directive's defaults.
+   * Hls.js configuration overrides merged with the directive's defaults.
    *
    * @default {}
    */
-  readonly evaHlsConfig = input<EvaHlsConfig>({});
+  public readonly evaHlsConfig = input<EvaHlsConfig>({});
 
   /** The active hls.js instance. `null` when not initialized or after destruction. */
   private hls: any = null;
@@ -110,7 +114,13 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
   /** Subscription to `EvaApi.playerReadyEvent`. Used to defer setup until the player is ready. */
   private playerReady$: Subscription | null = null;
 
-  ngOnInit(): void {
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes['evaHlsSrc'] && !changes['evaHlsSrc'].firstChange) {
+      this.createPlayer();
+    }
+  }
+
+  public ngOnInit(): void {
     if (this.evaAPI.isPlayerReady) {
       this.createPlayer();
     } else {
@@ -121,13 +131,7 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['evaHlsSrc'] && !changes['evaHlsSrc'].firstChange) {
-      this.createPlayer();
-    }
-  }
-
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this.destroyPlayer();
     this.playerReady$?.unsubscribe();
   }
@@ -149,10 +153,10 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
     this.destroyPlayer();
 
     const src = this.evaHlsSrc();
-    if (!src) return;
+    if (!src) { return; }
 
     const video = this.evaAPI.assignedVideoElement;
-    if (!video) return;
+    if (!video) { return; }
 
     if (typeof Hls !== 'undefined' && Hls.isSupported()) {
       const userConfig = this.evaHlsConfig();
@@ -232,7 +236,7 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
    * @param level - The `qualityIndex` from an `EvaQualityLevel` object.
    */
   public setQualityLevel(level: number): void {
-    if (!this.hls) return;
+    if (!this.hls) { return; }
     this.hls.nextLevel = level;
   }
 

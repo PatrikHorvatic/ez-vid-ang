@@ -1,5 +1,7 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { EvaBackward } from './backward';
+import { EvaApi } from '../../api/eva-api';
+import { EvaFullscreenAPI } from '../../api/fullscreen';
 
 describe('BackwardComponent', () => {
   let component: EvaBackward;
@@ -7,7 +9,7 @@ describe('BackwardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [EvaBackward]
+      imports: [EvaBackward], providers: [EvaApi, EvaFullscreenAPI]
     })
       .compileComponents();
 

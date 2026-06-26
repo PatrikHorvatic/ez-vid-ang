@@ -1,5 +1,7 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { EvaActiveChapter } from './active-chapter';
+import { EvaApi } from '../../api/eva-api';
+import { EvaFullscreenAPI } from '../../api/fullscreen';
 
 describe('ActiveChapterComponent', () => {
   let component: EvaActiveChapter;
@@ -7,7 +9,7 @@ describe('ActiveChapterComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [EvaActiveChapter]
+      imports: [EvaActiveChapter], providers: [EvaApi, EvaFullscreenAPI]
     })
       .compileComponents();
 

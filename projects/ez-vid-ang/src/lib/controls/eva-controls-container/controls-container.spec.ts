@@ -1,5 +1,7 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { EvaControlsContainer } from './controls-container';
+import { EvaApi } from '../../api/eva-api';
+import { EvaFullscreenAPI } from '../../api/fullscreen';
 
 describe('EvaControlsContainerComponent', () => {
   let component: EvaControlsContainer;
@@ -7,7 +9,7 @@ describe('EvaControlsContainerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [EvaControlsContainer]
+      imports: [EvaControlsContainer], providers: [EvaApi, EvaFullscreenAPI]
     })
       .compileComponents();
 

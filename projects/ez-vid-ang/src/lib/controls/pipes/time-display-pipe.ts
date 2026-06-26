@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { EvaTimeFormating, EvaTimeProperty } from '../../types';
+import { SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_DISPLAY_PAD_WIDTH } from '../../constants';
 
 /**
  * Pure pipe that formats a time value in seconds into a display string
@@ -39,12 +40,12 @@ export class EvaTimeDisplayPipe implements PipeTransform {
    *   Affects rounding: `'remaining'` uses `Math.ceil`, all others use `Math.floor`.
    * @returns A formatted time string, or `"00:00"` if the format is unrecognised.
    */
-  transform(value: number, formating: EvaTimeFormating, timeProperty: EvaTimeProperty): string {
-    let totalSeconds: number = timeProperty === "remaining" ? Math.max(0, Math.ceil(value)) : Math.max(0, Math.floor(value));
+  public transform(value: number, formating: EvaTimeFormating, _timeProperty: EvaTimeProperty): string {
+    const totalSeconds: number = Math.max(0, Math.floor(value));
 
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
+    const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+    const minutes = Math.floor((totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
+    const seconds = totalSeconds % SECONDS_PER_MINUTE;
 
     switch (formating) {
       case "HH:mm:ss":
@@ -52,8 +53,10 @@ export class EvaTimeDisplayPipe implements PipeTransform {
 
       case "mm:ss":
         // Include hours in total minutes if present
-        const totalMinutes = hours * 60 + minutes;
-        return `${this.pad(totalMinutes)}:${this.pad(seconds)}`;
+        {
+          const totalMinutes = hours * SECONDS_PER_MINUTE + minutes;
+          return `${this.pad(totalMinutes)}:${this.pad(seconds)}`;
+        }
 
       case "ss":
         return `${totalSeconds}`;
@@ -70,6 +73,6 @@ export class EvaTimeDisplayPipe implements PipeTransform {
    * @returns A string of at least 2 characters (e.g. `7` → `"07"`, `123` → `"123"`).
    */
   private pad(num: number): string {
-    return num.toString().padStart(2, '0');
+    return num.toString().padStart(TIME_DISPLAY_PAD_WIDTH, '0');
   }
 }

@@ -4,9 +4,9 @@ import {
   computed,
   inject,
   input,
+  signal,
   OnDestroy,
   OnInit,
-  signal,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
@@ -72,40 +72,38 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
    *
    * @default "Quality selector"
    */
-  readonly evaQualitySelectorText = input<string>('Quality selector');
+  public readonly evaQualitySelectorText = input<string>('Quality selector');
 
   /**
    * Label used for the Auto (ABR) quality option.
    *
    * @default "Auto"
    */
-  readonly evaQualityAutoText = input<string>('Auto');
+  public readonly evaQualityAutoText = input<string>('Auto');
 
   /**
    * ARIA label for the quality selector button.
    */
-  readonly evaAria = input<EvaQualityAria>({ ariaLabel: 'Quality selector' });
+  public readonly evaAria = input<EvaQualityAria>({ ariaLabel: 'Quality selector' });
 
   /** Resolves the `aria-label` from the aria input. */
-  protected ariaLabel = computed<string>(() => {
-    return this.evaAria()?.ariaLabel ?? 'Quality selector';
-  });
+  protected readonly ariaLabel = computed<string>(() => this.evaAria().ariaLabel ?? 'Quality selector');
 
   /** Whether the dropdown is currently open. */
-  protected isOpen = signal(false);
+  protected readonly isOpen = signal(false);
 
   /** The list of available quality levels, sourced from `EvaApi.qualityLevelsSubject`. */
-  protected qualities = signal<EvaQualityLevel[]>([]);
+  protected readonly qualities = signal<EvaQualityLevel[]>([]);
 
   /**
    * The currently selected quality level.
    * Initialized to the Auto option when levels are first received.
    * Kept in sync with `EvaApi.currentQualityIndex`.
    */
-  protected currentQuality = signal<EvaQualityLevel | null>(null);
+  protected readonly currentQuality = signal<EvaQualityLevel | null>(null);
 
   /** Index used for keyboard navigation within the quality list. */
-  private keyboardIndex = signal(0);
+  private readonly keyboardIndex = signal(0);
 
   /** Subscription to quality level changes from `EvaApi`. Cleaned up in `ngOnDestroy`. */
   private qualityLevelsSub: Subscription | null = null;
@@ -118,7 +116,7 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
    * with quality levels registered by the active streaming directive.
    * Attaches a document-level click listener to close on outside clicks.
    */
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.qualityLevelsSub = this.evaAPI.qualityLevelsSubject.subscribe(levels => {
       this.qualities.set(levels);
 
@@ -133,7 +131,7 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
   }
 
   /** Unsubscribes and removes the document-level click listener. */
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this.qualityLevelsSub?.unsubscribe();
     if (this.clickOutsideListener) {
       document.removeEventListener('click', this.clickOutsideListener, true);
@@ -180,6 +178,7 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
    */
   protected onKeyDown(e: KeyboardEvent): void {
     const qualities = this.qualities();
+    if (!qualities.length) { return; }
     const isOpen = this.isOpen();
     const currentIndex = this.keyboardIndex();
 
@@ -232,13 +231,17 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
         this.isOpen.set(false);
         this.evaAPI.controlsSelectorComponentActive.next(false);
         break;
+
+      default:
+        break;
     }
   }
 
   /** Closes the dropdown when focus moves outside the `eva-quality-selector` element. */
   protected onBlur(event: FocusEvent): void {
-    const related = event.relatedTarget as HTMLElement;
-    if (!related || !related.closest('eva-quality-selector')) {
+
+    const related = event.relatedTarget;
+    if (!(related instanceof HTMLElement) || !related.closest('eva-quality-selector')) {
       this.isOpen.set(false);
       this.evaAPI.controlsSelectorComponentActive.next(false);
     }
@@ -250,8 +253,9 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
   }
 
   private handleClickOutside(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
-    if (!target.closest('eva-quality-selector')) {
+
+    if (!(event.target instanceof HTMLElement)) { return; }
+    if (!event.target.closest('eva-quality-selector')) {
       this.isOpen.set(false);
       this.evaAPI.controlsSelectorComponentActive.next(false);
     }

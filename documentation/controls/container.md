@@ -63,8 +63,10 @@ A wrapper component for the player control bar that manages its visibility. When
 The hide timer resets on every user interaction event emitted by `EvaApi.triggerUserInteraction`. Use `evaUserInteractionEvents` on the `eva-controls-container` element to wire up interaction detection automatically.
 
 Toggling `evaAutohide` at runtime is supported:
-- Switched to `true` — starts listening for interactions and schedules the first hide.
-- Switched to `false` — cancels any pending timeout, unsubscribes, and immediately shows the controls.
+- Switched to `true` — starts listening for interactions and schedules the first hide. Any previous subscriptions are cleaned up before new ones are created.
+- Switched to `false` — cancels any pending timeout, unsubscribes from both user interaction and selector-active streams, and immediately shows the controls.
+
+The auto-hide timer is also paused while a selector dropdown (quality, speed, track) is open, and resumes when it closes. The hide timeout is cleared on component destruction to prevent post-destroy callbacks.
 
 ### SCSS Variables
 

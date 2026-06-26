@@ -1,6 +1,8 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
 
 import { EvaSubtitleDisplay } from './subtitle-display';
+import { EvaApi } from '../../api/eva-api';
+import { EvaFullscreenAPI } from '../../api/fullscreen';
 
 describe('EvaSubtitleDisplay', () => {
   let component: EvaSubtitleDisplay;
@@ -8,7 +10,7 @@ describe('EvaSubtitleDisplay', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [EvaSubtitleDisplay]
+      imports: [EvaSubtitleDisplay], providers: [EvaApi, EvaFullscreenAPI]
     })
       .compileComponents();
 

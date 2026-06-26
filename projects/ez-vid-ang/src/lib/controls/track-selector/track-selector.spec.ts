@@ -1,6 +1,8 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
 
 import { EvaTrackSelector } from './track-selector';
+import { EvaApi } from '../../api/eva-api';
+import { EvaFullscreenAPI } from '../../api/fullscreen';
 
 describe('TrackSelector', () => {
   let component: EvaTrackSelector;
@@ -8,7 +10,7 @@ describe('TrackSelector', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EvaTrackSelector]
+      imports: [EvaTrackSelector], providers: [EvaApi, EvaFullscreenAPI]
     })
       .compileComponents();
 

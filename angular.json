@@ -3,7 +3,10 @@
   "version": 1,
   "cli": {
     "packageManager": "npm",
-    "analytics": false
+    "analytics": false,
+    "schematicCollections": [
+      "angular-eslint"
+    ]
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -29,6 +32,16 @@
           "builder": "@angular/build:unit-test",
           "options": {
             "tsConfig": "projects/ez-vid-ang/tsconfig.spec.json"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/ez-vid-ang/**/*.ts",
+              "projects/ez-vid-ang/**/*.html"
+            ],
+            "eslintConfig": "projects/ez-vid-ang/eslint.config.js"
           }
         }
       }

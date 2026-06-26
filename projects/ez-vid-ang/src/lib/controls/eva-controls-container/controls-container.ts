@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { ChangeDetectionStrategy, Component, inject, input, signal, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { skip, Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { transformTimeoutDuration } from '../../utils/utilities';
+import { DEFAULT_AUTOHIDE_TIMEOUT_MS } from '../../constants';
 
 /**
  * Controls container component for the Eva video player.
@@ -39,7 +40,7 @@ import { transformTimeoutDuration } from '../../utils/utilities';
 })
 export class EvaControlsContainer implements OnInit, OnDestroy, OnChanges {
 
-  private evaAPI = inject(EvaApi);
+  private readonly evaAPI = inject(EvaApi);
 
   /**
    * Enables the auto-hide behaviour. When `true`, the controls container hides
@@ -49,7 +50,7 @@ export class EvaControlsContainer implements OnInit, OnDestroy, OnChanges {
    *
    * @default false
    */
-  readonly evaAutohide = input<boolean>(false);
+  public readonly evaAutohide = input<boolean>(false);
 
   /**
    * Duration in milliseconds before the controls container hides after the last
@@ -58,11 +59,11 @@ export class EvaControlsContainer implements OnInit, OnDestroy, OnChanges {
    *
    * @default 3000
    */
-  readonly evaAutohideTime = input<number, number>(3000, { transform: transformTimeoutDuration });
+  public readonly evaAutohideTime = input<number, number>(DEFAULT_AUTOHIDE_TIMEOUT_MS, { transform: transformTimeoutDuration });
 
   /** Whether the controls container is currently hidden. Applies the `hide` class to the host. */
-  protected hideControls = signal(false);
-  private isControlerSelectorActive: boolean = false;
+  protected readonly hideControls = signal(false);
+  private isControlerSelectorActive = false;
 
   /** Subscription to user interaction events from `EvaApi`. Cleaned up in `ngOnDestroy` or when auto-hide is disabled. */
   private userInteraction$: Subscription | null = null;
@@ -75,32 +76,21 @@ export class EvaControlsContainer implements OnInit, OnDestroy, OnChanges {
   private hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
   /**
-   * Starts listening for user interaction events if `evaAutohide` is enabled on init,
-   * which will schedule the first hide after `evaAutohideTime` ms.
-   */
-  ngOnInit(): void {
-    if (this.evaAutohide()) {
-      this.startListening();
-    }
-  }
-
-  /**
-   * Responds to runtime changes of `evaAutohide`.
-   *
-   * - `evaAutohide` changed to `true` — starts listening and schedules the first hide.
-   * - `evaAutohide` changed to `false` — cancels any pending timeout, unsubscribes,
-   *   and immediately makes the controls visible.
-   *
-   * First-change is ignored since `ngOnInit` handles the initial state.
-   *
-   * @todo `evaAutohideTime` change handling is not yet implemented.
-   */
-  ngOnChanges(changes: SimpleChanges): void {
+ * Responds to runtime changes of `evaAutohide`.
+ *
+ * - `evaAutohide` changed to `true` — starts listening and schedules the first hide.
+ * - `evaAutohide` changed to `false` — cancels any pending timeout, unsubscribes,
+ *   and immediately makes the controls visible.
+ *
+ * First-change is ignored since `ngOnInit` handles the initial state.
+ *
+ * @todo `evaAutohideTime` change handling is not yet implemented.
+ */
+  public ngOnChanges(changes: SimpleChanges): void {
     if (changes["evaAutohide"]) {
       if (!changes["evaAutohide"].firstChange) {
         if (changes["evaAutohide"].currentValue === true) {
           this.startListening();
-          this.prepareHiding();
         }
         else {
           this.disableHiding();
@@ -109,28 +99,43 @@ export class EvaControlsContainer implements OnInit, OnDestroy, OnChanges {
     }
   }
 
+
+  /**
+   * Starts listening for user interaction events if `evaAutohide` is enabled on init,
+   * which will schedule the first hide after `evaAutohideTime` ms.
+   */
+  public ngOnInit(): void {
+    if (this.evaAutohide()) {
+      this.startListening();
+    }
+  }
+
+
   /** Unsubscribes from the user interaction subscription to prevent memory leaks. */
-  ngOnDestroy(): void {
-    if (this.userInteraction$) {
-      this.userInteraction$.unsubscribe();
+  public ngOnDestroy(): void {
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout);
     }
-    if (this.controlsSelectorActive$) {
-      this.controlsSelectorActive$.unsubscribe();
-    }
+    this.userInteraction$?.unsubscribe();
+    this.controlsSelectorActive$?.unsubscribe();
   }
 
   /**
    * Subscribes to `EvaApi.triggerUserInteraction` and resets the hide timer
    * on every interaction event, keeping the controls visible during activity.
    */
-  private startListening() {
+  private startListening(): void {
+    this.userInteraction$?.unsubscribe();
+    this.controlsSelectorActive$?.unsubscribe();
     this.userInteraction$ = this.evaAPI.triggerUserInteraction.subscribe(() => {
       if (this.hideTimeout) {
         clearTimeout(this.hideTimeout);
       }
-      this.prepareHiding();
+      if (!this.isControlerSelectorActive) {
+        this.prepareHiding();
+      }
     });
-    this.controlsSelectorActive$ = this.evaAPI.controlsSelectorComponentActive.subscribe((isActive) => {
+    this.controlsSelectorActive$ = this.evaAPI.controlsSelectorComponentActive.pipe(skip(1)).subscribe((isActive) => {
       this.isControlerSelectorActive = isActive;
       if (this.hideTimeout) {
         clearTimeout(this.hideTimeout);
@@ -145,13 +150,12 @@ export class EvaControlsContainer implements OnInit, OnDestroy, OnChanges {
    * Disables auto-hide by cancelling any pending timeout, unsubscribing from
    * user interaction events, and immediately showing the controls.
    */
-  private disableHiding() {
+  private disableHiding(): void {
     if (this.hideTimeout) {
       clearTimeout(this.hideTimeout);
     }
-    if (this.userInteraction$) {
-      this.userInteraction$.unsubscribe();
-    }
+    this.userInteraction$?.unsubscribe();
+    this.controlsSelectorActive$?.unsubscribe();
     this.hideControls.set(false);
     this.evaAPI.componentsContainerVisibilityStateSubject.next(false);
   }
@@ -160,7 +164,7 @@ export class EvaControlsContainer implements OnInit, OnDestroy, OnChanges {
    * Shows the controls immediately and schedules them to hide after `evaAutohideTime` ms.
    * Any previously scheduled hide is cancelled before scheduling a new one.
    */
-  private prepareHiding() {
+  private prepareHiding(): void {
     this.hideControls.set(false);
     this.evaAPI.componentsContainerVisibilityStateSubject.next(false);
     this.hideTimeout = setTimeout(() => {

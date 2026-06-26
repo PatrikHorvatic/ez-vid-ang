@@ -1,6 +1,7 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { EvaTimeDisplay } from './time-display';
+import { EvaApi } from '../../api/eva-api';
+import { EvaFullscreenAPI } from '../../api/fullscreen';
 
 describe('EvaTimeDisplay', () => {
   let component: EvaTimeDisplay;
@@ -8,13 +9,15 @@ describe('EvaTimeDisplay', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EvaTimeDisplay]
-    })
-      .compileComponents();
+      imports: [EvaTimeDisplay],
+      providers: [EvaApi, EvaFullscreenAPI]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(EvaTimeDisplay);
+    fixture.componentRef.setInput('evaTimeProperty', 'current');
+    fixture.componentRef.setInput('evaTimeFormating', 'mm:ss');
     component = fixture.componentInstance;
-    await fixture.whenStable();
+    fixture.detectChanges();
   });
 
   it('should create', () => {

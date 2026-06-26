@@ -1,5 +1,7 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { EvaFullscreen } from './fullscreen';
+import { EvaApi } from '../../api/eva-api';
+import { EvaFullscreenAPI } from '../../api/fullscreen';
 
 describe('EvaFullscreen', () => {
   let component: EvaFullscreen;
@@ -7,9 +9,9 @@ describe('EvaFullscreen', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EvaFullscreen]
-    })
-      .compileComponents();
+      imports: [EvaFullscreen],
+      providers: [EvaApi, EvaFullscreenAPI]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(EvaFullscreen);
     component = fixture.componentInstance;

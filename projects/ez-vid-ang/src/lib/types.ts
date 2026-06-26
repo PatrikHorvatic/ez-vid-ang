@@ -5,7 +5,7 @@
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/video
  */
-export interface EvaVideoElementConfiguration {
+export type EvaVideoElementConfiguration = {
 	/** Width of the video element in pixels. */
 	width?: number;
 	/** Height of the video element in pixels. */
@@ -44,7 +44,7 @@ export interface EvaVideoElementConfiguration {
  * All properties are optional — omitted keys fall back to their defaults
  * via `validateAndTransformEvaKeyboardShortcutsConfiguration`.
  */
-export interface EvaKeyboardShortcutsConfiguration {
+export type EvaKeyboardShortcutsConfiguration = {
 	/** Seconds to seek when a backward key is pressed. @default 10 */
 	backwardSeconds?: number,
 	/** Primary backward seek key. Matched via `KeyboardEvent.key`. @default "J" */
@@ -74,7 +74,7 @@ export interface EvaKeyboardShortcutsConfiguration {
  * Internal representation of a text track option within the dropdown.
  * Derived from `EvaTrack` with a simplified structure for local state management.
  */
-export interface EvaTrackInternal {
+export type EvaTrackInternal = {
 	/** Language code or `"off"` for the disabled option. */
 	id: string;
 	/** Display label shown in the dropdown. */
@@ -87,17 +87,17 @@ export interface EvaTrackInternal {
  * Represents a single `<source>` element to be rendered inside the `<video>` element.
  * Provide multiple sources for fallback across browsers and formats.
  */
-export interface EvaVideoSource {
+export type EvaVideoSource = {
 	/** MIME type of the video source (e.g. `"video/mp4"`, `"video/webm"`, `"application/x-mpegURL"`). */
 	type: string;
 	/** URL of the video file or stream manifest. */
 	src: string;
 	/** Optional media query string for responsive source selection. */
 	media?: string;
-	// srcset?: string;
-	// sizes?: string;
-	// width?: number;
-	// height?: number;
+	// Srcset?: string;
+	// Sizes?: string;
+	// Width?: number;
+	// Height?: number;
 }
 
 /**
@@ -182,9 +182,7 @@ export type EvaChapterMarker = {
  * @param event - The string to check.
  * @returns `true` if the string is a member of the `EvaVideoEvent` enum.
  */
-export const isValidVideoEvent = (event: string): event is EvaVideoEvent => {
-	return Object.values(EvaVideoEvent).includes(event as EvaVideoEvent);
-};
+export const isValidVideoEvent = (event: string): event is EvaVideoEvent => Object.values(EvaVideoEvent).includes(event as EvaVideoEvent);
 
 /**
  * Type guard that checks whether a string is a valid `EvaTrackKind` value.
@@ -192,9 +190,7 @@ export const isValidVideoEvent = (event: string): event is EvaVideoEvent => {
  * @param kind - The string to check.
  * @returns `true` if the string is one of the five valid HTML track `kind` values.
  */
-export const isValidTrackKind = (kind: string): kind is EvaTrackKind => {
-	return ['subtitles', 'captions', 'descriptions', 'chapters', 'metadata'].includes(kind);
-};
+export const isValidTrackKind = (kind: string): kind is EvaTrackKind => ['subtitles', 'captions', 'descriptions', 'chapters', 'metadata'].includes(kind);
 
 /**
  * The five valid values for the `kind` attribute of an HTML `<track>` element.
@@ -212,7 +208,7 @@ export type EvaTrackKind =
  * Base interface shared by all track types.
  * Extended by each specific track interface with their `kind` discriminant.
  */
-interface EvaBaseTrack {
+type EvaBaseTrack = {
 	/** URL of the `.vtt` track file. Must be a valid URL. */
 	src: string;
 	/** Human-readable label displayed in the track selector UI. */
@@ -226,47 +222,47 @@ interface EvaBaseTrack {
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/track#kind
  */
-interface EvaSubtitleTrack extends EvaBaseTrack {
+type EvaSubtitleTrack = {
 	kind: 'subtitles';
 	/** BCP 47 language code (e.g. `"en"`, `"fr"`, `"pt-BR"`). Required for subtitles. */
 	srclang: string;
-}
+} & EvaBaseTrack
 
 /**
  * Caption track. `srclang` is optional.
  * Captions are similar to subtitles but also describe non-speech audio (e.g. sound effects).
  */
-interface EvaCaptionTrack extends EvaBaseTrack {
+type EvaCaptionTrack = {
 	kind: 'captions';
 	srclang?: string;
-}
+} & EvaBaseTrack
 
 /**
  * Description track. `srclang` is optional.
  * Descriptions provide a text description of the video content for audio-only consumption.
  */
-interface EvaDescriptionTrack extends EvaBaseTrack {
+type EvaDescriptionTrack = {
 	kind: 'descriptions';
 	srclang?: string;
-}
+} & EvaBaseTrack
 
 /**
  * Chapter track. `srclang` is optional.
  * Used to define named chapters for navigation. Parsed by `EvaScrubBar` when `evaShowChapters` is enabled.
  */
-interface EvaChapterTrack extends EvaBaseTrack {
+type EvaChapterTrack = {
 	kind: 'chapters';
 	srclang?: string;
-}
+} & EvaBaseTrack
 
 /**
  * Metadata track. `srclang` is not applicable (`never`).
  * Used for programmatic data embedded in the video timeline, not displayed to users.
  */
-interface EvaMetadataTrack extends EvaBaseTrack {
+type EvaMetadataTrack = {
 	kind: 'metadata';
 	srclang?: never;
-}
+} & EvaBaseTrack
 
 /**
  * Discriminated union of all valid track configurations.
@@ -291,7 +287,7 @@ export type EvaTrack =
  * `qualityIndex` is the raw index used by the underlying player library to
  * switch levels. Pass `-1` (or set `isAuto` to `true`) for the "Auto" sentinel.
  */
-export interface EvaQualityLevel {
+export type EvaQualityLevel = {
 	/**
 	 * Raw index used by hls.js / dash.js to switch to this level.
 	 * `-1` represents the Auto (ABR) option.

@@ -20,6 +20,7 @@ yarn-error.log
 .settings/
 *.sublime-workspace
 CLAUDE.md
+skills-lock.json
 .agents
 .claude
 

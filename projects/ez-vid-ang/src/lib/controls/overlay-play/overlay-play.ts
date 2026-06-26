@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
-import { EvaOverlayPlayAria, EvaOverlayPlayAriaTransformed, transformEvaOverlayPlayAria } from '../../utils/aria-utilities';
+import { transformEvaOverlayPlayAria, EvaOverlayPlayAria, EvaOverlayPlayAriaTransformed } from '../../utils/aria-utilities';
+import { EvaState } from '../../types';
 
 /**
  * Overlay play button component for the Eva video player.
@@ -54,7 +55,7 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
    *
    * All properties are optional — default values are applied via `transformEvaOverlayPlayAria`.
    */
-  readonly evaOvelayPlayAria = input<EvaOverlayPlayAriaTransformed, EvaOverlayPlayAria>(transformEvaOverlayPlayAria(undefined), { transform: transformEvaOverlayPlayAria });
+  public readonly evaOvelayPlayAria = input<EvaOverlayPlayAriaTransformed, EvaOverlayPlayAria>(transformEvaOverlayPlayAria(undefined), { transform: transformEvaOverlayPlayAria });
 
   /**
    * When `true`, suppresses all built-in icon classes (`eva-icon`, `eva-icon-play_arrow`)
@@ -62,12 +63,10 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
    *
    * @default false
    */
-  readonly evaCustomIcon = input<boolean>(false);
+  public readonly evaCustomIcon = input<boolean>(false);
 
   /** Resolves the `aria-label` from the transformed aria input. */
-  protected ariaLabel = computed<string>(() => {
-    return this.evaOvelayPlayAria().ariaLabel;
-  });
+  protected readonly ariaLabel = computed<string>(() => this.evaOvelayPlayAria().ariaLabel);
 
   /**
    * `true` when the play icon should be visible — that is, when the current video
@@ -75,12 +74,10 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
    * Applies `eva-icon-play_arrow` and `eva-display-overlay-play` to the host element,
    * with the latter additionally gated on `!evaAPI.isBuffering()`.
    */
-  protected evaIconPlay = computed<boolean>(() => {
-    return this.playingState() === 'loading' || this.playingState() === 'paused' || this.playingState() === 'ended' || this.playingState() === 'error';
-  });
+  protected readonly evaIconPlay = computed<boolean>(() => this.playingState() === EvaState.LOADING || this.playingState() === EvaState.PAUSED || this.playingState() === EvaState.ENDED || this.playingState() === EvaState.ERROR);
 
   /** Reactive signal tracking the current video playback state. Initialized from `EvaApi`. */
-  protected playingState = signal(this.evaAPI.getCurrentVideoState());
+  protected readonly playingState = signal(this.evaAPI.getCurrentVideoState());
 
   /** Subscription to video state changes from `EvaApi`. Cleaned up in `ngOnDestroy`. */
   private playingStateSub: Subscription | null = null;
@@ -89,19 +86,19 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
    * Subscribes to `EvaApi.videoStateSubject` to keep `playingState`
    * in sync with the current video playback state.
    */
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.playingStateSub = this.evaAPI.videoStateSubject.subscribe(state => {
       this.playingState.set(state);
     });
   }
 
   /** Unsubscribes from the video state subscription to prevent memory leaks. */
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this.playingStateSub?.unsubscribe();
   }
 
   /** Delegates play/pause toggling to `EvaApi`. */
-  protected playClicked() {
+  protected playClicked(): void {
     this.evaAPI.playOrPauseVideo();
   }
 

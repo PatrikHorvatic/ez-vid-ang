@@ -1,7 +1,7 @@
 <div #volumeBar class="volumeBar">
 	<div class="volumeBackground" [class.dragging]="isDragging()">
-		<div class="volumeValue" [style.width]="videoVolume() * (100 - 15) + '%'" aria-hidden="true"></div>
-		<div class="volumeKnob" [style.left]="videoVolume() * (100 - 15) + '%'" aria-hidden="true"></div>
+		<div class="volumeValue" aria-hidden="true" [style.width]="`${videoVolume() * (100 - 15)}%`"></div>
+		<div class="volumeKnob" aria-hidden="true" [style.left]="`${videoVolume() * (100 - 15)}%`"></div>
 	</div>
 </div>
 

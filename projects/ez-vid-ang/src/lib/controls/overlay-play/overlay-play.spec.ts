@@ -1,6 +1,8 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
 
 import { EvaOverlayPlay } from './overlay-play';
+import { EvaApi } from '../../api/eva-api';
+import { EvaFullscreenAPI } from '../../api/fullscreen';
 
 describe('OverlayPlayComponent', () => {
   let component: EvaOverlayPlay;
@@ -8,7 +10,7 @@ describe('OverlayPlayComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [EvaOverlayPlay]
+      imports: [EvaOverlayPlay], providers: [EvaApi, EvaFullscreenAPI]
     })
       .compileComponents();
 

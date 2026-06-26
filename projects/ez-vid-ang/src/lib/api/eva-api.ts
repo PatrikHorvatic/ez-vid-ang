@@ -1,6 +1,7 @@
 import { EventEmitter, Injectable, signal } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { EvaChapterMarker, EvaQualityLevel, EvaState, EvaTrack, EvaTrackInternal } from '../types';
+import { EvaState, EvaChapterMarker, EvaQualityLevel, EvaTrack, EvaTrackInternal } from '../types';
+import { MAX_DIGIT_KEY, DIGIT_DIVISOR, READY_STATE_HAVE_FUTURE_DATA, BUFFERING_DETECTION_DELAY_MS, CHAPTER_UPDATE_DEBOUNCE_MS, DEFAULT_ARROW_SEEK_SECONDS, DEFAULT_UNMUTE_VOLUME } from '../constants';
 
 /**
  * Core API service for the Eva video player.
@@ -51,13 +52,13 @@ export class EvaApi {
 	public isPlayerReady = false;
 
 	/** Whether the video is currently buffering. Updated by event handlers and position-polling. */
-	public isBuffering = signal(true);
+	public readonly isBuffering = signal(true);
 
 	/** Whether the video has enough data to begin playback (`canplay` event has fired). */
-	public canPlay = signal(false);
+	public readonly canPlay = signal(false);
 
 	/** Whether a seek operation is currently in progress. */
-	public isSeeking = signal(false);
+	public readonly isSeeking = signal(false);
 
 	/** Whether the video metadata (`duration`, `dimensions`, tracks) has been loaded. */
 	protected isMetadataLoaded = false;
@@ -69,10 +70,10 @@ export class EvaApi {
 	 * When `true`, the video will resume playback after the current seek operation completes.
 	 * Set by `EvaScrubBar` when the user releases a drag seek while the video was playing.
 	 */
-	public pendingPlayAfterSeek: boolean = false;
+	public pendingPlayAfterSeek = false;
 
 	/** Whether the current source is a live stream (`duration === Infinity`). Set from `loadedmetadata`. */
-	public isLive = signal(false);
+	public readonly isLive = signal(false);
 
 	/**
 	 * Current playback time state. Updated on every `timeupdate` event.
@@ -80,7 +81,7 @@ export class EvaApi {
 	 * - `total` — total video duration in seconds (`Infinity` for live streams)
 	 * - `remaining` — seconds remaining until end
 	 */
-	public time = signal({
+	public readonly time = signal({
 		current: 0,
 		remaining: 0,
 		total: 0
@@ -146,7 +147,7 @@ export class EvaApi {
 	  * The currently selected quality level index.
 	  * `-1` represents Auto (ABR). Updated by `setQuality()`.
 	  */
-	public currentQualityIndex = signal(-1);
+	public readonly currentQualityIndex = signal(-1);
 
 	/** The current `EvaState` value, mirrored as a plain field for synchronous reads. */
 	private currentVideoState: EvaState = EvaState.LOADING;
@@ -159,7 +160,7 @@ export class EvaApi {
 	public triggerUserInteraction = new Subject<MouseEvent | TouchEvent | PointerEvent>();
 
 
-	public currentSubtitleCue = signal<string | null>(null);
+	public readonly currentSubtitleCue = signal<string | null>(null);
 
 
 	/** The active `PictureInPictureWindow` instance. `null` when PiP is not active. */
@@ -175,7 +176,7 @@ export class EvaApi {
 	/** Broadcasts the current loop state. Updated by `EvaVideoConfigurationDirective` and `EvaLoop`. */
 	public loopSubject = new BehaviorSubject<boolean>(false);
 
-	private lastActiveVolume: number = 1;
+	public lastActiveVolume = 1;
 
 
 	// ─── Buffering Detection ──────────────────────────────────────────────────
@@ -189,13 +190,13 @@ export class EvaApi {
 	/** The playback position recorded at the start of the current `timeupdate` cycle. */
 	private currentPlayPos = 0;
 
-	public isActiveChapterPresent: boolean = false;
+	public isActiveChapterPresent = false;
 
 	/** When `true`, chapters were provided via the `evaChapters` input and VTT-parsed chapters should not overwrite them. */
 	public hasExternalChapters = false;
 	private trackTimeout: ReturnType<typeof setTimeout> | null = null;
 
-	public updateAndPrepareTracks(tracks: EvaTrack[]) {
+	public updateAndPrepareTracks(tracks: EvaTrack[]): void {
 		this.videoTracksSubject.next(tracks);
 
 		if (this.trackTimeout) {
@@ -212,9 +213,9 @@ export class EvaApi {
 					this.activeChapterSubject.next(chapter ? chapter : null);
 				}
 			}
-		}, 300);
+		}, CHAPTER_UPDATE_DEBOUNCE_MS);
 
-		return;
+
 	}
 
 	/**
@@ -232,8 +233,10 @@ export class EvaApi {
 			this.currentSubtitleCue.set(null);
 			return;
 		}
-		const cue = track.activeCues[0] as VTTCue;
-		this.currentSubtitleCue.set(cue.text ?? null);
+		const cue = track.activeCues[0];
+		if (cue instanceof VTTCue) {
+			this.currentSubtitleCue.set(cue.text);
+		}
 	}
 
 	/**
@@ -289,12 +292,14 @@ export class EvaApi {
 	 * Updates `currentVideoState` and `videoStateSubject` accordingly.
 	 * Called from `EvaPlayPause` and `EvaOverlayPlay`.
 	 */
-	public playOrPauseVideo() {
+	public playOrPauseVideo(): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
 		if (this.assignedVideoElement!.paused) {
-			this.assignedVideoElement!.play();
+			this.assignedVideoElement!.play().catch((e: unknown) => {
+				if (e instanceof Error && e.name !== 'AbortError') { throw e; }
+			});
 			this.currentVideoState = EvaState.PLAYING;
 			this.videoStateSubject.next(this.currentVideoState);
 		}
@@ -310,7 +315,7 @@ export class EvaApi {
 	 * Updates `time` signal immediately for responsive UI feedback.
 	 * Called from `EvaScrubBar` keyboard handler.
 	 */
-	public seekForward(n: number = 5) {
+	public seekForward(n = DEFAULT_ARROW_SEEK_SECONDS): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -324,7 +329,7 @@ export class EvaApi {
 	 * Updates `time` signal immediately for responsive UI feedback.
 	 * Called from `EvaScrubBar` keyboard handler.
 	 */
-	public seekBack(n: number = 5) {
+	public seekBack(n = DEFAULT_ARROW_SEEK_SECONDS): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -341,7 +346,7 @@ export class EvaApi {
 	 *
 	 * @param key - A single digit character (`"0"`–`"9"`).
 	 */
-	public jumpToVideoPercentage(key: string) {
+	public jumpToVideoPercentage(key: string): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -349,10 +354,10 @@ export class EvaApi {
 			return;
 		}
 		const digit = parseInt(key, 10);
-		if (isNaN(digit) || digit < 0 || digit > 9) {
+		if (isNaN(digit) || digit < 0 || digit > MAX_DIGIT_KEY) {
 			return;
 		}
-		const newTime = (digit / 10) * this.time().total;
+		const newTime = (digit / DIGIT_DIVISOR) * this.time().total;
 		this.assignedVideoElement!.currentTime = newTime;
 		this.time.update(a => ({ ...a, current: newTime, remaining: a.total - newTime }));
 	}
@@ -363,7 +368,7 @@ export class EvaApi {
 	 *
 	 * @param speed - The desired playback rate (e.g. `0.5`, `1`, `1.5`, `2`).
 	 */
-	public setPlaybackSpeed(speed: number) {
+	public setPlaybackSpeed(speed: number): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -398,7 +403,7 @@ export class EvaApi {
 	 * and restores it on unmute. Falls back to `0.75` if `lastActiveVolume`
 	 * is `0` (e.g. volume was dragged to zero before muting).
 	 */
-	public muteOrUnmuteVideo() {
+	public muteOrUnmuteVideo(): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -408,7 +413,7 @@ export class EvaApi {
 			this.assignedVideoElement!.volume = 0;
 		}
 		else {
-			this.assignedVideoElement!.volume = this.lastActiveVolume > 0 ? this.lastActiveVolume : 0.75;
+			this.assignedVideoElement!.volume = this.lastActiveVolume > 0 ? this.lastActiveVolume : DEFAULT_UNMUTE_VOLUME;
 		}
 	}
 
@@ -418,7 +423,7 @@ export class EvaApi {
 	 *
 	 * @param volume - The desired volume as a normalized value (`0`–`1`).
 	 */
-	public setVideoVolume(volume: number) {
+	public setVideoVolume(volume: number): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -442,7 +447,7 @@ export class EvaApi {
 	 * Called from `EvaMediaEventListenersDirective` on the `error` event.
 	 * Sets state to `EvaState.ERROR` and clears the buffering indicator.
 	 */
-	public erroredVideo() {
+	public erroredVideo(): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -458,15 +463,15 @@ export class EvaApi {
 	 *
 	 * @param e - The native `loadedmetadata` event.
 	 */
-	public loadedVideoMetadata(_e: Event) {
-		if (!this.assignedVideoElement) return;
+	public loadedVideoMetadata(_e: Event): void {
+		if (!this.assignedVideoElement) { return; }
 		this.isMetadataLoaded = true;
+		const duration = this.assignedVideoElement.duration;
+		const isValidDuration = duration !== Infinity && !Number.isNaN(duration);
 		this.time.set({
 			current: 0,
-			remaining: this.assignedVideoElement.duration === Infinity
-				? 0
-				: Number.isNaN(this.assignedVideoElement.duration) ? 0 : this.assignedVideoElement.duration,
-			total: this.assignedVideoElement.duration
+			remaining: isValidDuration ? duration : 0,
+			total: isValidDuration || duration === Infinity ? duration : 0
 		});
 
 		this.isLive.set(this.assignedVideoElement.duration === Infinity);
@@ -477,7 +482,7 @@ export class EvaApi {
 	 * Shows the buffering indicator only if playback has already started,
 	 * to avoid showing it during the initial load.
 	 */
-	public videoWaiting() {
+	public videoWaiting(): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -490,7 +495,7 @@ export class EvaApi {
 	 * Called from `EvaMediaEventListenersDirective` on the `canplay` event.
 	 * Marks the video as ready to play and clears the buffering indicator.
 	 */
-	public videoCanPlay() {
+	public videoCanPlay(): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -502,7 +507,7 @@ export class EvaApi {
 	 * Called from `EvaMediaEventListenersDirective` on the `playing` event.
 	 * Marks `hasStartedPlaying`, clears buffering, and cancels any pending buffering timeout.
 	 */
-	public playingVideo() {
+	public playingVideo(): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -518,7 +523,7 @@ export class EvaApi {
 	 * Called from `EvaMediaEventListenersDirective` on the `stalled` event.
 	 * Sets buffering to `true` to reflect that the browser has stalled while fetching data.
 	 */
-	public videoStalled() {
+	public videoStalled(): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -531,7 +536,7 @@ export class EvaApi {
 	 *
 	 * @param e - The native `MouseEvent` from the scrub bar.
 	 */
-	public seekOnScrubEvent(_e: MouseEvent) {
+	public seekOnScrubEvent(_e: MouseEvent): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -545,7 +550,7 @@ export class EvaApi {
 	 * Called from `EvaMediaEventListenersDirective` on the `seeking` event.
 	 * Sets both `isSeeking` and `isBuffering` to `true`.
 	 */
-	public videoSeeking() {
+	public videoSeeking(): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -558,7 +563,7 @@ export class EvaApi {
 	 * Clears `isSeeking` and resumes playback if `pendingPlayAfterSeek` is set.
 	 * Ignores `AbortError` which can occur if another seek interrupts the play call.
 	 */
-	public videoSeeked() {
+	public videoSeeked(): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -566,8 +571,8 @@ export class EvaApi {
 
 		if (this.pendingPlayAfterSeek) {
 			this.pendingPlayAfterSeek = false;
-			this.assignedVideoElement!.play().catch(e => {
-				if (e.name !== 'AbortError') throw e;
+			this.assignedVideoElement!.play().catch((e: unknown) => {
+				if (e instanceof Error && e.name !== 'AbortError') { throw e; }
 			});
 		}
 	}
@@ -577,27 +582,26 @@ export class EvaApi {
 	 * Updates `time`, emits `videoTimeChangeSubject`, and runs the position-polling
 	 * buffering detection check.
 	 */
-	public updateVideoTime() {
+	public updateVideoTime(): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
 		this.videoTimeChangeSubject.next(this.videoTimeChangeSubject.value + 1);
 
 		const crnt = this.assignedVideoElement!.currentTime;
-		this.time.update(a => {
-			return {
-				current: crnt,
-				total: a.total,
-				remaining: this.getVideoDuration() - crnt
-			}
-		});
+		const duration = this.getVideoDuration();
+		this.time.update(a => ({
+			current: crnt,
+			total: a.total,
+			remaining: this.isLive() ? 0 : duration - crnt
+		}));
 
 		if (!this.isLive()) {
 			if (this.isActiveChapterPresent) {
 				const currentTime = Math.floor(this.time().current);
 				const listOfChapters = this.chapterMarkerChangesSubject.value;
 				const chapter = listOfChapters.find(c => currentTime >= c.startTime && currentTime < c.endTime);
-				// prevent triggering unneccesery change detection in signals.
+				// Prevent triggering unneccesery change detection in signals.
 				if (this.activeChapterSubject.value !== chapter) {
 					this.activeChapterSubject.next(chapter ? chapter : null);
 				}
@@ -610,7 +614,7 @@ export class EvaApi {
 	 * Called from `EvaMediaEventListenersDirective` on the `ended` event.
 	 * Sets state to `EvaState.ENDED` and clears the buffering indicator.
 	 */
-	public endedVideo() {
+	public endedVideo(): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -623,7 +627,7 @@ export class EvaApi {
 	 * Called from `EvaMediaEventListenersDirective` on the `pause` event.
 	 * Sets state to `EvaState.PAUSED` and clears the buffering indicator.
 	 */
-	public pauseVideo() {
+	public pauseVideo(): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -636,7 +640,7 @@ export class EvaApi {
 	 * Called from `EvaMediaEventListenersDirective` on the `play` event.
 	 * Sets state to `EvaState.PLAYING`.
 	 */
-	public playVideo() {
+	public playVideo(): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -650,7 +654,7 @@ export class EvaApi {
 	 *
 	 * @param e - The native `ratechange` event.
 	 */
-	public playbackRateVideoChanged(_e: Event) {
+	public playbackRateVideoChanged(_e: Event): void {
 		if (!this.validateVideoAndPlayerBeforeAction()) {
 			return;
 		}
@@ -663,8 +667,8 @@ export class EvaApi {
 	 *
 	 * @param e - The native `volumechange` event.
 	 */
-	public volumeChanged(_e: Event) {
-		if (!this.validateVideoAndPlayerBeforeAction()) return;
+	public volumeChanged(_e: Event): void {
+		if (!this.validateVideoAndPlayerBeforeAction()) { return; }
 		this.videoVolumeSubject.next(
 			this.assignedVideoElement!.volume
 		);
@@ -685,7 +689,7 @@ export class EvaApi {
 	 *
 	 * @param currentTime - The current playback position in seconds.
 	 */
-	private detectBuffering(currentTime: number) {
+	private detectBuffering(currentTime: number): void {
 		if (this.assignedVideoElement!.paused || this.assignedVideoElement!.ended) {
 			this.isBuffering.set(false);
 			if (this.bufferingTimeout) {
@@ -695,7 +699,7 @@ export class EvaApi {
 		}
 
 		// Don't check buffering if readyState indicates video can play
-		if (this.assignedVideoElement!.readyState >= 3) { // HAVE_FUTURE_DATA or HAVE_ENOUGH_DATA
+		if (this.assignedVideoElement!.readyState >= READY_STATE_HAVE_FUTURE_DATA) { // HAVE_FUTURE_DATA or HAVE_ENOUGH_DATA
 			this.isBuffering.set(false);
 		}
 
@@ -709,10 +713,10 @@ export class EvaApi {
 			if (this.currentPlayPos === this.lastPlayPos &&
 				!this.assignedVideoElement!.paused &&
 				!this.assignedVideoElement!.ended &&
-				this.assignedVideoElement!.readyState < 3) {
+				this.assignedVideoElement!.readyState < READY_STATE_HAVE_FUTURE_DATA) {
 				this.isBuffering.set(true);
 			}
-		}, 500); // 500ms to avoid false positives from brief stalls
+		}, BUFFERING_DETECTION_DELAY_MS); // 500ms to avoid false positives from brief stalls
 
 		this.lastPlayPos = this.currentPlayPos;
 	}
@@ -738,13 +742,13 @@ export class EvaApi {
 			return;
 		}
 
-		if (this.assignedVideoElement!.readyState >= 3) {
+		if (this.assignedVideoElement!.readyState >= READY_STATE_HAVE_FUTURE_DATA) {
 			this.isBuffering.set(false);
 			return;
 		}
 
-		const currentTime = this.assignedVideoElement!.currentTime;
-		const buffered = this.assignedVideoElement!.buffered;
+		const { currentTime } = (this.assignedVideoElement!);
+		const { buffered } = (this.assignedVideoElement!);
 
 		let hasEnoughBuffer = false;
 
@@ -756,7 +760,7 @@ export class EvaApi {
 			}
 		}
 
-		if (!hasEnoughBuffer && this.assignedVideoElement!.readyState < 3) {
+		if (!hasEnoughBuffer && this.assignedVideoElement!.readyState < READY_STATE_HAVE_FUTURE_DATA) {
 			this.isBuffering.set(true);
 		}
 	}
@@ -803,23 +807,23 @@ export class EvaApi {
 				await document.exitPictureInPicture();
 			} else {
 				// Another element may be in PiP — the browser handles exiting it automatically
-				// before entering PiP on a new element, but we exit explicitly for safety
+				// Before entering PiP on a new element, but we exit explicitly for safety
 				if (document.pictureInPictureElement) {
 					await document.exitPictureInPicture();
 				}
 				await this.assignedVideoElement!.requestPictureInPicture();
 			}
 		} catch (error) {
-			console.error('[EvaApi] Picture-in-Picture toggle failed:', error);
+			console.warn('[EvaApi] Picture-in-Picture toggle failed:', error);
 		}
 	}
 
-	public assignPictureInPictureWindow(p: PictureInPictureEvent) {
+	public assignPictureInPictureWindow(p: PictureInPictureEvent): void {
 		this.pipWindow = p.pictureInPictureWindow;
 		this.pictureInPictureSubject.next(true);
 	}
 
-	public removePictureInPictureWindow(_p: PictureInPictureEvent) {
+	public removePictureInPictureWindow(_p: PictureInPictureEvent): void {
 		this.pipWindow = null;
 		this.pictureInPictureSubject.next(false);
 	}
@@ -858,13 +862,13 @@ export class EvaApi {
 	 *
 	 * @param element - The native `HTMLVideoElement` rendered by `EvaPlayer`.
 	 */
-	public assignElementToApi(element: HTMLVideoElement) {
+	public assignElementToApi(element: HTMLVideoElement): void {
 		this.assignedVideoElement = element;
 	}
 
 	// ---------------- SUBTITLES -------------------------
 
-	public subtitlesChanged(label: EvaTrackInternal | null) {
+	public subtitlesChanged(label: EvaTrackInternal | null): void {
 		this.videoSubtitlesSubject.next(label);
 	}
 
@@ -875,7 +879,7 @@ export class EvaApi {
 	 * Components that deferred setup (e.g. `EvaUserInteractionEventsDirective`)
 	 * will receive this event and complete their initialization.
 	 */
-	public onPlayerReady() {
+	public onPlayerReady(): void {
 		this.isPlayerReady = true;
 		this.playerReadyEvent.emit(this);
 	}
@@ -898,18 +902,18 @@ export class EvaApi {
 	}
 
 	/**
- * Cleans up all resources held by this `EvaApi` instance.
- * Called from `EvaPlayer.ngOnDestroy`.
- *
- * Performs the following cleanup:
- * - Completes all `BehaviorSubject` and `Subject` streams so that any lingering
- *   subscribers receive a completion signal and are automatically unsubscribed.
- * - Clears the position-polling buffering timeout to prevent it from firing
- *   after the player has been destroyed.
- * - Clears the registered quality setter function reference.
- * - Marks the player as not ready to block any late-arriving callbacks from
- *   operating on the now-detached video element.
- */
+	  * Cleans up all resources held by this `EvaApi` instance.
+	  * Called from `EvaPlayer.ngOnDestroy`.
+	  *
+	  * Performs the following cleanup:
+	  * - Completes all `BehaviorSubject` and `Subject` streams so that any lingering
+	  *   subscribers receive a completion signal and are automatically unsubscribed.
+	  * - Clears the position-polling buffering timeout to prevent it from firing
+	  *   after the player has been destroyed.
+	  * - Clears the registered quality setter function reference.
+	  * - Marks the player as not ready to block any late-arriving callbacks from
+	  *   operating on the now-detached video element.
+	*/
 	public destroy(): void {
 		// Mark player as no longer ready — blocks any late callbacks
 		this.isPlayerReady = false;
@@ -956,7 +960,7 @@ export class EvaApi {
 	   If cues are not yet available, waits for the track's `load` event.
 	  */
 	private loadChaptersFromTrack(): EvaChapterMarker[] {
-		const textTracks = this.assignedVideoElement!.textTracks;
+		const { textTracks } = (this.assignedVideoElement!);
 		let l: EvaChapterMarker[] = [];
 		for (let i = 0; i < textTracks.length; i++) {
 			const track = textTracks[i];
@@ -981,12 +985,14 @@ export class EvaApi {
 	private parseCues(cues: TextTrackCueList): EvaChapterMarker[] {
 		const parsed: EvaChapterMarker[] = [];
 		for (let i = 0; i < cues.length; i++) {
-			const cue = cues[i] as VTTCue;
-			parsed.push({
-				startTime: cue.startTime ? cue.startTime : 0,
-				endTime: cue.endTime,
-				title: cue.text
-			});
+			const cue = cues[i];
+			if (cue instanceof VTTCue) {
+				parsed.push({
+					startTime: cue.startTime ? cue.startTime : 0,
+					endTime: cue.endTime,
+					title: cue.text
+				});
+			}
 		}
 		return parsed;
 	}

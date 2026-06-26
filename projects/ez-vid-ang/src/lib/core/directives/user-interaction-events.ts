@@ -1,6 +1,7 @@
 import { Directive, inject, OnDestroy, OnInit } from '@angular/core';
-import { fromEvent, merge, Subject, Subscription, takeUntil, throttleTime } from 'rxjs';
+import { fromEvent, merge, Subject, takeUntil, throttleTime, Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
+import { MOUSEMOVE_THROTTLE_MS } from '../../constants';
 
 /**
  * Directive that listens for user interaction events on the assigned video element
@@ -31,13 +32,13 @@ import { EvaApi } from '../../api/eva-api';
   selector: 'eva-controls-container[evaUserInteractionEvents]'
 })
 export class EvaUserInteractionEventsDirective implements OnInit, OnDestroy {
-  private evaAPI = inject(EvaApi);
+  private readonly evaAPI = inject(EvaApi);
 
   /**
    * Emits once on `ngOnDestroy` to complete all RxJS streams set up in `prepareListeners`.
    * Used with `takeUntil` to avoid manual unsubscription of merged event streams.
    */
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
 
   /**
    * Subscription to `EvaApi.playerReadyEvent`, used when the player is not yet ready
@@ -49,7 +50,7 @@ export class EvaUserInteractionEventsDirective implements OnInit, OnDestroy {
    * Registers user interaction listeners immediately if the player is ready,
    * otherwise defers registration until `EvaApi.playerReadyEvent` fires.
    */
-  ngOnInit(): void {
+  public ngOnInit(): void {
     if (this.evaAPI.isPlayerReady) {
       this.prepareListeners();
     }
@@ -64,7 +65,7 @@ export class EvaUserInteractionEventsDirective implements OnInit, OnDestroy {
    * Completes `destroy$` to unsubscribe all merged event streams,
    * and cleans up the `playerReady$` subscription if it was used.
    */
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
 
@@ -80,15 +81,15 @@ export class EvaUserInteractionEventsDirective implements OnInit, OnDestroy {
    * - `mousemove` is throttled to 100ms to prevent excessive emissions during cursor movement.
    * - All streams are automatically torn down when `destroy$` emits via `takeUntil`.
    */
-  private prepareListeners() {
+  private prepareListeners(): void {
     const videoEl = this.evaAPI.assignedVideoElement!;
 
-    const mousemove$ = fromEvent<MouseEvent>(videoEl, 'mousemove').pipe(throttleTime(100));
+    const mousemove$ = fromEvent<MouseEvent>(videoEl, 'mousemove').pipe(throttleTime(MOUSEMOVE_THROTTLE_MS));
     const touchstart$ = fromEvent<TouchEvent>(videoEl, 'touchstart');
     const click$ = fromEvent<PointerEvent>(videoEl, 'click');
 
     merge(mousemove$, touchstart$, click$)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((t) => this.evaAPI.triggerUserInteraction.next(t));
+      .subscribe((t) => { this.evaAPI.triggerUserInteraction.next(t); });
   }
 }

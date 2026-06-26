@@ -13,7 +13,7 @@ A time display component that renders a single time value — current, total, or
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
 | `evaTimeProperty` | `EvaTimeProperty` | ✅ Yes | — | Which time value to display: `"current"`, `"total"`, or `"remaining"`. Also determines which `evaAria` label is applied. |
-| `evaTimeFormating` | `EvaTimeFormating` | ✅ Yes | — | Format used to render the time value. See [Types — `EvaTimeFormating`](#). |
+| `evaTimeFormating` | `EvaTimeFormating` | ✅ Yes | — | Format used to render the time value: `"HH:mm:ss"` (hours, minutes, seconds), `"mm:ss"` (minutes, seconds), or `"ss"` (total seconds). |
 | `evaLiveText` | `string` | No | `"LIVE"` | Text shown in place of the time value when the stream is live. |
 | `evaAria` | `EvaTimeDisplayAria` | No | See [`EvaTimeDisplayAria`](#) | ARIA labels for the timer element, keyed by `evaTimeProperty`. |
 

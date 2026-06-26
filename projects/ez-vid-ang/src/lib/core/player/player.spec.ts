@@ -1,23 +1,29 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { TestBed, ComponentFixture } from '@angular/core/testing';
+import { Component, signal } from '@angular/core';
 import { EvaPlayer } from './player';
 
+@Component({
+  selector: 'eva-test-host',
+  imports: [EvaPlayer],
+  template: `<eva-player id="test" [evaVideoSources]="sources()" />`,
+})
+class TestHostComponent {
+  public readonly sources = signal([{ src: '', type: 'video/mp4' }]);
+}
+
 describe('Player', () => {
-  let component: EvaPlayer;
-  let fixture: ComponentFixture<EvaPlayer>;
+  let fixture: ComponentFixture<TestHostComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EvaPlayer]
-    })
-      .compileComponents();
+      imports: [TestHostComponent],
+    }).compileComponents();
 
-    fixture = TestBed.createComponent(EvaPlayer);
-    component = fixture.componentInstance;
-    await fixture.whenStable();
+    fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 });

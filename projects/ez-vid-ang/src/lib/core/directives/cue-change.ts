@@ -32,13 +32,13 @@ import { EvaApi } from '../../api/eva-api';
 export class EvaCueChangeDirective implements OnDestroy {
 
   /** Reference to the native `<track>` element this directive is applied to. */
-  private el = inject<ElementRef<HTMLTrackElement>>(ElementRef);
+  private readonly el = inject<ElementRef<HTMLTrackElement>>(ElementRef);
 
   /**
    * The scoped `EvaApi` instance. Receives cue change notifications
    * via `onCueChange()`, which updates `currentSubtitleCue`.
    */
-  private evaAPI = inject(EvaApi);
+  private readonly evaAPI = inject(EvaApi);
 
   /**
    * When `true`, a `cuechange` listener is attached to the underlying `TextTrack`,
@@ -48,7 +48,7 @@ export class EvaCueChangeDirective implements OnDestroy {
    *
    * @default false
    */
-  readonly evaCueChangeActive = input<boolean>(false);
+  public readonly evaCueChangeActive = input<boolean>(false);
 
   /**
    * Bound reference to the current `cuechange` handler.
@@ -67,11 +67,12 @@ export class EvaCueChangeDirective implements OnDestroy {
    * - When `evaCueChangeActive` is `false` — calls `detach()` to remove the listener
    *   and null the handler reference.
    */
-  constructor() {
+  public constructor() {
     effect(() => {
-      const track = this.el.nativeElement.track;
+      const { track } = this.el.nativeElement;
       if (this.evaCueChangeActive()) {
-        this.handler = () => this.evaAPI.onCueChange(track);
+        this.detach();
+        this.handler = (): void => { this.evaAPI.onCueChange(track); };
         track.addEventListener('cuechange', this.handler);
       } else {
         this.detach();
@@ -80,7 +81,7 @@ export class EvaCueChangeDirective implements OnDestroy {
   }
 
   /** Removes the `cuechange` listener when the directive is destroyed. */
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this.detach();
   }
 

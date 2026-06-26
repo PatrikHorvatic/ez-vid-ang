@@ -1,5 +1,5 @@
-@if(activeChapter()){
-<span>{{activeChapter()!.title ? activeChapter()!.title : ""}}</span>
+@if(activeChapter(); as chapter){
+<span>{{chapter.title ? chapter.title : ""}}</span>
 
 @if(evaCustomIcon()){
 <ng-content />

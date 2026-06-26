@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaState } from '../../types';
-import { EvaPlayPauseAria, EvaPlayPauseAriaTransformed, transformEvaPlayPauseAria } from '../../utils/aria-utilities';
+import { transformEvaPlayPauseAria, EvaPlayPauseAria, EvaPlayPauseAriaTransformed } from '../../utils/aria-utilities';
 
 /**
  * Play/pause button component for the Eva video player.
@@ -55,7 +55,7 @@ import { EvaPlayPauseAria, EvaPlayPauseAriaTransformed, transformEvaPlayPauseAri
   }
 })
 export class EvaPlayPause implements OnInit, OnDestroy {
-  private evaAPI = inject(EvaApi);
+  private readonly evaAPI = inject(EvaApi);
 
   /**
    * ARIA labels and value texts for the button.
@@ -71,7 +71,7 @@ export class EvaPlayPause implements OnInit, OnDestroy {
    *
    * @todo Improve type inference to avoid the need for explicit transform function handling.
    */
-  readonly evaPlayPauseAria = input<EvaPlayPauseAriaTransformed, EvaPlayPauseAria>(
+  public readonly evaPlayPauseAria = input<EvaPlayPauseAriaTransformed, EvaPlayPauseAria>(
     transformEvaPlayPauseAria(undefined),
     { transform: transformEvaPlayPauseAria }
   );
@@ -82,17 +82,15 @@ export class EvaPlayPause implements OnInit, OnDestroy {
    *
    * @default false
    */
-  readonly evaCustomIcon = input<boolean>(false);
+  public readonly evaCustomIcon = input<boolean>(false);
 
-  readonly playingStateChanged = output<EvaState>();
+  public readonly playingStateChanged = output<EvaState>();
 
   /**
    * Resolves the `aria-label` based on the current playback state.
    * Returns `ariaLabel.pause` when playing, `ariaLabel.play` otherwise.
    */
-  protected ariaLabel = computed<string>(() => {
-    return this.playingState() === 'playing' ? this.evaPlayPauseAria().ariaLabel.pause : this.evaPlayPauseAria().ariaLabel.play;
-  });
+  protected readonly ariaLabel = computed<string>(() => this.playingState() === EvaState.PLAYING ? this.evaPlayPauseAria().ariaLabel.pause : this.evaPlayPauseAria().ariaLabel.play);
 
   /**
    * Resolves the `aria-valuetext` based on the current playback state.
@@ -104,42 +102,38 @@ export class EvaPlayPause implements OnInit, OnDestroy {
    * - `error` → `ariaValueText.errored`
    * - unknown → `"loading"` (fallback)
    */
-  protected ariaValueText = computed<string>(() => {
-    if (this.playingState() === "loading") {
+  protected readonly ariaValueText = computed<string>(() => {
+    if (this.playingState() === EvaState.LOADING) {
       return this.evaPlayPauseAria().ariaValueText.loading;
     }
-    else if (this.playingState() === "playing") {
+    else if (this.playingState() === EvaState.PLAYING) {
       return this.evaPlayPauseAria().ariaValueText.playing;
     }
-    else if (this.playingState() === "paused") {
+    else if (this.playingState() === EvaState.PAUSED) {
       return this.evaPlayPauseAria().ariaValueText.paused;
     }
-    else if (this.playingState() === "ended") {
+    else if (this.playingState() === EvaState.ENDED) {
       return this.evaPlayPauseAria().ariaValueText.ended;
     }
-    else if (this.playingState() === "error") {
+    else if (this.playingState() === EvaState.ERROR) {
       return this.evaPlayPauseAria().ariaValueText.errored;
     }
-    else {
-      return "loading";
-    }
+
+    return "loading";
+
   });
 
   /** `true` when the video is playing. Applies `eva-icon-pause` to the host element. */
-  protected evaIconPause = computed<boolean>(() => {
-    return this.playingState() === 'playing';
-  });
+  protected readonly evaIconPause = computed<boolean>(() => this.playingState() === EvaState.PLAYING);
 
   /**
    * `true` when the video is in a non-playing state (`loading`, `paused`, `ended`, or `error`).
    * Applies `eva-icon-play_arrow` to the host element.
    */
-  protected evaIconPlay = computed<boolean>(() => {
-    return this.playingState() === 'loading' || this.playingState() === 'paused' || this.playingState() === 'ended' || this.playingState() === 'error';
-  });
+  protected readonly evaIconPlay = computed<boolean>(() => this.playingState() === EvaState.LOADING || this.playingState() === EvaState.PAUSED || this.playingState() === EvaState.ENDED || this.playingState() === EvaState.ERROR);
 
   /** Reactive signal tracking the current video playback state. Initialized from `EvaApi`. */
-  protected playingState = signal(this.evaAPI.getCurrentVideoState());
+  protected readonly playingState = signal(this.evaAPI.getCurrentVideoState());
 
   /** Subscription to video state changes from `EvaApi`. Cleaned up in `ngOnDestroy`. */
   private playingStateSub: Subscription | null = null;
@@ -148,7 +142,7 @@ export class EvaPlayPause implements OnInit, OnDestroy {
    * Subscribes to `EvaApi.videoStateSubject` to keep `playingState`
    * in sync with the current video playback state.
    */
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.playingStateSub = this.evaAPI.videoStateSubject.subscribe(state => {
       this.playingState.set(state);
       this.playingStateChanged.emit(state);
@@ -156,12 +150,12 @@ export class EvaPlayPause implements OnInit, OnDestroy {
   }
 
   /** Unsubscribes from the video state subscription to prevent memory leaks. */
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this.playingStateSub?.unsubscribe();
   }
 
   /** Delegates play/pause toggling to `EvaApi`. */
-  protected playPauseClicked() {
+  protected playPauseClicked(): void {
     this.evaAPI.playOrPauseVideo();
   }
 
@@ -169,7 +163,7 @@ export class EvaPlayPause implements OnInit, OnDestroy {
    * Handles keyboard events on the host element.
    * Triggers play/pause on `Enter` or `Space` keypress.
    */
-  protected playPauseClickedKeyboard(k: KeyboardEvent) {
+  protected playPauseClickedKeyboard(k: KeyboardEvent): void {
     if (k.key === 'Enter' || k.key === ' ') {
       k.preventDefault();
       this.playPauseClicked();

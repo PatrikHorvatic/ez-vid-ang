@@ -1,6 +1,7 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { EvaPlaybackSpeed } from './playback-speed';
+import { EvaApi } from '../../api/eva-api';
+import { EvaFullscreenAPI } from '../../api/fullscreen';
 
 describe('EvaPlaybackSpeed', () => {
   let component: EvaPlaybackSpeed;
@@ -8,13 +9,14 @@ describe('EvaPlaybackSpeed', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EvaPlaybackSpeed]
-    })
-      .compileComponents();
+      imports: [EvaPlaybackSpeed],
+      providers: [EvaApi, EvaFullscreenAPI]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(EvaPlaybackSpeed);
+    fixture.componentRef.setInput('evaPlaybackSpeeds', [1]);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+    fixture.detectChanges();
   });
 
   it('should create', () => {

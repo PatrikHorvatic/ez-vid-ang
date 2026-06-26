@@ -1,6 +1,8 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
 
 import { EvaScrubBar } from './scrub-bar';
+import { EvaApi } from '../../api/eva-api';
+import { EvaFullscreenAPI } from '../../api/fullscreen';
 
 describe('EvaScrubBar', () => {
   let component: EvaScrubBar;
@@ -8,7 +10,7 @@ describe('EvaScrubBar', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EvaScrubBar]
+      imports: [EvaScrubBar], providers: [EvaApi, EvaFullscreenAPI]
     })
       .compileComponents();
 

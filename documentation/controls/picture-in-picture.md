@@ -54,7 +54,7 @@ Two ARIA attributes are managed independently:
 
 ### Aria Types
 
-**`EvaPictureInPictureAria`**
+**`EvaPictureInPictureAria`** (input) / **`EvaPictureInPictureAriaTransformed`** (resolved)
 
 | Property | Type | Default | Description |
 |---|---|---|---|

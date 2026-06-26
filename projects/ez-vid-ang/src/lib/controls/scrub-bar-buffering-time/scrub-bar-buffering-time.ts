@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal, WritableSignal } from '@angular/core';
-import { Subscription, throttleTime } from 'rxjs';
+import { ChangeDetectionStrategy, Component, inject, signal, OnDestroy, OnInit, WritableSignal } from '@angular/core';
+import { throttleTime, Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
+import { BUFFER_UPDATE_THROTTLE_MS, PERCENTAGE } from '../../constants';
 
 /**
  * Buffered time indicator component for the Eva scrub bar.
@@ -33,10 +34,10 @@ import { EvaApi } from '../../api/eva-api';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EvaScrubBarBufferingTime implements OnInit, OnDestroy {
-  private evaAPI = inject(EvaApi);
+  private readonly evaAPI = inject(EvaApi);
 
   /** The current buffered amount expressed as a CSS percentage string (e.g. `"42%"`). Bound to the template. */
-  protected bufferedPercentage: WritableSignal<string> = signal("0%");
+  protected readonly bufferedPercentage: WritableSignal<string> = signal("0%");
 
   /** Subscription to buffer change events from `EvaApi`. Cleaned up in `ngOnDestroy`. */
   private bufferSubscription: Subscription | null = null;
@@ -53,7 +54,7 @@ export class EvaScrubBarBufferingTime implements OnInit, OnDestroy {
    * `EvaApi.videoTimeChangeSubject` (throttled at 2000ms) for time changes.
    * Both trigger a recalculation of `bufferedPercentage`.
    */
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.bufferSubscription = this.evaAPI.videoBufferSubject.subscribe(() => {
       if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
         return;
@@ -61,7 +62,7 @@ export class EvaScrubBarBufferingTime implements OnInit, OnDestroy {
       this.updateBufferPercentage(this.evaAPI.assignedVideoElement!.buffered);
     });
 
-    this.timeChangeSubscription = this.evaAPI.videoTimeChangeSubject.pipe(throttleTime(2000)).subscribe(() => {
+    this.timeChangeSubscription = this.evaAPI.videoTimeChangeSubject.pipe(throttleTime(BUFFER_UPDATE_THROTTLE_MS)).subscribe(() => {
       if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
         return;
       }
@@ -70,7 +71,7 @@ export class EvaScrubBarBufferingTime implements OnInit, OnDestroy {
   }
 
   /** Unsubscribes from all active subscriptions to prevent memory leaks. */
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     if (this.bufferSubscription) {
       this.bufferSubscription.unsubscribe();
     }
@@ -93,21 +94,21 @@ export class EvaScrubBarBufferingTime implements OnInit, OnDestroy {
    *
    * @param tr - The `TimeRanges` object from `HTMLVideoElement.buffered`.
    */
-  private updateBufferPercentage(tr: TimeRanges) {
+  private updateBufferPercentage(tr: TimeRanges): void {
     let bufferTime = "0%";
 
-    if (this.evaAPI.isLive()) {
+    if (this.evaAPI.isLive() || !this.evaAPI.time().total) {
       this.bufferedPercentage.set(bufferTime);
       return;
     }
 
     // https://developer.mozilla.org/en-US/docs/Web/API/TimeRanges/length
-    // if
+    // If
     if (tr.length === 1) {
-      // only one range
+      // Only one range
       if (tr.start(0) === 0 && tr.end(0) === this.evaAPI.time().total) {
         // The one range starts at the beginning and ends at
-        // the end of the video, so the whole thing is loaded
+        // The end of the video, so the whole thing is loaded
         bufferTime = "100%";
         this.bufferedPercentage.set(bufferTime);
         return;
@@ -115,7 +116,7 @@ export class EvaScrubBarBufferingTime implements OnInit, OnDestroy {
     }
 
     if (tr.length - 1 >= 0) {
-      bufferTime = (tr.end(tr.length - 1) / this.evaAPI.time().total) * 100 + "%";
+      bufferTime = `${(tr.end(tr.length - 1) / this.evaAPI.time().total) * PERCENTAGE}%`;
     }
 
     this.bufferedPercentage.set(bufferTime);

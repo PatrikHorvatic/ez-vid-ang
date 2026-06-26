@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
-import { EvaBackwardAria, EvaBackwardAriaTransformed, transformEvaBackwardAria, validateAndTransformEvaForwardAndBackwardSeconds } from '../../utils/aria-utilities';
+import { transformEvaBackwardAria, validateAndTransformEvaForwardAndBackwardSeconds, EvaBackwardAria, EvaBackwardAriaTransformed } from '../../utils/aria-utilities';
+import { DEFAULT_SEEK_SECONDS } from '../../constants';
+
 
 /**
  * Backward seek button component for the Eva video player.
@@ -48,14 +50,14 @@ import { EvaBackwardAria, EvaBackwardAriaTransformed, transformEvaBackwardAria, 
   }
 })
 export class EvaBackward {
-  private evaAPI = inject(EvaApi);
+  private readonly evaAPI = inject(EvaApi);
 
   /**
    * ARIA label for the backward button.
    *
    * All properties are optional — default values are applied via `transformEvaBackwardAria`.
    */
-  readonly evaAria = input<EvaBackwardAriaTransformed, EvaBackwardAria>(transformEvaBackwardAria(undefined), { transform: transformEvaBackwardAria });
+  public readonly evaAria = input<EvaBackwardAriaTransformed, EvaBackwardAria>(transformEvaBackwardAria(undefined), { transform: transformEvaBackwardAria });
 
   /**
    * When `true`, suppresses all built-in icon classes (`eva-icon`, `eva-icon-replay_10`, `eva-icon-replay_30`)
@@ -63,7 +65,7 @@ export class EvaBackward {
    *
    * @default false
    */
-  readonly evaCustomIcon = input<boolean>(false);
+  public readonly evaCustomIcon = input<boolean>(false);
 
   /**
    * Number of seconds to seek backward on click.
@@ -75,10 +77,10 @@ export class EvaBackward {
    *
    * @default 10
    */
-  readonly evaBackwardSeconds = input<number, number>(10, { transform: validateAndTransformEvaForwardAndBackwardSeconds });
+  public readonly evaBackwardSeconds = input<number, number>(DEFAULT_SEEK_SECONDS, { transform: validateAndTransformEvaForwardAndBackwardSeconds });
 
   /** Seeks the video backward by `evaBackwardSeconds` seconds via `EvaApi`. */
-  protected async backwardClicked() {
+  protected backwardClicked(): void {
     this.evaAPI.seekBack(this.evaBackwardSeconds());
   }
 
@@ -86,7 +88,7 @@ export class EvaBackward {
    * Handles keyboard events on the host element.
    * Triggers the backward seek on `Enter` or `Space` keypress.
    */
-  protected async backwardClickedKeyboard(k: KeyboardEvent) {
+  protected backwardClickedKeyboard(k: KeyboardEvent): void {
     if (k.key === 'Enter' || k.key === ' ') {
       k.preventDefault();
       this.backwardClicked();

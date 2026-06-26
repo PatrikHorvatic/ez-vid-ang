@@ -1,6 +1,8 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
 
 import { EvaPlayPause } from './play-pause';
+import { EvaApi } from '../../api/eva-api';
+import { EvaFullscreenAPI } from '../../api/fullscreen';
 
 describe('EvaPlayPause', () => {
   let component: EvaPlayPause;
@@ -8,7 +10,7 @@ describe('EvaPlayPause', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EvaPlayPause]
+      imports: [EvaPlayPause], providers: [EvaApi, EvaFullscreenAPI]
     })
       .compileComponents();
 

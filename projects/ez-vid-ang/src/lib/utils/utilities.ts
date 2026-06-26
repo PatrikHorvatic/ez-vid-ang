@@ -1,4 +1,5 @@
 import { EvaKeyboardShortcutsConfiguration, EvaTrack } from "../types";
+import { MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED, DEFAULT_SEEK_SECONDS } from '../constants';
 
 export function transformTimeoutDuration(v: number): number {
 	if (!v) {
@@ -12,19 +13,19 @@ export function transformTimeoutDuration(v: number): number {
 
 export function transformDefaultPlaybackSpeed(v: number): number {
 	if (!v) { return 1; }
-	if (v < 0.25) { return 1; }
-	if (v > 4) { return 1; }
+	if (v < MIN_PLAYBACK_SPEED) { return 1; }
+	if (v > MAX_PLAYBACK_SPEED) { return 1; }
 	return v;
 }
 
-export function validateAndTransformPlaybackSpeeds(v: Array<number>): Array<number> {
-	// in case of an empty array, component exists and some value must be provided. Of course the default will be 1.0
+export function validateAndTransformPlaybackSpeeds(v: number[]): number[] {
+	// In case of an empty array, component exists and some value must be provided. Of course the default will be 1.0
 	if (v.length === 0) {
 		return [1.0];
 	}
 
 	// Filter out values outside the valid range [0.25, 4]
-	const filtered = v.filter(speed => speed >= 0.25 && speed <= 4);
+	const filtered = v.filter(speed => speed >= MIN_PLAYBACK_SPEED && speed <= MAX_PLAYBACK_SPEED);
 	// If all values were filtered out, return default
 	if (filtered.length === 0) {
 		return [1.0];
@@ -75,7 +76,6 @@ export function validateTracks(tracks: EvaTrack[]): EvaTrack[] {
 	const uniqueTracks = tracks.filter(track => {
 		const key = `${track.kind}-${track.srclang || ''}-${track.label || ''}`;
 		if (seen.has(key)) {
-			console.warn(`Duplicate track found: ${key}. Removing duplicate.`);
 			return false;
 		}
 		seen.add(key);
@@ -88,8 +88,8 @@ export function validateTracks(tracks: EvaTrack[]): EvaTrack[] {
 /** Returns a fully populated `EvaKeyboardShortcutsConfiguration` with all default key bindings. */
 export function prepareDefaultKeyboardShortcutsConfiguration(): Required<EvaKeyboardShortcutsConfiguration> {
 	return {
-		backwardSeconds: 10,
-		forwardSeconds: 10,
+		backwardSeconds: DEFAULT_SEEK_SECONDS,
+		forwardSeconds: DEFAULT_SEEK_SECONDS,
 		backwardsKeyOne: "J",
 		forwardKeyOne: "L",
 		backwardsKeyTwo: "ARROWLEFT",
@@ -108,8 +108,8 @@ export function validateAndTransformEvaKeyboardShortcutsConfiguration(conf: EvaK
 		return prepareDefaultKeyboardShortcutsConfiguration();
 	}
 	return {
-		backwardSeconds: (conf.backwardSeconds && conf.backwardSeconds > 0) ? conf.backwardSeconds : 10,
-		forwardSeconds: (conf.forwardSeconds && conf.forwardSeconds > 0) ? conf.forwardSeconds : 10,
+		backwardSeconds: (conf.backwardSeconds && conf.backwardSeconds > 0) ? conf.backwardSeconds : DEFAULT_SEEK_SECONDS,
+		forwardSeconds: (conf.forwardSeconds && conf.forwardSeconds > 0) ? conf.forwardSeconds : DEFAULT_SEEK_SECONDS,
 		backwardsKeyOne: (conf.backwardsKeyOne ?? "J").toUpperCase(),
 		forwardKeyOne: (conf.forwardKeyOne ?? "L").toUpperCase(),
 		backwardsKeyTwo: (conf.backwardsKeyTwo ?? "ARROWLEFT").toUpperCase(),

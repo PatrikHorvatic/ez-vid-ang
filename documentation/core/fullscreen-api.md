@@ -15,7 +15,11 @@ Detected in priority order. The first match wins.
 | `ios` | `webkitEnterFullscreen` on `<video>` | Always used on iOS regardless of detection result |
 | `ms` | `msRequestFullscreen` | Internet Explorer / Edge Legacy |
 
-iOS is handled specially — `webkitEnterFullscreen` must be called on the `<video>` element directly, not the player container. The service always overrides the detected polyfill to `ios` on iOS devices.
+iOS is handled specially — `webkitEnterFullscreen` / `webkitExitFullscreen` must be called on the `<video>` element directly, not the player container or `document`. The service always overrides the detected polyfill to `ios` on iOS devices. Both `enterFullscreen()` and `exitFullscreen()` target the video element on iOS. The fullscreen change event listener (`webkitendfullscreen`) is also attached to the video element on iOS, since this event fires on the element rather than `document`.
+
+iPadOS 13+ detection uses `navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1` in addition to the user agent check, since iPads now report a desktop Safari user agent.
+
+On non-iOS mobile devices, the service checks whether the fullscreen `request` method exists on the container element. If it doesn't (e.g. older Android browsers), it falls back to the `<video>` element.
 
 ### Public API
 
@@ -25,7 +29,7 @@ iOS is handled specially — `webkitEnterFullscreen` must be called on the `<vid
 | `isFullscreen` | `() => boolean` | Returns current fullscreen state synchronously. |
 | `isFullscreenSupported` | `() => boolean` | Returns whether a supported fullscreen API was detected. Use to conditionally show the fullscreen button. |
 | `enterFullscreen` | `(element: HTMLElement, videoElement?: HTMLVideoElement) => Promise<void>` | Requests fullscreen on `element`. On iOS or mobile without container support, targets `videoElement` instead. |
-| `exitFullscreen` | `() => Promise<void>` | Exits fullscreen via `document`. |
+| `exitFullscreen` | `() => Promise<void>` | Exits fullscreen. On iOS, targets the `<video>` element directly; on other platforms, calls `document[polyfill.exit]()`. |
 | `toggleFullscreen` | `() => Promise<void>` | Exits if currently fullscreen, enters otherwise. Resolves the video element and player container internally via `EvaApi.assignedVideoElement`. |
 | `destroy` | `() => void` | Completes `isFullscreenSubject`. Called from `EvaPlayer.ngOnDestroy`. |
 

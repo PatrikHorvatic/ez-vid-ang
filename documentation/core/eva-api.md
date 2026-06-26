@@ -12,7 +12,8 @@ All player components and directives communicate through `EvaApi` rather than di
 | `canPlay` | `WritableSignal<boolean>` | Whether the video has enough data to begin playback (`canplay` event has fired). |
 | `isSeeking` | `WritableSignal<boolean>` | Whether a seek operation is currently in progress. |
 | `isLive` | `WritableSignal<boolean>` | Whether the current source is a live stream (`duration === Infinity`). Set from `loadedmetadata`. |
-| `time` | `WritableSignal<{ current, total, remaining }>` | Current playback time in seconds. Updated on every `timeupdate` event. `total` is `Infinity` for live streams. |
+| `time` | `WritableSignal<{ current, total, remaining }>` | Current playback time in seconds. Updated on every `timeupdate` event. `total` is `Infinity` for live streams, `0` when duration is unavailable (`NaN`); `remaining` is `0` for live streams. |
+| `lastActiveVolume` | `number` | The last non-zero volume before muting. Used by `muteOrUnmuteVideo()` to restore volume on unmute. Set directly by `EvaVideoConfigurationDirective` during initial configuration (before `isPlayerReady`). |
 | `currentQualityIndex` | `WritableSignal<number>` | Currently selected quality level index. `-1` represents Auto (ABR). |
 | `currentSubtitleCue` | `WritableSignal<string \| null>` | The currently active subtitle cue text. `null` when no cue is active. Updated by `EvaCueChangeDirective`. |
 
@@ -41,7 +42,7 @@ All player components and directives communicate through `EvaApi` rather than di
 
 | Method | Signature | Description |
 |---|---|---|
-| `playOrPauseVideo` | `() => void` | Toggles play/pause. Updates `videoStateSubject`. |
+| `playOrPauseVideo` | `() => void` | Toggles play/pause. Updates `videoStateSubject`. The `play()` promise is caught to suppress `AbortError` from rapid toggling or autoplay policy blocks. |
 | `seekForward` | `(n?: number) => void` | Seeks forward by `n` seconds (default `5`), clamped to total duration. Updates `time` immediately. |
 | `seekBack` | `(n?: number) => void` | Seeks backward by `n` seconds (default `5`), clamped to `0`. Updates `time` immediately. |
 | `jumpToVideoPercentage` | `(key: string) => void` | Jumps to a percentage of total duration based on a digit key (`"0"`–`"9"`). `"0"` seeks to 0%, `"5"` to 50%, etc. Ignored for live streams. |

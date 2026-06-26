@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
-import { EvaPictureInPictureAria, EvaPictureInPictureTransformed, transformEvaPictureInPictureAria } from '../../utils/aria-utilities';
+import { transformEvaPictureInPictureAria, EvaPictureInPictureAria, EvaPictureInPictureAriaTransformed } from '../../utils/aria-utilities';
 
 /**
  * Picture-in-Picture toggle button for the Eva video player.
@@ -57,7 +57,7 @@ import { EvaPictureInPictureAria, EvaPictureInPictureTransformed, transformEvaPi
   }
 })
 export class EvaPictureInPicture implements OnInit, OnDestroy {
-  private evaApi = inject(EvaApi);
+  private readonly evaApi = inject(EvaApi);
 
   /**
    * When `true`, suppresses all built-in icon classes so you can project a
@@ -65,7 +65,7 @@ export class EvaPictureInPicture implements OnInit, OnDestroy {
    *
    * @default false
    */
-  readonly evaCustomIcon = input<boolean>(false);
+  public readonly evaCustomIcon = input<boolean>(false);
 
   /**
    * ARIA configuration for the PiP button.
@@ -75,7 +75,7 @@ export class EvaPictureInPicture implements OnInit, OnDestroy {
    * - `ariaValueText.ariaLabelActivated` — `aria-valuetext` when PiP is active.
    * - `ariaValueText.ariaLabelDeactivated` — `aria-valuetext` when PiP is inactive.
    */
-  readonly evaAria = input<EvaPictureInPictureTransformed, EvaPictureInPictureAria>(
+  public readonly evaAria = input<EvaPictureInPictureAriaTransformed, EvaPictureInPictureAria>(
     transformEvaPictureInPictureAria(undefined),
     { transform: transformEvaPictureInPictureAria }
   );
@@ -84,15 +84,13 @@ export class EvaPictureInPicture implements OnInit, OnDestroy {
    * Whether this player's video element is currently in Picture-in-Picture mode.
    * Updated by subscribing to `EvaApi.pictureInPictureSubject`.
    */
-  protected isPictureInPictureActive = signal(false);
+  protected readonly isPictureInPictureActive = signal(false);
 
   /**
    * Static `aria-label` for the host button element.
    * Sourced from `evaAria().ariaLabel` — does not change with PiP state.
    */
-  protected ariaLabel = computed(() => {
-    return this.evaAria().ariaLabel;
-  });
+  protected readonly ariaLabel = computed(() => this.evaAria().ariaLabel);
 
   /**
    * Dynamic `aria-valuetext` for the host element.
@@ -100,11 +98,9 @@ export class EvaPictureInPicture implements OnInit, OnDestroy {
    * `ariaValueText.ariaLabelDeactivated` based on the current PiP state,
    * giving screen readers a meaningful description of the current button action.
    */
-  protected ariaValueText = computed(() => {
-    return this.isPictureInPictureActive()
-      ? this.evaAria().ariaValueText.ariaLabelActivated
-      : this.evaAria().ariaValueText.ariaLabelDeactivated;
-  });
+  protected readonly ariaValueText = computed(() => this.isPictureInPictureActive()
+    ? this.evaAria().ariaValueText.ariaLabelActivated
+    : this.evaAria().ariaValueText.ariaLabelDeactivated);
 
   /** Subscription to `EvaApi.pictureInPictureSubject`. Cleaned up in `ngOnDestroy`. */
   private pip$: Subscription | null = null;
@@ -113,14 +109,14 @@ export class EvaPictureInPicture implements OnInit, OnDestroy {
    * Subscribes to `EvaApi.pictureInPictureSubject` to keep `isPictureInPictureActive`
    * in sync with the native PiP state, including changes triggered externally by the browser.
    */
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.pip$ = this.evaApi.pictureInPictureSubject.subscribe((isActive) => {
       this.isPictureInPictureActive.set(isActive);
     });
   }
 
   /** Unsubscribes from `EvaApi.pictureInPictureSubject` to prevent memory leaks. */
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this.pip$?.unsubscribe();
   }
 

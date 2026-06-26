@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { EvaControlsDividerAria, EvaControlsDividerAriaTransformed, transformEvaControlsDividerAria } from '../../utils/aria-utilities';
+import { transformEvaControlsDividerAria, EvaControlsDividerAria, EvaControlsDividerAriaTransformed } from '../../utils/aria-utilities';
 
 /**
  * Visual and semantic separator component for the Eva player controls bar.
@@ -45,5 +45,5 @@ export class EvaControlsDivider {
    * All properties are optional — default values are applied via `transformEvaControlsDividerAria`:
    * - `ariaLabel` → `"Controls divider"`
    */
-  readonly evaAria = input<EvaControlsDividerAriaTransformed, EvaControlsDividerAria>(transformEvaControlsDividerAria(undefined), { transform: transformEvaControlsDividerAria });
+  public readonly evaAria = input<EvaControlsDividerAriaTransformed, EvaControlsDividerAria>(transformEvaControlsDividerAria(undefined), { transform: transformEvaControlsDividerAria });
 }

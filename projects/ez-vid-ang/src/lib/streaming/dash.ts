@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import {
   Directive,
   inject,
@@ -15,22 +17,22 @@ declare let dashjs: {
   MediaPlayer: {
     (): {
       create: () => {
-        initialize(view?: HTMLMediaElement, source?: string, autoPlay?: boolean): void;
-        on(type: string, listener: (e: unknown) => void): void;
-        attachSource(urlOrManifest: string | object, startTime?: number | string): void;
-        updateSettings(settings: Record<string, unknown>): void;
-        setAutoPlay(value: boolean): void;
-        setProtectionData(value: unknown): void;
-        getRepresentationsByType(type: 'video' | 'audio'): Array<{
+        initialize: (view?: HTMLMediaElement, source?: string, autoPlay?: boolean) => void;
+        on: (type: string, listener: (e: unknown) => void) => void;
+        attachSource: (urlOrManifest: string | object, startTime?: number | string) => void;
+        updateSettings: (settings: Record<string, unknown>) => void;
+        setAutoPlay: (value: boolean) => void;
+        setProtectionData: (value: unknown) => void;
+        getRepresentationsByType: (type: 'video' | 'audio') => {
           index: number;
           bandwidth: number;
           width: number;
           height: number;
           frameRate: number;
           codecs: string | null;
-        }>;
-        setRepresentationForTypeByIndex(type: 'video' | 'audio', index: number, forceReplace?: boolean): void;
-        reset(): void;
+        }[];
+        setRepresentationForTypeByIndex: (type: 'video' | 'audio', index: number, forceReplace?: boolean) => void;
+        reset: () => void;
       };
     };
     events: { STREAM_INITIALIZED: string };
@@ -46,7 +48,7 @@ declare let dashjs: {
 export type EvaDashConfig = Record<string, unknown>;
 
 /** Subset of a dash.js 5.x `Representation` object used for quality level mapping. */
-interface DashRepresentation {
+type DashRepresentation = {
   index: number;
   bandwidth: number;
   width: number;
@@ -58,12 +60,10 @@ interface DashRepresentation {
 /**
  * DRM license server configuration for protected DASH streams.
  */
-export interface EvaDRMLicenseServer {
-  [drmSystem: string]: {
-    serverURL: string;
-    httpRequestHeaders?: { [key: string]: string };
-  };
-}
+export type EvaDRMLicenseServer = Record<string, {
+  serverURL: string;
+  httpRequestHeaders?: Record<string, string>;
+}>
 
 /**
  * DASH streaming directive for the Eva video player.
@@ -111,7 +111,7 @@ export interface EvaDRMLicenseServer {
   exportAs: 'evaDash'
 })
 export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
-  private evaAPI = inject(EvaApi);
+  private readonly evaAPI = inject(EvaApi);
 
   /**
    * The DASH stream URL (`.mpd` manifest).
@@ -119,7 +119,7 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
    * **Required.** Changing this at runtime destroys the current dash.js instance
    * and creates a new one with the updated source.
    */
-  readonly evaDashSrc = input.required<string>();
+  public readonly evaDashSrc = input.required<string>();
 
   /**
    * Authorization token applied to DRM license server request headers.
@@ -127,7 +127,7 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
    *
    * @default undefined
    */
-  readonly evaDashDRMToken = input<string | undefined>(undefined);
+  public readonly evaDashDRMToken = input<string | undefined>(undefined);
 
   /**
    * DRM license server configuration for protected streams.
@@ -135,16 +135,16 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
    *
    * @default undefined
    */
-  readonly evaDashDRMLicenseServer = input<EvaDRMLicenseServer | undefined>(undefined);
+  public readonly evaDashDRMLicenseServer = input<EvaDRMLicenseServer | undefined>(undefined);
 
   /**
-   * dash.js settings overrides applied via `updateSettings()` after the player is initialized.
+   * Dash.js settings overrides applied via `updateSettings()` after the player is initialized.
    * Merged on top of the directive's defaults (debug level).
    *
    * @see https://cdn.dashjs.org/latest/jsdoc/module-Settings.html
    * @default {}
    */
-  readonly evaDashConfig = input<EvaDashConfig>({});
+  public readonly evaDashConfig = input<EvaDashConfig>({});
 
   /** The active dash.js player instance. `null` when not initialized or after destruction. */
   private dash: any = null;
@@ -152,7 +152,20 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
   /** Subscription to `EvaApi.playerReadyEvent`. Used to defer setup until the player is ready. */
   private playerReady$: Subscription | null = null;
 
-  ngOnInit(): void {
+  public ngOnChanges(changes: SimpleChanges): void {
+    if (changes['evaDashSrc'] && !changes['evaDashSrc'].firstChange) {
+      if (changes['evaDashSrc'].currentValue) {
+        this.createPlayer();
+      } else {
+        this.destroyPlayer();
+      }
+    }
+    if (changes['evaDashConfig'] && !changes['evaDashConfig'].firstChange && this.dash) {
+      this.dash.updateSettings(this.evaDashConfig());
+    }
+  }
+
+  public ngOnInit(): void {
     if (this.evaAPI.isPlayerReady) {
       this.createPlayer();
     } else {
@@ -163,16 +176,7 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['evaDashSrc'] && !changes['evaDashSrc'].firstChange) {
-      changes['evaDashSrc'].currentValue ? this.createPlayer() : this.destroyPlayer();
-    }
-    if (changes['evaDashConfig'] && !changes['evaDashConfig'].firstChange && this.dash) {
-      this.dash.updateSettings(this.evaDashConfig());
-    }
-  }
-
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this.destroyPlayer();
     this.playerReady$?.unsubscribe();
   }
@@ -193,10 +197,10 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
     this.destroyPlayer();
 
     const src = this.evaDashSrc();
-    if (!src) return;
+    if (!src) { return; }
 
     const video = this.evaAPI.assignedVideoElement;
-    if (!video) return;
+    if (!video) { return; }
 
     this.dash = dashjs.MediaPlayer().create();
     this.dash.updateSettings({
@@ -207,6 +211,8 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
     this.dash.setAutoPlay(false);
 
     this.dash.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
+      if (!this.dash) { return; }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const representations: DashRepresentation[] = this.dash.getRepresentationsByType('video');
 
       if (representations.length > 0) {
@@ -241,17 +247,18 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
     // Apply DRM if configured
     const licenseServer = this.evaDashDRMLicenseServer();
     if (licenseServer) {
-      const drmOptions = { ...licenseServer };
+      const drmOptions: EvaDRMLicenseServer = {};
+      for (const key of Object.keys(licenseServer)) {
+        drmOptions[key] = { ...licenseServer[key], httpRequestHeaders: { ...licenseServer[key].httpRequestHeaders } };
+      }
       const token = this.evaDashDRMToken();
 
       if (token) {
-        for (const drmSystem in drmOptions) {
-          if (Object.prototype.hasOwnProperty.call(drmOptions, drmSystem)) {
-            drmOptions[drmSystem].httpRequestHeaders = {
-              ...drmOptions[drmSystem].httpRequestHeaders,
-              Authorization: token,
-            };
-          }
+        for (const drmSystem of Object.keys(drmOptions)) {
+          drmOptions[drmSystem].httpRequestHeaders = {
+            ...drmOptions[drmSystem].httpRequestHeaders,
+            Authorization: token,
+          };
         }
       }
 
@@ -278,7 +285,7 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
    * @param qualityIndex - The `qualityIndex` from an `EvaQualityLevel` object.
    */
   public setQualityLevel(qualityIndex: number): void {
-    if (!this.dash) return;
+    if (!this.dash) { return; }
 
     if (qualityIndex === -1) {
       this.dash.updateSettings({

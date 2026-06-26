@@ -158,6 +158,19 @@ export class HomePage {}
 
 ```
 
+## Development
+
+### Linting
+
+The project uses a strict ESLint configuration with type-aware TypeScript rules and Angular-specific template rules. All available rule presets are enabled.
+
+```bash
+npm run lint        # Check for errors
+npx ng lint --fix   # Auto-fix fixable errors
+```
+
+All magic numbers are centralized in `src/lib/constants.ts`. See [linting documentation](documentation/core/linting.md) and [constants documentation](documentation/core/constants.md) for details.
+
 ## Components
 
 Library has four groups of components. You can click on the name to go to the documentation:

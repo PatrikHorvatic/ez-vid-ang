@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, OnInit, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output, signal, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaChapterMarker } from '../../types';
-import { EvaActiveChapterAria, EvaActiveChapterAriaTransformed, transformEvaActiveChapterAria } from '../../utils/aria-utilities';
+import { transformEvaActiveChapterAria, EvaActiveChapterAria, EvaActiveChapterAriaTransformed } from '../../utils/aria-utilities';
 
 /**
  * Displays the currently active chapter and emits it when the user interacts with it.
@@ -46,14 +46,14 @@ import { EvaActiveChapterAria, EvaActiveChapterAriaTransformed, transformEvaActi
   }
 })
 export class EvaActiveChapter implements OnInit, OnDestroy {
-  private evaAPI = inject(EvaApi);
+  private readonly evaAPI = inject(EvaApi);
 
   /**
    * ARIA label for the active chapter button.
    *
    * All properties are optional — defaults are applied via `transformEvaActiveChaptedAria`.
    */
-  readonly evaAria = input<EvaActiveChapterAriaTransformed, EvaActiveChapterAria>(
+  public readonly evaAria = input<EvaActiveChapterAriaTransformed, EvaActiveChapterAria>(
     transformEvaActiveChapterAria(undefined),
     { transform: transformEvaActiveChapterAria }
   );
@@ -64,20 +64,20 @@ export class EvaActiveChapter implements OnInit, OnDestroy {
    *
    * @default false
    */
-  readonly evaCustomIcon = input<boolean>(false);
+  public readonly evaCustomIcon = input<boolean>(false);
 
   /**
    * Emitted when the user clicks or activates the active chapter via keyboard.
    * Emits the current `EvaChapterMarker`, or `null` if no chapter is active.
    */
-  readonly evaChapterClicked = output<EvaChapterMarker | null>();
+  public readonly evaChapterClicked = output<EvaChapterMarker | null>();
 
   /**
    * The `EvaChapterMarker` currently active at the playback position.
    * Updated by `EvaApi.activeChapterSubject` on every `timeupdate`.
    * `null` when the current time does not fall within any chapter.
    */
-  protected activeChapter = signal<EvaChapterMarker | null>(null);
+  protected readonly activeChapter = signal<EvaChapterMarker | null>(null);
 
   /** Subscription to `EvaApi.activeChapterSubject`. Cleaned up in `ngOnDestroy`. */
   private chapterSub: Subscription | null = null;
@@ -87,7 +87,7 @@ export class EvaActiveChapter implements OnInit, OnDestroy {
    * chapter lookup in `EvaApi.updateVideoTime()`. Subscribes to `activeChapterSubject`
    * to keep `activeChapter` in sync with the current playback position.
    */
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.evaAPI.isActiveChapterPresent = true;
     this.chapterSub = this.evaAPI.activeChapterSubject.subscribe(a => {
       this.activeChapter.set(a);
@@ -98,7 +98,7 @@ export class EvaActiveChapter implements OnInit, OnDestroy {
    * Signals to `EvaApi` that this component is no longer present, disabling
    * the per-frame chapter lookup. Unsubscribes from all active subscriptions.
    */
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this.evaAPI.isActiveChapterPresent = false;
     this.chapterSub?.unsubscribe();
   }
@@ -107,7 +107,7 @@ export class EvaActiveChapter implements OnInit, OnDestroy {
    * Emits `evaChapterClicked` with the current `activeChapter` value.
    * Called on host click and from `activeChapterClickedKeyboard`.
    */
-  protected activeChapterClicked() {
+  protected activeChapterClicked(): void {
     this.evaChapterClicked.emit(this.activeChapter());
   }
 
@@ -117,7 +117,7 @@ export class EvaActiveChapter implements OnInit, OnDestroy {
    *
    * @param k - The native `KeyboardEvent` from the host element.
    */
-  protected activeChapterClickedKeyboard(k: KeyboardEvent) {
+  protected activeChapterClickedKeyboard(k: KeyboardEvent): void {
     if (k.key === 'Enter' || k.key === ' ') {
       k.preventDefault();
       this.activeChapterClicked();

@@ -42,40 +42,40 @@ import { EvaFullscreenAPI } from '../../api/fullscreen';
   selector: 'video[evaMediaEventListeners]'
 })
 export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
-  private evaAPI = inject(EvaApi);
-  private fullscreenService = inject(EvaFullscreenAPI);
-  private elementRef = inject(ElementRef<HTMLVideoElement>);
+  private readonly evaAPI = inject(EvaApi);
+  private readonly fullscreenService = inject(EvaFullscreenAPI);
+  private readonly elementRef = inject<ElementRef<HTMLVideoElement>>(ElementRef);
 
-  private subs: Subscription[] = [];
+  private readonly subs: Subscription[] = [];
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     const el = this.elementRef.nativeElement;
 
-    const on = (event: string, handler: (e: Event) => void) => {
-      this.subs.push(fromEvent<Event>(el, event).subscribe(e => handler(e)));
+    const on = (event: string, handler: (e: Event) => void): void => {
+      this.subs.push(fromEvent<Event>(el, event).subscribe(e => { handler(e); }));
     };
 
-    on(EvaVideoEvent.CAN_PLAY, () => this.evaAPI.videoCanPlay());
-    on(EvaVideoEvent.ENDED, () => this.evaAPI.endedVideo());
-    on(EvaVideoEvent.ERROR, () => this.evaAPI.erroredVideo());
-    on(EvaVideoEvent.LOADED_METADATA, e => this.evaAPI.loadedVideoMetadata(e));
-    on(EvaVideoEvent.PAUSE, () => this.evaAPI.pauseVideo());
-    on(EvaVideoEvent.PLAY, () => this.evaAPI.playVideo());
-    on(EvaVideoEvent.DOUBLE_CLICK, () => this.fullscreenService.toggleFullscreen());
-    on(EvaVideoEvent.PLAYING, () => this.evaAPI.playingVideo());
-    on(EvaVideoEvent.PROGRESS, () => this.evaAPI.checkBufferStatus());
-    on(EvaVideoEvent.RATECHANGE, e => this.evaAPI.playbackRateVideoChanged(e));
-    on(EvaVideoEvent.SEEKED, () => this.evaAPI.videoSeeked());
-    on(EvaVideoEvent.SEEKING, () => this.evaAPI.videoSeeking());
-    on(EvaVideoEvent.STALLED, () => this.evaAPI.videoStalled());
-    on(EvaVideoEvent.TIME_UPDATE, () => this.evaAPI.updateVideoTime());
-    on(EvaVideoEvent.VOLUME_CHANGE, e => this.evaAPI.volumeChanged(e));
-    on(EvaVideoEvent.WAITING, () => this.evaAPI.videoWaiting());
-    on(EvaVideoEvent.ENTERED_PICTURE_IN_PICTURE, e => this.evaAPI.assignPictureInPictureWindow(e as PictureInPictureEvent));
-    on(EvaVideoEvent.LEFT_PICTURE_IN_PICTURE, e => this.evaAPI.removePictureInPictureWindow(e as PictureInPictureEvent));
+    on(EvaVideoEvent.CAN_PLAY, () => { this.evaAPI.videoCanPlay(); });
+    on(EvaVideoEvent.ENDED, () => { this.evaAPI.endedVideo(); });
+    on(EvaVideoEvent.ERROR, () => { this.evaAPI.erroredVideo(); });
+    on(EvaVideoEvent.LOADED_METADATA, e => { this.evaAPI.loadedVideoMetadata(e); });
+    on(EvaVideoEvent.PAUSE, () => { this.evaAPI.pauseVideo(); });
+    on(EvaVideoEvent.PLAY, () => { this.evaAPI.playVideo(); });
+    on(EvaVideoEvent.DOUBLE_CLICK, () => { this.fullscreenService.toggleFullscreen().catch(() => { /* Ignored */ }); });
+    on(EvaVideoEvent.PLAYING, () => { this.evaAPI.playingVideo(); });
+    on(EvaVideoEvent.PROGRESS, () => { this.evaAPI.checkBufferStatus(); });
+    on(EvaVideoEvent.RATECHANGE, e => { this.evaAPI.playbackRateVideoChanged(e); });
+    on(EvaVideoEvent.SEEKED, () => { this.evaAPI.videoSeeked(); });
+    on(EvaVideoEvent.SEEKING, () => { this.evaAPI.videoSeeking(); });
+    on(EvaVideoEvent.STALLED, () => { this.evaAPI.videoStalled(); });
+    on(EvaVideoEvent.TIME_UPDATE, () => { this.evaAPI.updateVideoTime(); });
+    on(EvaVideoEvent.VOLUME_CHANGE, e => { this.evaAPI.volumeChanged(e); });
+    on(EvaVideoEvent.WAITING, () => { this.evaAPI.videoWaiting(); });
+    on(EvaVideoEvent.ENTERED_PICTURE_IN_PICTURE, e => { if (e instanceof PictureInPictureEvent) { this.evaAPI.assignPictureInPictureWindow(e); } });
+    on(EvaVideoEvent.LEFT_PICTURE_IN_PICTURE, e => { if (e instanceof PictureInPictureEvent) { this.evaAPI.removePictureInPictureWindow(e); } });
   }
 
-  ngOnDestroy(): void {
-    this.subs.forEach(s => s.unsubscribe());
+  public ngOnDestroy(): void {
+    this.subs.forEach(s => { s.unsubscribe(); });
   }
 }

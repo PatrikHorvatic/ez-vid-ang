@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
-import { EvaForwardAria, EvaForwardAriaTransformed, transformEvaForwardAria, validateAndTransformEvaForwardAndBackwardSeconds } from '../../utils/aria-utilities';
+import { transformEvaForwardAria, validateAndTransformEvaForwardAndBackwardSeconds, EvaForwardAria, EvaForwardAriaTransformed } from '../../utils/aria-utilities';
+import { DEFAULT_SEEK_SECONDS } from '../../constants';
+
 
 /**
  * Forward seek button component for the Eva video player.
@@ -48,14 +50,14 @@ import { EvaForwardAria, EvaForwardAriaTransformed, transformEvaForwardAria, val
   }
 })
 export class EvaForward {
-  private evaAPI = inject(EvaApi);
+  private readonly evaAPI = inject(EvaApi);
 
   /**
    * ARIA label for the forward button.
    *
    * All properties are optional — default values are applied via `transformEvaForwardAria`.
    */
-  readonly evaAria = input<EvaForwardAriaTransformed, EvaForwardAria>(transformEvaForwardAria(undefined), { transform: transformEvaForwardAria });
+  public readonly evaAria = input<EvaForwardAriaTransformed, EvaForwardAria>(transformEvaForwardAria(undefined), { transform: transformEvaForwardAria });
 
   /**
    * When `true`, suppresses all built-in icon classes (`eva-icon`, `eva-icon-forward_10`, `eva-icon-forward_30`)
@@ -63,7 +65,7 @@ export class EvaForward {
    *
    * @default false
    */
-  readonly evaCustomIcon = input<boolean>(false);
+  public readonly evaCustomIcon = input<boolean>(false);
 
   /**
    * Number of seconds to seek forward on click.
@@ -75,10 +77,10 @@ export class EvaForward {
    *
    * @default 10
    */
-  readonly evaForwardSeconds = input<number, number>(10, { transform: validateAndTransformEvaForwardAndBackwardSeconds });
+  public readonly evaForwardSeconds = input<number, number>(DEFAULT_SEEK_SECONDS, { transform: validateAndTransformEvaForwardAndBackwardSeconds });
 
   /** Seeks the video forward by `evaForwardSeconds` seconds via `EvaApi`. */
-  protected async forwardClicked() {
+  protected forwardClicked(): void {
     this.evaAPI.seekForward(this.evaForwardSeconds());
   }
 
@@ -86,7 +88,7 @@ export class EvaForward {
    * Handles keyboard events on the host element.
    * Triggers the forward seek on `Enter` (13) or `Space` (32) keypress.
    */
-  protected async forwardClickedKeyboard(k: KeyboardEvent) {
+  protected forwardClickedKeyboard(k: KeyboardEvent): void {
     if (k.key === 'Enter' || k.key === ' ') {
       k.preventDefault();
       this.forwardClicked();

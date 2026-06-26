@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
-import { EvaLoopAria, EvaLoopAriaTransformed, transformEvaLoopAria } from '../../utils/aria-utilities';
+import { transformEvaLoopAria, EvaLoopAria, EvaLoopAriaTransformed } from '../../utils/aria-utilities';
 
 /**
  * Loop toggle button for the Eva video player.
@@ -37,7 +37,7 @@ import { EvaLoopAria, EvaLoopAriaTransformed, transformEvaLoopAria } from '../..
   }
 })
 export class EvaLoop implements OnInit, OnDestroy {
-  private evaApi = inject(EvaApi);
+  private readonly evaApi = inject(EvaApi);
   private loop$: Subscription | null = null;
 
   /**
@@ -46,40 +46,38 @@ export class EvaLoop implements OnInit, OnDestroy {
    *
    * @default false
    */
-  readonly evaCustomIcon = input<boolean>(false);
+  public readonly evaCustomIcon = input<boolean>(false);
 
   /**
    * ARIA configuration for the loop button.
    * All properties are optional — defaults are applied via `transformEvaLoopAria`.
    */
-  readonly evaAria = input<EvaLoopAriaTransformed, EvaLoopAria>(
+  public readonly evaAria = input<EvaLoopAriaTransformed, EvaLoopAria>(
     transformEvaLoopAria(undefined),
     { transform: transformEvaLoopAria }
   );
 
   /** Whether video looping is currently enabled. */
-  protected isLoopActive = signal(false);
+  protected readonly isLoopActive = signal(false);
 
-  protected ariaLabel = computed(() => this.evaAria().ariaLabel);
+  protected readonly ariaLabel = computed(() => this.evaAria().ariaLabel);
 
-  protected ariaValueText = computed(() => {
-    return this.isLoopActive()
-      ? this.evaAria().ariaValueText.active
-      : this.evaAria().ariaValueText.inactive;
-  });
+  protected readonly ariaValueText = computed(() => this.isLoopActive()
+    ? this.evaAria().ariaValueText.active
+    : this.evaAria().ariaValueText.inactive);
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.loop$ = this.evaApi.loopSubject.subscribe((isLoop) => {
       this.isLoopActive.set(isLoop);
     });
   }
 
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this.loop$?.unsubscribe();
   }
 
   protected toggleLoop(): void {
-    if (!this.evaApi.validateVideoAndPlayerBeforeAction()) return;
+    if (!this.evaApi.validateVideoAndPlayerBeforeAction()) { return; }
     this.evaApi.assignedVideoElement!.loop = !this.evaApi.assignedVideoElement!.loop;
     this.evaApi.loopSubject.next(this.evaApi.assignedVideoElement!.loop);
   }

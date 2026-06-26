@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
 import { EvaTimeFormating, EvaTimeProperty } from '../../types';
-import { EvaTimeDisplayAria, EvaTimeDisplayAriaTransformed, transformEvaTimeDisplayAria } from '../../utils/aria-utilities';
+import { transformEvaTimeDisplayAria, EvaTimeDisplayAria, EvaTimeDisplayAriaTransformed } from '../../utils/aria-utilities';
 import { EvaTimeDisplayPipe } from "../pipes/time-display-pipe";
+import { SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_DISPLAY_PAD_WIDTH } from '../../constants';
 
 /**
  * Time display component for the Eva video player.
@@ -39,6 +40,7 @@ import { EvaTimeDisplayPipe } from "../pipes/time-display-pipe";
  */
 @Component({
   selector: 'eva-time-display',
+  imports: [EvaTimeDisplayPipe],
   templateUrl: './time-display.html',
   styleUrl: './time-display.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,11 +48,10 @@ import { EvaTimeDisplayPipe } from "../pipes/time-display-pipe";
     "tabindex": "0",
     "role": "timer",
     "[attr.aria-label]": "ariaLabel()",
-    "[attr.aria-live]": "'off'", // Change to 'polite' for live updates announcements
+    "[attr.aria-live]": "'off'",
     "[attr.aria-atomic]": "'true'",
     "[attr.aria-valuetext]": "displayText()",
-  },
-  imports: [EvaTimeDisplayPipe]
+  }
 })
 export class EvaTimeDisplay {
   protected evaAPI = inject(EvaApi);
@@ -65,7 +66,7 @@ export class EvaTimeDisplay {
    *
    * Also determines which `evaAria` label property is applied to `aria-label`.
    */
-  readonly evaTimeProperty = input.required<EvaTimeProperty>();
+  public readonly evaTimeProperty = input.required<EvaTimeProperty>();
 
   /**
    * The format used to render the time value.
@@ -75,14 +76,14 @@ export class EvaTimeDisplay {
    * - `'mm:ss'` — e.g. `"23:45"`
    * - default fallback — `"m:ss"`
    */
-  readonly evaTimeFormating = input.required<EvaTimeFormating>();
+  public readonly evaTimeFormating = input.required<EvaTimeFormating>();
 
   /**
    * Text displayed in place of the time value when the stream is live.
    *
    * @default "LIVE"
    */
-  readonly evaLiveText = input<string>("LIVE");
+  public readonly evaLiveText = input<string>("LIVE");
 
   /**
    * ARIA labels for the timer element, keyed by `evaTimeProperty`.
@@ -92,7 +93,7 @@ export class EvaTimeDisplay {
    * - `ariaLabelTotal` — label used when `evaTimeProperty` is `"total"`
    * - `ariaLabelRemaining` — label used when `evaTimeProperty` is `"remaining"`
    */
-  readonly evaAria = input<EvaTimeDisplayAriaTransformed, EvaTimeDisplayAria>(transformEvaTimeDisplayAria(undefined), { transform: transformEvaTimeDisplayAria });
+  public readonly evaAria = input<EvaTimeDisplayAriaTransformed, EvaTimeDisplayAria>(transformEvaTimeDisplayAria(undefined), { transform: transformEvaTimeDisplayAria });
 
   /**
    * Resolves the `aria-label` based on the active `evaTimeProperty`:
@@ -100,7 +101,7 @@ export class EvaTimeDisplay {
    * - `"total"` → `evaAria().ariaLabelTotal`
    * - `"remaining"` → `evaAria().ariaLabelRemaining`
    */
-  protected ariaLabel = computed(() => {
+  protected readonly ariaLabel = computed(() => {
     const property = this.evaTimeProperty();
     if (property === "current") {
       return this.evaAria().ariaLabelCurrent;
@@ -108,9 +109,9 @@ export class EvaTimeDisplay {
     else if (property === "total") {
       return this.evaAria().ariaLabelTotal;
     }
-    else {
-      return this.evaAria().ariaLabelRemaining;
-    }
+
+    return this.evaAria().ariaLabelRemaining;
+
   });
 
   /**
@@ -120,45 +121,36 @@ export class EvaTimeDisplay {
    * - Otherwise reads the appropriate time value from `EvaApi.time()` and formats
    *   it via `formatTime()` using the active `evaTimeFormating`.
    */
-  protected displayText = computed(() => {
+  protected readonly displayText = computed(() => {
     if (this.evaAPI.isLive()) {
       return this.evaLiveText();
     }
 
     // You'll need to implement the formatting logic here
-    // or import a utility function from your pipe
-    const timeValue = this.evaAPI.time()[this.evaTimeProperty()];
-    return this.formatTime(timeValue, this.evaTimeFormating());
+    // Or import a utility function from your pipe
+    const timeProperty = this.evaTimeProperty();
+    const timeValue = this.evaAPI.time()[timeProperty];
+    return this.formatTime(timeValue, this.evaTimeFormating(), timeProperty);
   });
 
-  /**
-   * Formats a time value in seconds into a display string according to the given format.
-   *
-   * This method mirrors the logic of `EvaTimeDisplayPipe` and should be kept in sync with it.
-   *
-   * Format outputs:
-   * - `'HH:mm:ss'` → `"01:23:45"`
-   * - `'mm:ss'` → `"23:45"`
-   * - default → `"m:ss"` (minutes unpadded, seconds zero-padded)
-   *
-   * @param seconds - The time value in seconds to format.
-   * @param format - The target format from `EvaTimeFormating`.
-   */
-  private formatTime(seconds: number, format: EvaTimeFormating): string {
-    // Implement your time formatting logic here
-    // This should match what your EvaTimeDisplayPipe does
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
+  private formatTime(seconds: number, format: EvaTimeFormating, _timeProperty: EvaTimeProperty): string {
+    const totalSeconds = Math.max(0, Math.floor(seconds));
+    const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
+    const minutes = Math.floor((totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
+    const secs = totalSeconds % SECONDS_PER_MINUTE;
+    const pad = (n: number): string => n.toString().padStart(TIME_DISPLAY_PAD_WIDTH, '0');
 
     switch (format) {
       case 'HH:mm:ss':
-        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-      case 'mm:ss':
-        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-      // Add other formats as needed
+        return `${pad(hours)}:${pad(minutes)}:${pad(secs)}`;
+      case 'mm:ss': {
+        const totalMinutes = hours * SECONDS_PER_MINUTE + minutes;
+        return `${pad(totalMinutes)}:${pad(secs)}`;
+      }
+      case 'ss':
+        return `${totalSeconds}`;
       default:
-        return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        return '00:00';
     }
   }
 }

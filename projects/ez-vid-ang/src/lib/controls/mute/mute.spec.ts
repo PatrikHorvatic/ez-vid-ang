@@ -1,6 +1,8 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
 
 import { EvaMute } from './mute';
+import { EvaApi } from '../../api/eva-api';
+import { EvaFullscreenAPI } from '../../api/fullscreen';
 
 describe('EvaMute', () => {
   let component: EvaMute;
@@ -8,7 +10,7 @@ describe('EvaMute', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [EvaMute]
+      imports: [EvaMute], providers: [EvaApi, EvaFullscreenAPI]
     })
       .compileComponents();
 

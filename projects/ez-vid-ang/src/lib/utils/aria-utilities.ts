@@ -1,3 +1,5 @@
+import { DEFAULT_SEEK_SECONDS } from '../constants';
+
 /**Contains aria values fullscreen component works with. */
 export type EvaFullscreenAria = {
 	exitFullscreen?: string,
@@ -145,7 +147,7 @@ export type EvaPictureInPictureAria = {
 	}
 }
 
-export type EvaPictureInPictureTransformed = {
+export type EvaPictureInPictureAriaTransformed = {
 	ariaLabel: string,
 	ariaValueText: {
 		ariaLabelActivated: string,
@@ -153,7 +155,7 @@ export type EvaPictureInPictureTransformed = {
 	}
 }
 
-export function transformEvaPictureInPictureAria(v: EvaPictureInPictureAria | undefined): EvaPictureInPictureTransformed {
+export function transformEvaPictureInPictureAria(v: EvaPictureInPictureAria | undefined): EvaPictureInPictureAriaTransformed {
 	if (!v) {
 		return {
 			ariaLabel: "Picture in picture",
@@ -182,9 +184,9 @@ export type EvaForwardAriaTransformed = {
 }
 
 export function validateAndTransformEvaForwardAndBackwardSeconds(v: number): number {
-	if (!v) { return 10; }
-	if (v === Infinity) { return 10; }
-	if (v <= 0) { return 10; }
+	if (!v) { return DEFAULT_SEEK_SECONDS; }
+	if (v === Infinity) { return DEFAULT_SEEK_SECONDS; }
+	if (v <= 0) { return DEFAULT_SEEK_SECONDS; }
 
 	return v;
 }

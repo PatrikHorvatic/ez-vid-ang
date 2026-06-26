@@ -8,12 +8,12 @@
 			</svg>
 		</span>
 		<span class="speed-label">
-			{{ currentQuality() ? formatQuality(currentQuality()!) : evaQualityAutoText() }}
+			@if (currentQuality(); as quality) { {{ formatQuality(quality) }} } @else { {{ evaQualityAutoText() }} }
 		</span>
 		<span class="dropdown-arrow" [class.rotated]="isOpen()">
 			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
 				stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-				<polyline points="6 9 12 15 18 9"></polyline>
+				<polyline points="6 9 12 15 18 9" />
 			</svg>
 		</span>
 	</div>
@@ -24,16 +24,16 @@
 			<div class="dropdown-header">{{ evaQualitySelectorText() }}</div>
 			<div class="quality-options">
 				@for (quality of qualities(); track quality.qualityIndex) {
-				<button type="button" class="quality-option"
+				<button type="button" class="quality-option" role="option"
 					[class.active]="quality.qualityIndex === currentQuality()?.qualityIndex"
-					(click)="selectQuality(quality, $index)"
-					[attr.aria-selected]="quality.qualityIndex === currentQuality()?.qualityIndex" role="option">
+					[attr.aria-selected]="quality.qualityIndex === currentQuality()?.qualityIndex"
+					(click)="selectQuality(quality, $index)">
 					<span class="speed-text">{{ formatQuality(quality) }}</span>
 					@if (quality.qualityIndex === currentQuality()?.qualityIndex) {
 					<span class="checkmark">
 						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
 							stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-							<polyline points="20 6 9 17 4 12"></polyline>
+							<polyline points="20 6 9 17 4 12" />
 						</svg>
 					</span>
 					}

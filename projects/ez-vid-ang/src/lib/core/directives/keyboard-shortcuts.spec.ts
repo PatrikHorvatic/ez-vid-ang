@@ -6,15 +6,16 @@ import { EvaFullscreenAPI } from '../../api/fullscreen';
 import { prepareDefaultKeyboardShortcutsConfiguration } from '../../utils/utilities';
 
 @Component({
+  selector: 'eva-test-host',
+  imports: [EvaKeyboardShortcuts],
   template: `<video evaKeyboardShortcuts
     [evaKeyboardShortcutsEnabled]="enabled()"
-    [evaKeyboardShortcutsConfiguration]="config()" />`,
-  imports: [EvaKeyboardShortcuts],
-  providers: [EvaApi, EvaFullscreenAPI],
+    [evaKeyboardShortcutsConfiguration]="config()"></video>`,
+  providers: [EvaApi, EvaFullscreenAPI]
 })
 class TestHostComponent {
-  enabled = signal(false);
-  config = signal(prepareDefaultKeyboardShortcutsConfiguration());
+  public readonly enabled = signal(false);
+  public readonly config = signal(prepareDefaultKeyboardShortcutsConfiguration());
 }
 
 describe('EvaKeyboardShortcuts', () => {
@@ -27,7 +28,7 @@ describe('EvaKeyboardShortcuts', () => {
   it('should create the directive', () => {
     const fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
-    const videoEl = fixture.nativeElement.querySelector('video');
+    const videoEl = (fixture.nativeElement as HTMLElement).querySelector('video');
     expect(videoEl).toBeTruthy();
   });
 });

@@ -14,51 +14,97 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`EvaApi.loopSubject`**: New `BehaviorSubject<boolean>` that broadcasts the current loop state. Updated by `EvaVideoConfigurationDirective` and `EvaLoop`.
 - **`EvaChapterList`**: New floating panel component that displays all available chapters in a scrollable list. Positioned in the top corner of the video element (`z-index: 1100`), above all other player UI. Opens/closes via `evaChapterListOpen` input (runtime-toggleable). Close button with `(evaChapterListClose)` output. Shows chapter title, start time, and duration. Active chapter is highlighted via `startTime` comparison. Handles edge cases: empty chapters (configurable empty text via `evaChapterListEmptyText`), empty titles (falls back to "Untitled"), invalid times (`NaN`/negative), and negative durations (hidden). Supports left/right positioning via `evaChapterListPosition`. Fully configurable via 25+ SCSS variables. Closes on Escape key and click-outside. Responsive — full-width on mobile (≤ 480px).
 - **`EvaApi.hasExternalChapters`**: New flag that prevents VTT-parsed chapters from overwriting chapters provided via the `evaChapters` input.
+- **ESLint**: Added strict linting configuration using `angular-eslint` v22, `typescript-eslint` v8, and ESLint v10 flat config. Enabled all available presets (`eslint.configs.all`, `tseslint.configs.all`, `angular.configs.tsAll`, `angular.configs.templateAll`, `angular.configs.templateAccessibility`). The project now passes linting with zero errors.
+- **`constants.ts`**: New centralized constants file. All magic numbers across the library are replaced with named, non-reassignable constants organized by category (time conversion, percentages, volume, seek, buffering, timeouts, UI layout). Imported by 16 source files.
+- **`FullscreenPolyfill` interface**: Typed the previously `any`-typed fullscreen API polyfill object in `EvaFullscreenAPI`, eliminating all unsafe member access and unsafe call errors in `fullscreen.ts`.
+- **`npm run lint`**: Lint script (`ng lint`) was added to `package.json`.
 
 ### Bug Fixes
 
-- **`EvaScrubBar`**: Hover tooltip, click-to-seek, and drag-to-seek used `scrollWidth` for percentage calculations. When chapter markers had positions exceeding 100% (chapter times beyond video duration), `scrollWidth` was inflated by the overflow, making all calculated times near zero (e.g. always showing "00:00 Intro"). Replaced with `clientWidth` which reflects the visible rendered width.
-- **`EvaScrubBar`**: Chapters provided via the `evaChapters` input were not synced to `EvaApi.chapterMarkerChangesSubject`, so `EvaActiveChapter` and the per-frame chapter lookup in `updateVideoTime()` used VTT-parsed chapters instead of the input chapters. Now pushes input chapters to `chapterMarkerChangesSubject` on init.
-- **`EvaVideoConfigurationDirective`**: Setting `loop: false` in `evaVideoConfiguration` was silently ignored because the guard used `if (config.loop)` (falsy check). Changed to `if (config.loop !== undefined)` so `false` is correctly applied. Loop changes now also broadcast to `EvaApi.loopSubject`.
-- **`EvaKeyboardShortcuts`**: In multi-player setups, all players responded to every keystroke simultaneously. Now only the last-interacted player handles shortcuts. When focus is inside a specific `eva-player`, only that player responds.
-- **`EvaKeyboardShortcuts`**: Number keys and other shortcuts were captured when focus was on custom widgets (dropdowns, sliders, etc.) that are not `<input>` or `<textarea>`. The input guard now also skips `<select>` elements and any element with an interactive ARIA role (`listbox`, `combobox`, `menu`, `menuitem`, `slider`, `spinbutton`, `textbox`, `searchbox`, `gridcell`).
-- **`validateAndTransformEvaKeyboardShortcutsConfiguration`**: Default config values were stored in ALL-UPPERCASE (`"ARROWLEFT"`) but JSDoc documented mixed-case defaults (`"ArrowLeft"`). All key values are now normalized to uppercase via `.toUpperCase()` in the transform, making consumer-provided casing irrelevant. Removed redundant per-keystroke `.toUpperCase()` calls on config values in the keyboard handler.
-- **`EvaFullscreenAPI`**: Stale JSDoc `@example` and `@param` on `toggleFullscreen()` still referenced the old two-argument signature. Updated to reflect the current no-arg signature.
-- **`EvaChapterList`**: Click-outside handler fired on the same click event that opened the panel, causing it to open and immediately close. Fixed with a 50ms debounce after open.
-- **`EvaVideoConfigurationDirective`**: All boolean config properties (`autoplay`, `controls`, `muted`, `disablePictureInPicture`, `disableRemotePlayback`, `playinline`) used truthy checks (`if (config.X)`) which prevented setting them back to `false` at runtime. Changed all to `!== undefined` guards (same fix already applied to `loop`).
-- **`EvaKeyboardShortcuts`**: `lastActiveApi` retained a reference to a destroyed `EvaApi` instance in multi-player teardown scenarios, permanently locking surviving players out of keyboard shortcuts. Now validates the reference is still alive via `isPlayerReady` before comparing.
-- **`EvaKeyboardShortcuts`**: Duplicate `keydown` listeners could accumulate if the `effect()` re-ran with `true` on consecutive change detection cycles. Now calls `removeEventListener` before `addEventListener` to prevent duplicates.
-- **`EvaScrubBar`**: `hasExternalChapters` was never reset when the `evaChapters` input was cleared to `[]`, permanently blocking VTT chapter loading. Now resets the flag and clears chapters via `ngOnChanges` when the input changes at runtime.
-- **`EvaApi.volumeChanged()`**: Accessed `assignedVideoElement!.volume` without calling `validateVideoAndPlayerBeforeAction()`, unlike other event callbacks. Added the guard.
-- **`EvaApi.loadedVideoMetadata()`**: Accessed `assignedVideoElement!.duration` without a null guard. Added an early return if `assignedVideoElement` is null.
-- **`EvaLoop.toggleLoop()`**: Only checked `assignedVideoElement` for null but did not use `validateVideoAndPlayerBeforeAction()`. Now uses the full validation guard.
-- **`EvaChapterList.seekToChapter()`**: Did not coordinate with the seek state (`isSeeking`, `pendingPlayAfterSeek`). Now sets `isSeeking` and resumes playback after seek if the video was playing.
-- **`EvaVideoConfigurationDirective`**: `startingVolume: 0` was silently ignored because the guard used `if (config.startingVolume)` (truthiness check). Changed to `if (config.startingVolume !== undefined)` so `0` is correctly applied.
-- **`EvaScrubBar`**: `seekEnd()` returned early when `newTime` was `NaN` without resetting `wasPlaying`, leaving the video permanently paused after an invalid seek. Now resets `wasPlaying` on all early-return paths.
-- **`EvaApi.muteOrUnmuteVideo()`**: Unmuting restored `lastActiveVolume` which could be `0` if the user had dragged the volume slider to zero. Now saves the current volume before muting (only when > 0) and falls back to `0.75` if `lastActiveVolume` is `0`.
-- **`EvaScrubBar`**: `controlsSelectorComponentActive` subscription (a `BehaviorSubject`) immediately emitted `false` on subscribe, scheduling an auto-hide before any user interaction. Added `skip(1)` to ignore the initial emission.
-- **`EvaScrubBar`**: `getTouchOffset()` accessed `event.touches[0]` without checking that `touches` is non-empty. Added a guard returning `0` when the touch list is empty.
-- **`EvaScrubBar`**: `touchStartScrub` passed `false` to `seekEnd()` when `evaSlidingEnabled` was `false`, discarding the touch position entirely. The video never seeked on tap. Now computes the touch offset via `getTouchOffset()`, matching the mouse path behaviour.
-- **`EvaScrubBar`**: `prepareHiding()` was called unconditionally from the `triggerUserInteraction` subscription, scheduling a hide timeout even while a selector dropdown (quality, speed) was open. The scrub bar would hide behind the open dropdown. Now skips scheduling when `isControlerSelectorActive` is `true`.
+- **`EvaApi`**:
+  - `playOrPauseVideo()` did not catch the `play()` promise — rapid toggling caused uncaught `AbortError`.
+  - `time().remaining` was `Infinity` on live streams after every `timeupdate`. Now returns `0`.
+  - `time.total` set to `NaN` when video duration was unavailable, corrupting downstream seek calculations.
+  - `loadedVideoMetadata()` accessed `assignedVideoElement!.duration` without a null guard.
+  - `volumeChanged()` accessed `assignedVideoElement!.volume` without calling `validateVideoAndPlayerBeforeAction()`.
+  - `muteOrUnmuteVideo()` — unmuting restored `lastActiveVolume` which could be `0`. Now falls back to `0.75`.
+- **`EvaFullscreenAPI`**:
+  - `exitFullscreen()` broken on iOS — called method on `document` instead of the `<video>` element.
+  - iOS fullscreen change listener attached to `document` instead of the `<video>` element — never fired.
+  - Non-iOS mobile fallback to `<video>` element was unreachable. Fixed condition to check `request in targetElement`.
+  - `isiOSDevice()` missed iPadOS 13+ (desktop user agent). Added `navigator.maxTouchPoints` check.
+  - Stale JSDoc on `toggleFullscreen()` still referenced the old two-argument signature.
+- **`EvaScrubBar`**:
+  - Hover tooltip, click-to-seek, and drag-to-seek used `scrollWidth` instead of `clientWidth` for percentage calculations.
+  - Chapters provided via `evaChapters` input were not synced to `EvaApi.chapterMarkerChangesSubject`.
+  - `hasExternalChapters` was never reset when `evaChapters` was cleared to `[]`.
+  - `seekEnd()` returned early on `NaN` without resetting `wasPlaying`, leaving the video permanently paused.
+  - `controlsSelectorComponentActive` subscription immediately emitted `false` on subscribe. Added `skip(1)`.
+  - `getTouchOffset()` accessed `event.touches[0]` without checking that `touches` is non-empty.
+  - `touchStartScrub` passed `false` to `seekEnd()` when `evaSlidingEnabled` was `false` — tap-to-seek was broken.
+  - `prepareHiding()` fired while a dropdown was open, hiding the scrub bar behind it.
+- **`EvaControlsContainer`**:
+  - Subscription leaks when toggling `evaAutohide` — `startListening()` and `disableHiding()` now clean up existing subscriptions.
+  - `controlsSelectorComponentActive` BehaviorSubject emitted on subscribe, double-scheduling the hide timeout. Added `skip(1)`.
+  - `prepareHiding()` fired while a dropdown was open. Added `isControlerSelectorActive` guard.
+  - `ngOnDestroy` did not clear `hideTimeout`.
+- **`EvaVideoConfigurationDirective`**:
+  - All boolean config properties used truthy checks, preventing `false` values at runtime. Changed to `!== undefined`.
+  - `startingVolume: 0` was silently ignored. Changed to `!== undefined`.
+  - `startingVolume` not synced to `lastActiveVolume` during init — mute/unmute restored to wrong volume.
+- **`EvaKeyboardShortcuts`**:
+  - In multi-player setups, all players responded to every keystroke simultaneously.
+  - Shortcuts were captured when focus was on custom widgets with interactive ARIA roles.
+  - `lastActiveApi` retained a reference to a destroyed `EvaApi` instance.
+  - Duplicate `keydown` listeners could accumulate on consecutive `effect()` re-runs.
+  - Key config values normalized to uppercase via `.toUpperCase()` in the transform.
+- **`EvaPlaybackSpeed`**:
+  - Null dereference in `handleBlur` when `relatedTarget` is `null`. Added `instanceof HTMLElement` guard.
+  - Default speed not applied when component mounted after player was already ready.
+- **`EvaQualitySelector`**:
+  - Null dereference in `onBlur` when `relatedTarget` is `null`. Added `instanceof HTMLElement` guard.
+  - Missing `instanceof` guard in `handleClickOutside`.
+  - Keyboard navigation crashed when qualities array was empty.
+- **`EvaTimeDisplay`**: `'ss'` format returned `m:ss` instead of total seconds. Added negative value clamping. Aligned `formatTime` with pipe for `mm:ss` format (hours overflow).
+- **`EvaScrubBarCurrentTime`**: Operator precedence bug — rounded before dividing, producing unrounded decimals. Added `total === 0` guard.
+- **`EvaScrubBarBufferingTime`**: Division by zero when `time.total` is `0` before metadata loads.
+- **`EvaCueChangeDirective`**: Duplicate `cuechange` listeners when toggling active repeatedly. Added `detach()` before re-attaching.
+- **`EvaDashDirective`**: `STREAM_INITIALIZED` callback accessed `this.dash` without null guard. DRM config shallow copy mutated the consumer's input object.
+- **`EvaChapterList`**:
+  - Click-outside handler fired on the same click that opened the panel. Fixed with a 50ms debounce.
+  - `seekToChapter()` did not coordinate with the seek state. Now sets `isSeeking` and resumes playback.
+  - Click-outside handler used unsafe `as Node` cast instead of `instanceof` guard.
+- **`EvaVolume`**: `onTouchStart` accessed `e.touches[0]` without length check. Inner announcement reset timeout not cleaned up on destroy.
+- **`EvaTrackSelector`**: Screen reader announcement DOM element and timeout not cleaned up on destroy.
+- **`EvaLoop`**: `toggleLoop()` did not use `validateVideoAndPlayerBeforeAction()`. Now uses the full validation guard.
 
 ### Improved
 
-- **`EvaChapterList`**: Panel now closes on `Escape` key (document-level) and click outside the panel. Both emit `evaChapterListClose` so the consumer's signal stays in sync.
+- **`EvaChapterList`**: Panel now closes on `Escape` key and click outside.
+
+### Changed (Linting)
+
+- Added strict ESLint configuration with all available presets. Project passes with zero errors.
+- Merged duplicate imports across 48 files. Removed `import type` syntax.
+- Added explicit return types to all functions across 13 files.
+- Fixed `inject(ElementRef<T>)` → `inject<ElementRef<T>>(ElementRef)` in 4 files to preserve generic type.
+- Replaced unsafe `as any` casts with `instanceof` guards and typed patterns across fullscreen, event listeners, keyboard shortcuts, and click-outside handlers.
+- Replaced `as VTTCue` / `as PictureInPictureEvent` casts with runtime `instanceof` checks.
+- Removed unnecessary `async` from methods without `await`. Replaced `console.error` with `console.warn`.
+- Renamed `EvaPictureInPictureTransformed` to `EvaPictureInPictureAriaTransformed` for naming consistency with other ARIA transformed types.
 
 ### Internal
 
-- Removed commented-out double-tap-to-seek `touchend` code and unused `lastTapTime` field from `EvaMediaEventListenersDirective`.
-- Fixed broken `keyboard-shortcuts.spec.ts` — replaced direct `new EvaKeyboardShortcuts()` (which crashed outside an injection context) with a `TestBed`-based test using a host component.
+- Removed dead double-tap-to-seek code from `EvaMediaEventListenersDirective`.
+- Fixed `keyboard-shortcuts.spec.ts` to use `TestBed` host component.
+- Added `constants.ts` — centralized all magic numbers into named constants.
+- Added `FullscreenPolyfill` interface to type the previously `any` polyfill object.
 
 ### Documentation
 
-- **`documentation/core/eva-api.md`**: Added `loopSubject` to the Subjects table.
-- **`documentation/core/player.md`**: Updated keyboard shortcuts notes with multi-player scoping, casing normalization, and expanded input guard.
-- **`documentation/core/directives.md`**: Updated `EvaKeyboardShortcuts` description with multi-player scoping, expanded suppression list, and template directive correction.
-- **`documentation/core/fullscreen-api.md`**: Updated `toggleFullscreen` signature in the public API table.
-- **`documentation/controls/chapter-list.md`**: Created full documentation with inputs, usage examples with TypeScript integration, chapter item display, keyboard support, and 20+ SCSS variables.
-- **`documentation/controls/loop.md`**: Created full documentation with inputs, 4 usage examples, host classes, keyboard support, SCSS variables, and ARIA types.
-- **`documentation/controls/scrub-bar.md`**: Updated Chapter Markers section to document sync to `chapterMarkerChangesSubject` and VTT-skip behavior when `evaChapters` is provided.
+- New: `documentation/core/linting.md`, `documentation/core/constants.md`.
+- New: `documentation/controls/chapter-list.md`, `documentation/controls/loop.md`.
+- Updated: `eva-api.md`, `fullscreen-api.md`, `player.md`, `directives.md`, `scrub-bar.md`, `time-display.md`, `container.md`, `dash.md`.
 
 ---
 

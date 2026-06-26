@@ -5,9 +5,9 @@ import { EvaFullscreenAPI } from '../../api/fullscreen';
 import { EvaKeyboardShortcutsConfiguration, EvaTrack, EvaVideoElementConfiguration, EvaVideoSource } from '../../types';
 import { prepareDefaultKeyboardShortcutsConfiguration, validateAndTransformEvaKeyboardShortcutsConfiguration, validateTracks } from '../../utils/utilities';
 import { EvaCueChangeDirective } from '../directives/cue-change';
+import { EvaKeyboardShortcuts } from "../directives/keyboard-shortcuts";
 import { EvaMediaEventListenersDirective } from '../directives/media-event-listeners';
 import { EvaVideoConfigurationDirective } from '../directives/video-configuration';
-import { EvaKeyboardShortcuts } from "../directives/keyboard-shortcuts";
 
 /**
  * Root player component for the Eva video player.
@@ -35,11 +35,11 @@ import { EvaKeyboardShortcuts } from "../directives/keyboard-shortcuts";
  */
 @Component({
   selector: 'eva-player',
+  imports: [EvaMediaEventListenersDirective, EvaVideoConfigurationDirective, EvaCueChangeDirective, EvaKeyboardShortcuts],
   templateUrl: './player.html',
   styleUrl: './player.scss',
-  imports: [EvaMediaEventListenersDirective, EvaVideoConfigurationDirective, EvaCueChangeDirective, EvaKeyboardShortcuts],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [EvaApi, EvaFullscreenAPI],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
 
@@ -54,14 +54,14 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
    *
    * **Required.** Used to distinguish multiple player instances on the same page.
    */
-  readonly id = input.required<string>();
+  public readonly id = input.required<string>();
 
   /**
    * The list of video sources to load into the player.
    *
    * **Required.** Each source should include at minimum a `src` and `type`.
    */
-  readonly evaVideoSources = input.required<EvaVideoSource[]>();
+  public readonly evaVideoSources = input.required<EvaVideoSource[]>();
 
   /**
    * Configuration object applied to the native `<video>` element.
@@ -69,7 +69,7 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
    *
    * @default {}
    */
-  readonly evaVideoConfiguration = input<EvaVideoElementConfiguration>({});
+  public readonly evaVideoConfiguration = input<EvaVideoElementConfiguration>({});
 
   /**
    * Enables keyboard shortcuts on the player.
@@ -77,7 +77,7 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
    *
    * @default false
    */
-  readonly evaKeyboardShortcutsEnabled = input<boolean>(false);
+  public readonly evaKeyboardShortcutsEnabled = input<boolean>(false);
 
   /**
    * Key binding configuration for keyboard shortcuts.
@@ -85,7 +85,7 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
    *
    * @default prepareDefaultKeyboardShortcutsConfiguration()
    */
-  readonly evaKeyboardShortcutsConfiguration = input<Required<EvaKeyboardShortcutsConfiguration>, EvaKeyboardShortcutsConfiguration>(prepareDefaultKeyboardShortcutsConfiguration(), { transform: validateAndTransformEvaKeyboardShortcutsConfiguration });
+  public readonly evaKeyboardShortcutsConfiguration = input<Required<EvaKeyboardShortcutsConfiguration>, EvaKeyboardShortcutsConfiguration>(prepareDefaultKeyboardShortcutsConfiguration(), { transform: validateAndTransformEvaKeyboardShortcutsConfiguration });
 
   /**
    * List of subtitle/text tracks to attach to the video element.
@@ -94,14 +94,14 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
    *
    * @default []
    */
-  readonly evaVideoTracks = input<EvaTrack[], EvaTrack[]>([], { transform: validateTracks });
+  public readonly evaVideoTracks = input<EvaTrack[], EvaTrack[]>([], { transform: validateTracks });
 
   /**
    * Text displayed inside the `<video>` element for browsers that do not support HTML5 video.
    *
    * @default "I'm sorry; your browser doesn't support HTML video."
    */
-  readonly evaNotSupportedText = input<string>("I'm sorry; your browser doesn't support HTML video.");
+  public readonly evaNotSupportedText = input<string>("I'm sorry; your browser doesn't support HTML video.");
 
   /**
    * Reference to the native `<video>` element rendered in the template.
@@ -111,7 +111,7 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
 
 
   private subtitleChangeSubject: Subscription | null = null;
-  protected activeSubtitleLabel = signal<string | null>(null);
+  protected readonly activeSubtitleLabel = signal<string | null>(null);
 
   /**
    * Responds to runtime changes of `evaVideoTracks`.
@@ -120,13 +120,13 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
    *
    * @param changes - The `SimpleChanges` map provided by Angular.
    */
-  ngOnChanges(changes: SimpleChanges): void {
+  public ngOnChanges(changes: SimpleChanges): void {
     if (changes["evaVideoTracks"]) {
-      this.playerMainAPI.updateAndPrepareTracks(changes["evaVideoTracks"].currentValue);
+      this.playerMainAPI.updateAndPrepareTracks(changes["evaVideoTracks"].currentValue as EvaTrack[]);
     }
   }
 
-  ngOnInit(): void {
+  public ngOnInit(): void {
     const defaultTrack = this.evaVideoTracks().find(t => t.default && t.kind === 'subtitles');
     if (defaultTrack) {
       this.activeSubtitleLabel.set(defaultTrack.label ?? null);
@@ -137,7 +137,7 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
    * Assigns the native `<video>` element to `EvaApi` and signals that the player
    * is ready for use. Also logs the presence of any HLS or DASH streaming directives.
    */
-  ngAfterViewInit(): void {
+  public ngAfterViewInit(): void {
     this.playerMainAPI.assignElementToApi(this.evaVideoElement().nativeElement);
     this.subtitleChangeSubject = this.playerMainAPI.videoSubtitlesSubject.subscribe(a => {
       if (a) {
@@ -151,13 +151,13 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
     });
   }
 
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this.subtitleChangeSubject?.unsubscribe();
     this.playerFullscreenAPI.destroy();
     this.playerMainAPI.destroy();
   }
 
-  protected videoConfigReady() {
+  protected videoConfigReady(): void {
     this.playerMainAPI.onPlayerReady();
   }
 

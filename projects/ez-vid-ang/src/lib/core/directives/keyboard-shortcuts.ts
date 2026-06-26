@@ -3,9 +3,11 @@ import { DestroyRef, Directive, effect, inject, input } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
 import { EvaKeyboardShortcutsConfiguration } from '../../types';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
+import { SEEK_ICON_THRESHOLD_30 } from '../../constants';
 
-/** Duration of a single frame at 30fps, used for frame-step shortcuts. */
-const FRAME_DURATION_SECONDS = 1 / 30;
+const FRAME_DURATION_SECONDS = 1 / SEEK_ICON_THRESHOLD_30;
+
+
 
 const INTERACTIVE_ROLES = new Set([
   'listbox', 'combobox', 'menu', 'menuitem', 'slider',
@@ -52,10 +54,10 @@ export class EvaKeyboardShortcuts {
   private readonly document = inject(DOCUMENT);
   private readonly destroyRef = inject(DestroyRef);
 
-  constructor() {
+  public constructor() {
     effect(() => {
       if (this.evaKeyboardShortcutsEnabled()) {
-        if (!lastActiveApi) lastActiveApi = this.api;
+        if (!lastActiveApi) { lastActiveApi = this.api; }
         this.document.removeEventListener('keydown', this.onKeydown);
         this.document.addEventListener('keydown', this.onKeydown);
       } else {
@@ -65,7 +67,7 @@ export class EvaKeyboardShortcuts {
 
     this.destroyRef.onDestroy(() => {
       this.document.removeEventListener('keydown', this.onKeydown);
-      if (lastActiveApi === this.api) lastActiveApi = null;
+      if (lastActiveApi === this.api) { lastActiveApi = null; }
     });
   }
 
@@ -78,7 +80,8 @@ export class EvaKeyboardShortcuts {
    * element responds. If focus is outside all players, the last-interacted player handles it.
    */
   private readonly onKeydown = (e: KeyboardEvent): void => {
-    const target = e.target as HTMLElement;
+    if (!(e.target instanceof HTMLElement)) { return; }
+    const target = e.target;
 
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable) {
       return;
@@ -97,11 +100,9 @@ export class EvaKeyboardShortcuts {
       const thisPlayer = videoEl.closest('eva-player');
       const targetPlayer = target.closest('eva-player');
       if (targetPlayer) {
-        if (targetPlayer !== thisPlayer) return;
+        if (targetPlayer !== thisPlayer) { return; }
         lastActiveApi = this.api;
-      } else {
-        if (lastActiveApi && lastActiveApi !== this.api) return;
-      }
+      } else if (lastActiveApi && lastActiveApi !== this.api) { return; }
     }
 
     const config = this.evaKeyboardShortcutsConfiguration();

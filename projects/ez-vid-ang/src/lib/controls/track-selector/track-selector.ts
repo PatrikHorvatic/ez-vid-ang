@@ -1,7 +1,8 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, AfterViewInit, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaTrack, EvaTrackInternal } from '../../types';
+import { SCREEN_READER_ANNOUNCEMENT_DURATION_MS } from '../../constants';
 
 
 
@@ -60,7 +61,7 @@ import { EvaTrack, EvaTrackInternal } from '../../types';
   }
 })
 export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
-  private evaAPI = inject(EvaApi);
+  private readonly evaAPI = inject(EvaApi);
 
   /**
    * The `aria-label` applied to the host element and used as the prefix
@@ -68,27 +69,28 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    *
    * @default "Track selector"
    */
-  readonly evaTrackSelectorText = input<string>("Track selector");
+  public readonly evaTrackSelectorText = input<string>("Track selector");
 
   /**
    * The label used for the "Off" option that disables all subtitle tracks.
    *
    * @default "Off"
    */
-  readonly evaTrackOffText = input<string>("Off");
+  public readonly evaTrackOffText = input<string>("Off");
 
   /**
    * A unique ID generated per component instance for use in ARIA relationships
    * (e.g. `aria-controls`, `aria-labelledby`) in the template.
    */
+  // eslint-disable-next-line @typescript-eslint/no-magic-numbers
   protected readonly uniqueId = `track-selector-${Math.random().toString(36).slice(2, 11)}`;
 
   /**
    * The label of the currently selected track, or `evaTrackOffText` if no track is selected.
    * Returns `null` if `localTracks` is not yet initialized.
    */
-  protected currentTrack = computed<string | null>(() => {
-    const t = this.localTracks().filter(a => a.selected === true);
+  protected readonly currentTrack = computed<string | null>(() => {
+    const t = this.localTracks().filter(a => a.selected);
     if (!t[0]) {
       return this.evaTrackOffText();
     }
@@ -96,10 +98,10 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
   });
 
   /** The local list of track options rendered in the dropdown, including the "Off" option. */
-  protected localTracks = signal<EvaTrackInternal[]>([]);
+  protected readonly localTracks = signal<EvaTrackInternal[]>([]);
 
   /** Whether the track dropdown is currently open. Applies the `open` class to the host. */
-  protected isOpen = signal(false);
+  protected readonly isOpen = signal(false);
 
   /** Bound reference to the click-outside handler, stored for removal in `ngOnDestroy`. */
   private clickOutsideListener?: (event: MouseEvent) => void;
@@ -111,14 +113,15 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * Tracks the index of the currently focused option during keyboard navigation.
    * Updated on `ArrowUp`, `ArrowDown`, `Home`, and `End` key events.
    */
-  private keyboardNavigationIndex = signal(0);
+  private readonly keyboardNavigationIndex = signal(0);
+  private announceTimeout?: number;
 
   /**
    * Initializes `localTracks` from the current value of `EvaApi.videoTracksSubject`,
    * subscribes to future track changes, and attaches a document-level click listener
    * to close the dropdown when clicking outside.
    */
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.localTracks.set(
       this.extractTracksFromAssignedVideoElement(
         this.evaAPI.videoTracksSubject.getValue()
@@ -135,17 +138,19 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
     document.addEventListener('click', this.clickOutsideListener, true);
   }
 
-  // we need to set first value to the player component.
-  ngAfterViewInit(): void {
+  // We need to set first value to the player component.
+  public ngAfterViewInit(): void {
     this.changeSubtitles();
   }
 
   /** Unsubscribes from track changes and removes the document-level click listener. */
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     if (this.videoTracksSub) {
       this.videoTracksSub.unsubscribe();
     }
-
+    if (this.announceTimeout) {
+      clearTimeout(this.announceTimeout);
+    }
     if (this.clickOutsideListener) {
       document.removeEventListener('click', this.clickOutsideListener, true);
     }
@@ -159,7 +164,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * @param tr - The track to select.
    * @param i - The index of the track within `localTracks`.
    */
-  protected selectTrack(tr: EvaTrackInternal, i: number) {
+  protected selectTrack(tr: EvaTrackInternal, i: number): void {
     this.localTracks.update(tracks => {
       const updated = tracks.map(track => ({
         ...track,
@@ -184,7 +189,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /** Toggles the dropdown open/closed on click. */
-  protected trackSelectorClicked() {
+  protected trackSelectorClicked(): void {
     this.toggleDropdown();
   }
 
@@ -198,7 +203,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * - `Home` — select the first track (only when open)
    * - `End` — select the last track (only when open)
    */
-  protected playbackClickedKeyboard(e: KeyboardEvent) {
+  protected playbackClickedKeyboard(e: KeyboardEvent): void {
     const tracks = this.localTracks();
     const isDropdownOpen = this.isOpen();
 
@@ -267,6 +272,8 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
           this.selectTrack(tracks[lastIndex], lastIndex);
         }
         break;
+      default:
+        break;
     }
   }
 
@@ -274,10 +281,10 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * Closes the dropdown when focus moves outside the `eva-track-selector` element.
    * Uses `relatedTarget` to detect where focus is moving to.
    */
-  protected handleBlur(event: FocusEvent) {
+  protected handleBlur(event: FocusEvent): void {
     // Close dropdown when focus moves outside the component
-    const relatedTarget = event.relatedTarget as HTMLElement;
-    if (!relatedTarget || !relatedTarget.closest('eva-track-selector')) {
+    const relatedTarget = event.relatedTarget;
+    if (!(relatedTarget instanceof HTMLElement) || !relatedTarget.closest('eva-track-selector')) {
       this.isOpen.set(false);
       this.evaAPI.controlsSelectorComponentActive.next(false);
     }
@@ -299,9 +306,9 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    *
    * @param event - The native `MouseEvent` from the document listener.
    */
-  private handleClickOutside(event: MouseEvent) {
-    const target = event.target as HTMLElement;
-    if (!target.closest('eva-track-selector')) {
+  private handleClickOutside(event: MouseEvent): void {
+    if (!(event.target instanceof HTMLElement)) { return; }
+    if (!event.target.closest('eva-track-selector')) {
       this.isOpen.set(false);
       this.evaAPI.controlsSelectorComponentActive.next(false);
     }
@@ -311,7 +318,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * Toggles the `isOpen` signal between `true` and `false`.
    * When opening, resets `keyboardNavigationIndex` to the currently selected track.
    */
-  private toggleDropdown() {
+  private toggleDropdown(): void {
     this.isOpen.update(open => !open);
     this.evaAPI.controlsSelectorComponentActive.next(this.isOpen());
     if (this.isOpen()) {
@@ -339,14 +346,14 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
       }];
     }
 
-    let a = v.filter(a => a.kind === "subtitles")
-      .map(a => ({
-        id: a.srclang,
-        label: a.label || "",
-        selected: a.default === true
+    const a = v.filter(t => t.kind === "subtitles")
+      .map(b => ({
+        id: b.srclang,
+        label: b.label || "",
+        selected: b.default === true
       }));
 
-    const hasSelected = a.some(i => i.selected === true);
+    const hasSelected = a.some(i => i.selected);
 
     return [
       ...a,
@@ -377,18 +384,19 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
 
     document.body.appendChild(announcement);
 
-    // Remove after announcement
-    setTimeout(() => {
-      document.body.removeChild(announcement);
-    }, 1000);
+    this.announceTimeout = window.setTimeout(() => {
+      if (announcement.parentNode) {
+        document.body.removeChild(announcement);
+      }
+    }, SCREEN_READER_ANNOUNCEMENT_DURATION_MS);
   }
 
-  private changeSubtitles() {
+  private changeSubtitles(): void {
     if (!this.currentTrack()) {
       this.evaAPI.subtitlesChanged(null);
       return;
     }
-    let t = this.localTracks().find(a => a.selected === true);
+    const t = this.localTracks().find(a => a.selected);
     this.evaAPI.subtitlesChanged(t ? t : null);
   }
 }

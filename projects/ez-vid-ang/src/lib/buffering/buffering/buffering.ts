@@ -39,5 +39,5 @@ export class EvaBuffering {
    *
    * @default true
    */
-  readonly defaultSpinner = input<boolean>(true);
+  public readonly defaultSpinner = input<boolean>(true);
 }

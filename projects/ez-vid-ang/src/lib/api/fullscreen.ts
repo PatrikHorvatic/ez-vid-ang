@@ -2,6 +2,15 @@ import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, fromEvent, Observable, Subscription } from 'rxjs';
 import { EvaApi } from './eva-api';
 
+interface FullscreenPolyfill {
+  enabled: string;
+  element: string;
+  request: string;
+  exit: string;
+  onchange: string;
+  onerror: string;
+}
+
 /**
  * Service that manages fullscreen state for the Eva video player.
  *
@@ -34,10 +43,10 @@ import { EvaApi } from './eva-api';
 @Injectable()
 export class EvaFullscreenAPI {
 
-  private evaAPI = inject(EvaApi);
+  private readonly evaAPI = inject(EvaApi);
 
   /** Internal subject tracking whether the player is currently in fullscreen mode. */
-  private isFullscreenSubject = new BehaviorSubject<boolean>(false);
+  private readonly isFullscreenSubject = new BehaviorSubject<boolean>(false);
 
   /** Observable stream of fullscreen state changes. Subscribe to react to enter/exit events. */
   public isFullscreenObs: Observable<boolean> = this.isFullscreenSubject.asObservable();
@@ -46,13 +55,13 @@ export class EvaFullscreenAPI {
    * The detected fullscreen API polyfill object containing vendor-prefixed method and
    * property names for the current browser. `null` if no supported API was found.
    */
-  private polyfill: any;
+  private polyfill: FullscreenPolyfill | null = null;
 
   /**
    * Whether to use the native fullscreen API.
    * Reserved for future use — currently always `true`.
    */
-  private nativeFullscreen = true;
+  private readonly nativeFullscreen = true;
 
   /** Whether a supported fullscreen API was detected on construction. */
   private isAvailable = false;
@@ -64,7 +73,7 @@ export class EvaFullscreenAPI {
    * Detects the available fullscreen API variant on construction
    * and sets up native fullscreen change event listeners.
    */
-  constructor() {
+  public constructor() {
     this.detectFullscreenAPI();
   }
 
@@ -80,7 +89,7 @@ export class EvaFullscreenAPI {
    * if a match is found. Attaches fullscreen change listeners if a polyfill is set.
    */
   private detectFullscreenAPI(): void {
-    const APIs = {
+    const APIs: Record<string, FullscreenPolyfill> = {
       w3: {
         enabled: 'fullscreenEnabled',
         element: 'fullscreenElement',
@@ -132,33 +141,39 @@ export class EvaFullscreenAPI {
     };
 
     // Detect which API is available
-    for (const browser in APIs) {
-      if ((APIs as any)[browser].enabled in document) {
-        this.polyfill = (APIs as any)[browser];
+    for (const browser of Object.keys(APIs)) {
+      if (APIs[browser].enabled in document) {
+        this.polyfill = APIs[browser];
         break;
       }
     }
 
     // Special handling for iOS — always override to the ios polyfill
     if (this.isiOSDevice()) {
-      this.polyfill = APIs.ios;
+      this.polyfill = APIs['ios'];
     }
 
-    this.isAvailable = this.polyfill != null;
+    this.isAvailable = this.polyfill !== null;
 
-    // Setup change listeners
+    // Setup change listeners — for non-iOS, attach immediately to document.
+    // For iOS, defer until the video element is available via playerReadyEvent.
     if (this.polyfill) {
-      this.setupFullscreenListeners();
+      if (this.isiOSDevice()) {
+        this.evaAPI.playerReadyEvent.subscribe(() => {
+          this.setupFullscreenListeners();
+        });
+      } else {
+        this.setupFullscreenListeners();
+      }
     }
   }
 
-  /**
-   * Attaches a native fullscreen change event listener to `document` using `fromEvent`.
-   * The event name is sourced from `this.polyfill.onchange` for the detected API variant.
-   * On each change, delegates to `onFullscreenChange()` to update the state subject.
-   */
   private setupFullscreenListeners(): void {
-    this.fullscreenSub = fromEvent(document, this.polyfill.onchange).subscribe(() => {
+    this.fullscreenSub?.unsubscribe();
+    const target = this.isiOSDevice() && this.evaAPI.assignedVideoElement
+      ? this.evaAPI.assignedVideoElement
+      : document;
+    this.fullscreenSub = fromEvent(target, this.polyfill!.onchange).subscribe(() => {
       this.onFullscreenChange();
     });
   }
@@ -169,7 +184,7 @@ export class EvaFullscreenAPI {
    * and updates `isFullscreenSubject` accordingly.
    */
   private onFullscreenChange(): void {
-    const isFullscreen = !!(document as any)[this.polyfill.element];
+    const isFullscreen = Boolean((document as unknown as Record<string, unknown>)[this.polyfill!.element]);
     this.isFullscreenSubject.next(isFullscreen);
   }
 
@@ -177,7 +192,7 @@ export class EvaFullscreenAPI {
    * Returns whether the player is currently in fullscreen mode.
    * Reads synchronously from `isFullscreenSubject`.
    */
-  isFullscreen(): boolean {
+  public isFullscreen(): boolean {
     return this.isFullscreenSubject.value;
   }
 
@@ -185,7 +200,7 @@ export class EvaFullscreenAPI {
    * Returns whether a supported fullscreen API was detected in the current browser.
    * Can be used to conditionally show or hide the fullscreen button.
    */
-  isFullscreenSupported(): boolean {
+  public isFullscreenSupported(): boolean {
     return this.isAvailable;
   }
 
@@ -204,31 +219,31 @@ export class EvaFullscreenAPI {
    * @param videoElement - The native `<video>` element, used as a fallback on mobile/iOS.
    * @throws Re-throws any error from the native fullscreen request.
    */
-  async enterFullscreen(element: HTMLElement, videoElement?: HTMLVideoElement): Promise<void> {
-    if (!this.isAvailable || !this.nativeFullscreen) {
+  public async enterFullscreen(element: HTMLElement, videoElement?: HTMLVideoElement): Promise<void> {
+    if (!this.isAvailable || !this.nativeFullscreen || !this.polyfill) {
       console.warn('Fullscreen is not supported');
       return;
     }
 
     try {
-      let targetElement = element;
+      let targetElement: HTMLElement = element;
 
       // Mobile device handling
       if (this.isMobileDevice()) {
-        // iOS devices need to use video element directly
+        // IOS devices need to use video element directly
         if (this.isiOSDevice() && videoElement) {
           targetElement = videoElement;
         }
-        // Other mobile devices: if no native fullscreen on container, use video
-        else if (!this.polyfill.enabled && videoElement) {
+        // Other mobile devices: if requestFullscreen is not available on the container, use video
+        else if (!(this.polyfill.request in targetElement) && videoElement) {
           targetElement = videoElement;
         }
       }
 
-      await (targetElement as any)[this.polyfill.request]();
+      await (targetElement as unknown as Record<string, () => Promise<void>>)[this.polyfill.request]();
       this.isFullscreenSubject.next(true);
     } catch (error) {
-      console.error('Error entering fullscreen:', error);
+      console.warn('Error entering fullscreen:', error);
       throw error;
     }
   }
@@ -241,16 +256,20 @@ export class EvaFullscreenAPI {
    *
    * @throws Re-throws any error from the native fullscreen exit call.
    */
-  async exitFullscreen(): Promise<void> {
-    if (!this.isAvailable || !this.nativeFullscreen) {
+  public async exitFullscreen(): Promise<void> {
+    if (!this.isAvailable || !this.nativeFullscreen || !this.polyfill) {
       return;
     }
 
     try {
-      await (document as any)[this.polyfill.exit]();
+      if (this.isiOSDevice() && this.evaAPI.assignedVideoElement) {
+        (this.evaAPI.assignedVideoElement as unknown as Record<string, () => void>)[this.polyfill.exit]();
+      } else {
+        await (document as unknown as Record<string, () => Promise<void>>)[this.polyfill.exit]();
+      }
       this.isFullscreenSubject.next(false);
     } catch (error) {
-      console.error('Error exiting fullscreen:', error);
+      console.warn('Error exiting fullscreen:', error);
       throw error;
     }
   }
@@ -259,13 +278,13 @@ export class EvaFullscreenAPI {
    * Toggles fullscreen mode — exits if currently fullscreen, enters otherwise.
    * Resolves the video element and player container internally via `EvaApi.assignedVideoElement`.
    */
-  async toggleFullscreen(): Promise<void> {
+  public async toggleFullscreen(): Promise<void> {
     const videoElement = this.evaAPI.assignedVideoElement;
     if (!videoElement) {
       console.warn('Video element not assigned');
       return;
     }
-    const playerContainer = videoElement.closest('eva-player') as HTMLElement | null;
+    const playerContainer = videoElement.closest<HTMLElement>('eva-player');
     if (!playerContainer) {
       console.warn('Player container not found');
       return;
@@ -282,7 +301,7 @@ export class EvaFullscreenAPI {
    * Used to determine whether to target the `<video>` element instead of the container.
    */
   private isMobileDevice(): boolean {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/iu.test(navigator.userAgent);
   }
 
   /**
@@ -291,7 +310,9 @@ export class EvaFullscreenAPI {
    * Used to force the `ios` polyfill and target the `<video>` element directly.
    */
   private isiOSDevice(): boolean {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    return (/iPad|iPhone|iPod/u.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) &&
+      !('MSStream' in window);
   }
 
   /**

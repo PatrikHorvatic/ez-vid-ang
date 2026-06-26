@@ -1,6 +1,8 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TestBed, ComponentFixture } from '@angular/core/testing';
 
 import { EvaForward } from './forward';
+import { EvaApi } from '../../api/eva-api';
+import { EvaFullscreenAPI } from '../../api/fullscreen';
 
 describe('EvaForward', () => {
   let component: EvaForward;
@@ -8,7 +10,7 @@ describe('EvaForward', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [EvaForward]
+      imports: [EvaForward], providers: [EvaApi, EvaFullscreenAPI]
     })
       .compileComponents();
 

@@ -62,7 +62,8 @@ eva-player[evaDash]
 |---|---|---|---|---|
 | `evaDashSrc` | `string` | ✅ Yes | — | URL of the DASH stream manifest (`.mpd`). Changing this at runtime destroys the current instance and creates a new one. |
 | `evaDashDRMToken` | `string` | No | `undefined` | Authorization token injected into DRM license request headers. Only used when `evaDashDRMLicenseServer` is also provided. |
-| `evaDashDRMLicenseServer` | `EvaDRMLicenseServer` | No | `undefined` | DRM license server configuration. Keys are DRM system strings (e.g. `"com.widevine.alpha"`). See `EvaDRMLicenseServer` below. |
+| `evaDashDRMLicenseServer` | `EvaDRMLicenseServer` | No | `undefined` | DRM license server configuration. Keys are DRM system strings (e.g. `"com.widevine.alpha"`). The input object is deep-copied before modification — the consumer's original object is never mutated. See `EvaDRMLicenseServer` below. |
+| `evaDashConfig` | `EvaDashConfig` | No | `{}` | Dash.js settings overrides applied via `updateSettings()` after initialization. Merged on top of the directive's defaults (debug level). |
 
 ### EvaApi Integration
 

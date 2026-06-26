@@ -1,4 +1,4 @@
-import { AfterViewInit, Directive, ElementRef, inject, input, OnChanges, output, SecurityContext, SimpleChanges } from '@angular/core';
+import { Directive, ElementRef, inject, input, output, SecurityContext, AfterViewInit, OnChanges, SimpleChanges } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { EvaApi } from '../../api/eva-api';
 import { EvaVideoElementConfiguration } from '../../types';
@@ -55,10 +55,10 @@ import { validateAndPrepareStartingVideoVolume } from '../../utils/utilities';
 })
 export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit {
   protected evaAPI = inject(EvaApi);
-  private elementRef = inject(ElementRef<HTMLVideoElement>);
-  private sanitizer = inject(DomSanitizer);
+  private readonly elementRef = inject<ElementRef<HTMLVideoElement>>(ElementRef);
+  private readonly sanitizer = inject(DomSanitizer);
 
-  readonly videoConfigurationDone = output();
+  public readonly videoConfigurationDone = output();
 
   /**
    * The configuration object to apply to the native `<video>` element.
@@ -66,7 +66,7 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
    * **Required.** See `EvaVideoElementConfiguration` for all available properties.
    * Only truthy properties are applied — unset properties are left at their native defaults.
    */
-  readonly evaVideoConfig = input.required<EvaVideoElementConfiguration>();
+  public readonly evaVideoConfig = input.required<EvaVideoElementConfiguration>();
 
   /**
    * Guards against applying configuration before the native element is available.
@@ -81,7 +81,7 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
    *
    * @param changes - The `SimpleChanges` map provided by Angular.
    */
-  ngOnChanges(changes: SimpleChanges): void {
+  public ngOnChanges(changes: SimpleChanges): void {
     if (this.isViewInitialized && changes['evaVideoConfig']) {
       this.applyConfiguration();
     }
@@ -91,7 +91,7 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
    * Marks the view as initialized and applies the initial configuration
    * to the native `<video>` element.
    */
-  ngAfterViewInit(): void {
+  public ngAfterViewInit(): void {
     this.isViewInitialized = true;
     this.applyConfiguration();
     this.videoConfigurationDone.emit();
@@ -113,16 +113,13 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
    */
   private applyConfiguration(): void {
     const config = this.evaVideoConfig();
-    if (!config) {
-      return;
-    }
 
     // Volume — validated and clamped to [0, 1] by validateAndPrepareStartingVideoVolume,
-    // assigned as a typed number, no sanitization needed
+    // Assigned as a typed number, no sanitization needed
     if (config.startingVolume !== undefined) {
       const v = validateAndPrepareStartingVideoVolume(config.startingVolume);
       this.elementRef.nativeElement.volume = v;
-      this.evaAPI.setVideoVolume(v);
+      this.evaAPI.lastActiveVolume = v;
     }
 
     // Numeric properties — assigned as typed numbers, no sanitization needed
@@ -158,7 +155,7 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
     }
 
     // Constrained enum strings — typed DOM properties with a fixed set of valid values,
-    // no sanitization needed
+    // No sanitization needed
     if (config.crossorigin) {
       this.elementRef.nativeElement.crossOrigin = config.crossorigin;
     }
@@ -167,11 +164,10 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
     }
 
     // URL property — sanitized with SecurityContext.URL as the browser fetches this
-    // as a resource and it is reflected in the DOM as an attribute
+    // As a resource and it is reflected in the DOM as an attribute
     if (config.poster) {
       this.elementRef.nativeElement.poster = this.sanitizer.sanitize(SecurityContext.URL, config.poster) ?? '';
     }
-
 
   }
 }

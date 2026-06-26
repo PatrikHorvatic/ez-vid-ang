@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnDestroy, OnInit, signal, WritableSignal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, signal, OnDestroy, OnInit, WritableSignal } from '@angular/core';
 import { EvaApi } from "../../api/eva-api";
 import { Subscription } from "rxjs";
 
@@ -42,7 +42,7 @@ import { Subscription } from "rxjs";
   }
 })
 export class EvaSubtitleDisplay implements OnInit, OnDestroy {
-  private evaAPI = inject(EvaApi);
+  private readonly evaAPI = inject(EvaApi);
 
   /**
    * The currently active subtitle cue text, or `null` when no cue is active.
@@ -57,7 +57,7 @@ export class EvaSubtitleDisplay implements OnInit, OnDestroy {
    * When `false`, it shifts up to clear the controls bar using CSS custom properties.
    * Updated by subscribing to `EvaApi.componentsContainerVisibilityStateSubject`.
    */
-  protected controlsCointainerNotVisible: WritableSignal<boolean> = signal(false);
+  protected readonly controlsCointainerNotVisible: WritableSignal<boolean> = signal(false);
 
   /**
    * Whether the player is currently in Picture-in-Picture mode.
@@ -67,7 +67,7 @@ export class EvaSubtitleDisplay implements OnInit, OnDestroy {
    * by `EvaApi.setupPipListeners()`).
    * Updated by subscribing to `EvaApi.pictureInPictureSubject`.
    */
-  protected pipWindowActive: WritableSignal<boolean> = signal(false);
+  protected readonly pipWindowActive: WritableSignal<boolean> = signal(false);
 
   /** Subscription to controls container visibility changes. Cleaned up in `ngOnDestroy`. */
   private controlsVisibility$: Subscription | null = null;
@@ -81,7 +81,7 @@ export class EvaSubtitleDisplay implements OnInit, OnDestroy {
    *   based on controls bar visibility.
    * - `EvaApi.pictureInPictureSubject` — to suppress the subtitle overlay when PiP is active.
    */
-  ngOnInit(): void {
+  public ngOnInit(): void {
     this.controlsVisibility$ = this.evaAPI.componentsContainerVisibilityStateSubject.subscribe((a) => {
       this.controlsCointainerNotVisible.set(a);
     });
@@ -91,7 +91,7 @@ export class EvaSubtitleDisplay implements OnInit, OnDestroy {
   }
 
   /** Unsubscribes from all active subscriptions to prevent memory leaks. */
-  ngOnDestroy(): void {
+  public ngOnDestroy(): void {
     this.controlsVisibility$?.unsubscribe();
     this.pipWindowActive$?.unsubscribe();
   }

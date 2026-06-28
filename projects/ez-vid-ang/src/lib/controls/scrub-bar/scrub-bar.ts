@@ -554,6 +554,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    */
   private touchEnd(): void {
     this.isSeeking = false;
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
     this.emitChapterAtTime(this.evaAPI.assignedVideoElement!.currentTime);
 
     if (this.wasPlaying) {

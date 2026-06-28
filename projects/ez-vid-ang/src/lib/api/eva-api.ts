@@ -599,10 +599,11 @@ export class EvaApi {
 
 		const crnt = this.assignedVideoElement!.currentTime;
 		const duration = this.getVideoDuration();
+		const remaining = this.isLive() || !Number.isFinite(duration) ? 0 : duration - crnt;
 		this.time.update(a => ({
 			current: crnt,
 			total: a.total,
-			remaining: this.isLive() ? 0 : duration - crnt
+			remaining
 		}));
 
 		if (!this.isLive()) {
@@ -1020,6 +1021,8 @@ export class EvaApi {
 		this.chapterMarkerChangesSubject.complete();
 		this.componentsContainerVisibilityStateSubject.complete();
 		this.controlsSelectorComponentActive.complete();
+		this.keyboardShortcutsOverlaySubject.complete();
+		this.keyboardShortcutsConfigSubject.complete();
 		this.triggerUserInteraction.complete();
 		this.playerReadyEvent.complete();
 	}

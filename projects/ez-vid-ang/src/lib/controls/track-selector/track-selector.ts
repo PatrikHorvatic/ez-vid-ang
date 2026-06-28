@@ -375,6 +375,9 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * @param trackLabel - The label of the newly selected track.
    */
   private announceTrackChange(trackLabel: string): void {
+    if (this.announceTimeout) {
+      clearTimeout(this.announceTimeout);
+    }
     const announcement = document.createElement('div');
     announcement.setAttribute('role', 'status');
     announcement.setAttribute('aria-live', 'polite');

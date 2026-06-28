@@ -128,6 +128,7 @@ export class EvaContextMenu implements OnInit {
 
     requestAnimationFrame(() => {
       this.clampPosition(rect);
+      this.menuRef()?.nativeElement.focus();
     });
   }
 

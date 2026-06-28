@@ -124,7 +124,7 @@ export class EvaKeyboardShortcuts {
       this.api.seekForward(config.forwardSeconds);
     } else if (config.fullscreen && key === config.fullscreen) {
       e.preventDefault();
-      this.fullscreenService.toggleFullscreen();
+      this.fullscreenService.toggleFullscreen().catch(() => { /* Ignored — browser may reject without user gesture */ });
     } else if (config.muteKey && key === config.muteKey) {
       e.preventDefault();
       this.api.muteOrUnmuteVideo();

@@ -36,6 +36,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`EvaDownloadAria`**, **`EvaScreenshotAria`**, **`EvaErrorOverlayAria`**, **`EvaCinemaModeAria`**: New ARIA types with transforms.
 - **`HEIGHT_TRANSITION_FALLBACK_MS`**, **`DEFAULT_IMAGE_QUALITY`**, **`DEFAULT_STORAGE_KEY`**: New constants.
 
+### Bug Fixes
+
+- **`EvaApi`**: `updateVideoTime()` set `remaining` to `NaN` when `getVideoDuration()` returned `NaN` (e.g. before metadata loads or during rapid source changes). Added `Number.isFinite()` guard — returns `0` when duration is invalid.
+- **`EvaCueChangeDirective`**: Accessed `track` property on the `<track>` element without a null guard in both the reactive `effect()` and `detach()`. Crashes if the `TextTrack` is not yet initialized. Added null check in the effect and optional chaining in `detach()`.
+- **`EvaScrubBar`**: `touchEnd()` accessed `assignedVideoElement!.currentTime` without calling `validateVideoAndPlayerBeforeAction()` first. Crashes if the video element is null during a touch seek. Added validation guard.
+- **`EvaTrackSelector`**: Rapid track changes in `announceTrackChange()` created orphaned `setTimeout` callbacks and DOM announcement elements without cancelling previous ones. Added `clearTimeout()` before creating a new announcement.
+- **`EvaKeyboardShortcuts`**: `toggleFullscreen()` call had no `.catch()` handler, unlike other async calls in the same file. Could cause unhandled promise rejection warnings when the browser rejects fullscreen (e.g. missing user gesture).
+
 ### Documentation
 
 - New: `documentation/controls/settings-panel.md` — full documentation with integration examples for all player features (playback speed, quality, loop, cinema mode, screenshot, PiP, download, fullscreen, mute, volume, track selector).

@@ -70,6 +70,7 @@ export class EvaCueChangeDirective implements OnDestroy {
   public constructor() {
     effect(() => {
       const { track } = this.el.nativeElement;
+      if (!track) { return; }
       if (this.evaCueChangeActive()) {
         this.detach();
         this.handler = (): void => { this.evaAPI.onCueChange(track); };
@@ -91,7 +92,7 @@ export class EvaCueChangeDirective implements OnDestroy {
    */
   private detach(): void {
     if (this.handler) {
-      this.el.nativeElement.track.removeEventListener('cuechange', this.handler);
+      this.el.nativeElement.track?.removeEventListener('cuechange', this.handler);
       this.handler = null;
       this.evaAPI.onCueChange(null);
     }

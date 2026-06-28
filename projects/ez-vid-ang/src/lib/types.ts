@@ -79,6 +79,49 @@ export type EvaStorageConfiguration = {
 	loop?: boolean
 }
 
+/**
+ * A selectable option within a settings menu item's sub-menu.
+ */
+export type EvaSettingsMenuOption = {
+	/** Unique identifier for this option, emitted in `EvaSettingsMenuEvent`. */
+	id: string;
+	/** Display label shown in the sub-menu. */
+	label: string;
+	/** Whether this option is currently selected. Shown with a checkmark. */
+	selected?: boolean | undefined;
+}
+
+/**
+ * A single item in the `EvaSettingsPanel` main menu.
+ *
+ * Items with `options` render a navigable sub-menu (like YouTube's settings).
+ * Items without `options` emit a click event directly from the main menu.
+ */
+export type EvaSettingsMenuItem = {
+	/** Unique identifier for this item, emitted in `EvaSettingsMenuEvent`. */
+	id: string;
+	/** Display label shown in the main menu. */
+	label: string;
+	/** Current value displayed on the right side of the item (e.g. `"1080p"`, `"Normal"`). */
+	currentValue?: string | undefined;
+	/** Sub-menu options. When present, clicking the item navigates into the sub-menu. */
+	options?: EvaSettingsMenuOption[] | undefined;
+	/** Whether the item is disabled (visible but not clickable). */
+	disabled?: boolean | undefined;
+}
+
+/**
+ * Data emitted by `EvaSettingsPanel` when a menu option is selected.
+ */
+export type EvaSettingsMenuEvent = {
+	/** The `id` of the parent menu item. */
+	itemId: string;
+	/** The `id` of the selected option, or `itemId` if the item has no sub-menu. */
+	optionId: string;
+	/** The `label` of the selected option. */
+	label: string;
+}
+
 
 export const validateAndTransformStorageKey = (v: string | undefined): string => {
 	if (!v) {

@@ -1,0 +1,370 @@
+:host {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: var(--eva-control-element-height);
+	width: var(--eva-settings-panel-button-width, 44px);
+	cursor: pointer;
+	color: white;
+	position: relative;
+	outline: none;
+
+	&:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.8);
+		outline-offset: 2px;
+		border-radius: 4px;
+	}
+
+	&:hover {
+		background-color: var(--eva-settings-panel-hover-background, rgba(255, 255, 255, 0.1));
+		border-radius: 4px;
+	}
+
+	&.open {
+		background-color: var(--eva-settings-panel-open-background, rgba(255, 255, 255, 0.15));
+		border-radius: 4px;
+
+		.eva-settings-panel-icon svg {
+			transform: rotate(60deg);
+		}
+	}
+}
+
+.eva-settings-panel-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+}
+
+.eva-settings-panel-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--eva-settings-panel-icon-size, 22px);
+	height: var(--eva-settings-panel-icon-size, 22px);
+	color: var(--eva-settings-panel-icon-color, white);
+
+	svg {
+		width: 100%;
+		height: 100%;
+		transition: transform var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1);
+	}
+}
+
+// ─── Dropdown Panel ────────────────────────────────────────────────────────
+
+.eva-settings-panel-dropdown {
+	position: absolute;
+	bottom: 100%;
+	right: 0;
+	margin-bottom: 4px;
+	z-index: 1000;
+
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+
+	transform: translateY(0px) scale(0.95);
+	transform-origin: bottom right;
+
+	transition:
+		opacity var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1),
+		visibility var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1),
+		transform var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1);
+
+	&.show {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+		transform: translateY(calc(-12px - var(--eva-scrub-bar-heights, 0px))) scale(1);
+	}
+
+	@media (max-width: 768px) {
+		right: 0;
+		left: auto;
+	}
+}
+
+.eva-settings-panel-content {
+	background: var(--eva-settings-panel-background, rgba(0, 0, 0, 0.92));
+	backdrop-filter: blur(20px);
+	border-radius: var(--eva-settings-panel-border-radius, 8px);
+	box-shadow: var(--eva-settings-panel-box-shadow, 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1));
+	overflow: hidden;
+	min-width: var(--eva-settings-panel-min-width, 220px);
+	animation: settingsPanelSlideIn var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1);
+	transition: height var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes settingsPanelSlideIn {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+// ─── Header ────────────────────────────────────────────────────────────────
+
+.eva-settings-panel-header {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: var(--eva-settings-panel-header-padding, 10px 14px 8px);
+	border-bottom: var(--eva-settings-panel-header-border, 1px solid rgba(255, 255, 255, 0.1));
+}
+
+.eva-settings-panel-header-title {
+	font-family: var(--eva-font-family);
+	font-size: var(--eva-settings-panel-header-font-size, 12px);
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: var(--eva-settings-panel-header-color, rgba(255, 255, 255, 0.6));
+}
+
+.eva-settings-panel-back {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	background: transparent;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	color: var(--eva-settings-panel-back-color, rgba(255, 255, 255, 0.7));
+	padding: 0;
+	transition:
+		background-color var(--eva-transition-duration, 0.25s) ease,
+		color var(--eva-transition-duration, 0.25s) ease;
+
+	svg {
+		width: 16px;
+		height: 16px;
+	}
+
+	&:hover {
+		background-color: rgba(255, 255, 255, 0.1);
+		color: rgba(255, 255, 255, 0.95);
+	}
+
+	&:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: -2px;
+	}
+}
+
+// ─── Main Menu Items ───────────────────────────────────────────────────────
+
+.eva-settings-panel-items {
+	padding: 4px;
+	max-height: var(--eva-settings-panel-max-height, 280px);
+	overflow-y: auto;
+
+	&::-webkit-scrollbar {
+		width: 6px;
+	}
+
+	&::-webkit-scrollbar-track {
+		background: rgba(255, 255, 255, 0.05);
+		border-radius: 3px;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: rgba(255, 255, 255, 0.2);
+		border-radius: 3px;
+
+		&:hover {
+			background: rgba(255, 255, 255, 0.3);
+		}
+	}
+}
+
+.eva-settings-panel-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	padding: var(--eva-settings-panel-item-padding, 10px 14px);
+	background: transparent;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	outline: none;
+	transition:
+		background-color var(--eva-transition-duration, 0.25s) ease,
+		transform var(--eva-transition-duration, 0.25s) ease;
+
+	&:hover,
+	&.focused {
+		background-color: var(--eva-settings-panel-item-hover-background, rgba(255, 255, 255, 0.1));
+	}
+
+	&:active {
+		transform: scale(0.98);
+	}
+
+	&:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: -2px;
+	}
+
+	&.disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+		pointer-events: none;
+	}
+}
+
+.eva-settings-panel-item-label {
+	font-family: var(--eva-font-family);
+	font-size: var(--eva-settings-panel-item-font-size, 14px);
+	font-weight: 500;
+	color: var(--eva-settings-panel-item-color, rgba(255, 255, 255, 0.95));
+	white-space: nowrap;
+}
+
+.eva-settings-panel-item-right {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.eva-settings-panel-item-value {
+	font-family: var(--eva-font-family);
+	font-size: var(--eva-settings-panel-item-value-font-size, 13px);
+	color: var(--eva-settings-panel-item-value-color, rgba(255, 255, 255, 0.5));
+	white-space: nowrap;
+}
+
+.eva-settings-panel-item-arrow {
+	display: flex;
+	align-items: center;
+	width: 16px;
+	height: 16px;
+	color: var(--eva-settings-panel-item-arrow-color, rgba(255, 255, 255, 0.4));
+
+	svg {
+		width: 100%;
+		height: 100%;
+	}
+}
+
+// ─── Sub-menu Options ──────────────────────────────────────────────────────
+
+.eva-settings-panel-options {
+	padding: 4px;
+	max-height: var(--eva-settings-panel-max-height, 280px);
+	overflow-y: auto;
+
+	&::-webkit-scrollbar {
+		width: 6px;
+	}
+
+	&::-webkit-scrollbar-track {
+		background: rgba(255, 255, 255, 0.05);
+		border-radius: 3px;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: rgba(255, 255, 255, 0.2);
+		border-radius: 3px;
+
+		&:hover {
+			background: rgba(255, 255, 255, 0.3);
+		}
+	}
+}
+
+.eva-settings-panel-option {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: var(--eva-settings-panel-option-padding, 10px 14px);
+	background: transparent;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	outline: none;
+	transition:
+		background-color var(--eva-transition-duration, 0.25s) ease,
+		transform var(--eva-transition-duration, 0.25s) ease;
+
+	&:hover,
+	&.focused {
+		background-color: var(--eva-settings-panel-option-hover-background, rgba(255, 255, 255, 0.1));
+	}
+
+	&:active {
+		transform: scale(0.98);
+	}
+
+	&:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: -2px;
+	}
+
+	&.selected {
+		background-color: var(--eva-settings-panel-option-selected-background, rgba(59, 130, 246, 0.2));
+	}
+}
+
+.eva-settings-panel-option-check {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--eva-settings-panel-option-check-size, 16px);
+	height: var(--eva-settings-panel-option-check-size, 16px);
+	color: var(--eva-settings-panel-option-check-color, rgba(59, 130, 246, 1));
+	flex-shrink: 0;
+	visibility: hidden;
+
+	svg {
+		width: 100%;
+		height: 100%;
+	}
+
+	.selected & {
+		visibility: visible;
+		animation: settingsCheckAppear var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1);
+	}
+}
+
+@keyframes settingsCheckAppear {
+	from {
+		opacity: 0;
+		transform: scale(0.5);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.eva-settings-panel-option-label {
+	font-family: var(--eva-font-family);
+	font-size: var(--eva-settings-panel-option-font-size, 14px);
+	font-weight: 500;
+	color: var(--eva-settings-panel-option-color, rgba(255, 255, 255, 0.95));
+	white-space: nowrap;
+}
+
+// ─── Responsive ────────────────────────────────────────────────────────────
+
+@media (max-width: 480px) {
+	.eva-settings-panel-content {
+		min-width: var(--eva-settings-panel-min-width-mobile, 180px);
+	}
+}

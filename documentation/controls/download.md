@@ -102,3 +102,25 @@ The component renders as `role="button"` with `tabindex="0"`. Keyboard activatio
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `ariaLabel` | `string` | `"Download"` | Static `aria-label` for the button element. |
+
+### Settings Panel Integration
+
+You can add a download action to the `EvaSettingsPanel`:
+
+```typescript
+protected readonly settingsItems = signal<EvaSettingsMenuItem[]>([
+  { id: 'download', label: 'Download' },
+]);
+
+protected onSettingChanged(event: EvaSettingsMenuEvent): void {
+  if (event.itemId === 'download') {
+    const video = this.api.assignedVideoElement;
+    if (video) {
+      const a = document.createElement('a');
+      a.href = video.currentSrc;
+      a.download = '';
+      a.click();
+    }
+  }
+}
+```

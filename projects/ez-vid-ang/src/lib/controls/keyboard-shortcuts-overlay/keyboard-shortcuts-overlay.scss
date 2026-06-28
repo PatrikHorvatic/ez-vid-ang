@@ -1,0 +1,195 @@
+:host {
+	position: absolute;
+	inset: 0;
+	z-index: 1200;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition:
+		opacity var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1),
+		visibility var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:host(.eva-shortcuts-overlay-open) {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+}
+
+.eva-shortcuts-overlay-panel {
+	background: var(--eva-shortcuts-overlay-background, rgba(0, 0, 0, 0.92));
+	backdrop-filter: blur(20px);
+	border-radius: var(--eva-shortcuts-overlay-border-radius, 12px);
+	box-shadow: var(--eva-shortcuts-overlay-box-shadow, 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1));
+	width: var(--eva-shortcuts-overlay-width, 360px);
+	max-width: calc(100% - 32px);
+	max-height: calc(100% - 32px);
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	transform: scale(0.95);
+	transition: transform var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1);
+
+	:host(.eva-shortcuts-overlay-open) & {
+		transform: scale(1);
+	}
+}
+
+// ─── Header ────────────────────────────────────────────────────────────────
+
+.eva-shortcuts-overlay-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: var(--eva-shortcuts-overlay-header-padding, 16px 20px 12px);
+	border-bottom: var(--eva-shortcuts-overlay-header-border, 1px solid rgba(255, 255, 255, 0.1));
+	flex-shrink: 0;
+}
+
+.eva-shortcuts-overlay-title {
+	font-family: var(--eva-font-family);
+	font-size: var(--eva-shortcuts-overlay-title-font-size, 15px);
+	font-weight: 600;
+	color: var(--eva-shortcuts-overlay-title-color, rgba(255, 255, 255, 0.95));
+}
+
+.eva-shortcuts-overlay-close {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	background: transparent;
+	border: none;
+	border-radius: 4px;
+	cursor: pointer;
+	color: var(--eva-shortcuts-overlay-close-color, rgba(255, 255, 255, 0.6));
+	padding: 0;
+	transition:
+		background-color var(--eva-transition-duration, 0.25s) ease,
+		color var(--eva-transition-duration, 0.25s) ease;
+
+	svg {
+		width: 18px;
+		height: 18px;
+	}
+
+	&:hover {
+		background-color: rgba(255, 255, 255, 0.1);
+		color: rgba(255, 255, 255, 0.95);
+	}
+
+	&:focus-visible {
+		outline: 2px solid rgba(255, 255, 255, 0.5);
+		outline-offset: -2px;
+	}
+}
+
+// ─── Body ──────────────────────────────────────────────────────────────────
+
+.eva-shortcuts-overlay-body {
+	overflow-y: auto;
+	padding: var(--eva-shortcuts-overlay-body-padding, 8px 20px 16px);
+
+	&::-webkit-scrollbar {
+		width: 6px;
+	}
+
+	&::-webkit-scrollbar-track {
+		background: rgba(255, 255, 255, 0.05);
+		border-radius: 3px;
+	}
+
+	&::-webkit-scrollbar-thumb {
+		background: rgba(255, 255, 255, 0.2);
+		border-radius: 3px;
+
+		&:hover {
+			background: rgba(255, 255, 255, 0.3);
+		}
+	}
+}
+
+// ─── Groups ────────────────────────────────────────────────────────────────
+
+.eva-shortcuts-overlay-group {
+	&:not(:first-child) {
+		margin-top: 12px;
+	}
+}
+
+.eva-shortcuts-overlay-group-title {
+	font-family: var(--eva-font-family);
+	font-size: var(--eva-shortcuts-overlay-group-title-font-size, 11px);
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	color: var(--eva-shortcuts-overlay-group-title-color, rgba(255, 255, 255, 0.4));
+	padding: 8px 0 4px;
+}
+
+// ─── Rows ──────────────────────────────────────────────────────────────────
+
+.eva-shortcuts-overlay-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: var(--eva-shortcuts-overlay-row-padding, 6px 0);
+}
+
+.eva-shortcuts-overlay-description {
+	font-family: var(--eva-font-family);
+	font-size: var(--eva-shortcuts-overlay-description-font-size, 13px);
+	color: var(--eva-shortcuts-overlay-description-color, rgba(255, 255, 255, 0.8));
+}
+
+.eva-shortcuts-overlay-keys {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex-shrink: 0;
+}
+
+.eva-shortcuts-overlay-key {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: var(--eva-shortcuts-overlay-key-min-width, 28px);
+	height: var(--eva-shortcuts-overlay-key-height, 26px);
+	padding: 0 6px;
+	background: var(--eva-shortcuts-overlay-key-background, rgba(255, 255, 255, 0.1));
+	border: var(--eva-shortcuts-overlay-key-border, 1px solid rgba(255, 255, 255, 0.15));
+	border-radius: 4px;
+	font-family: var(--eva-font-family);
+	font-size: var(--eva-shortcuts-overlay-key-font-size, 12px);
+	font-weight: 600;
+	color: var(--eva-shortcuts-overlay-key-color, rgba(255, 255, 255, 0.9));
+	white-space: nowrap;
+}
+
+.eva-shortcuts-overlay-key-separator {
+	font-family: var(--eva-font-family);
+	font-size: 11px;
+	color: rgba(255, 255, 255, 0.3);
+}
+
+// ─── Responsive ────────────────────────────────────────────────────────────
+
+@media (max-width: 480px) {
+	.eva-shortcuts-overlay-panel {
+		width: calc(100% - 16px);
+	}
+
+	.eva-shortcuts-overlay-header {
+		padding: 12px 14px 10px;
+	}
+
+	.eva-shortcuts-overlay-body {
+		padding: 6px 14px 12px;
+	}
+}

@@ -58,6 +58,7 @@ export class EvaKeyboardShortcuts {
     effect(() => {
       if (this.evaKeyboardShortcutsEnabled()) {
         if (!lastActiveApi) { lastActiveApi = this.api; }
+        this.api.keyboardShortcutsConfigSubject.next(this.evaKeyboardShortcutsConfiguration());
         this.document.removeEventListener('keydown', this.onKeydown);
         this.document.addEventListener('keydown', this.onKeydown);
       } else {
@@ -136,6 +137,11 @@ export class EvaKeyboardShortcuts {
     } else if (config.oneFrameForward && key === config.oneFrameForward) {
       e.preventDefault();
       this.api.seekForward(FRAME_DURATION_SECONDS);
+    } else if (e.key === '?') {
+      e.preventDefault();
+      const current = this.api.keyboardShortcutsOverlaySubject.value;
+      this.api.keyboardShortcutsOverlaySubject.next(!current);
+      this.api.controlsSelectorComponentActive.next(!current);
     } else if (key >= '0' && key <= '9') {
       e.preventDefault();
       this.api.jumpToVideoPercentage(key);

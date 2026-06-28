@@ -147,3 +147,38 @@ The backdrop fades in using a CSS animation that respects `--eva-transition-dura
 - The player must have `position: relative` and a `z-index` higher than the backdrop (`999`) for it to appear above the dimmed page.
 - Cinema mode auto-deactivates on `ngOnDestroy` (e.g. navigating away), cleaning up the class and backdrop.
 - The backdrop click listener is cleaned up properly to prevent memory leaks.
+
+### Settings Panel Integration
+
+You can add a cinema mode toggle to the `EvaSettingsPanel`. The `<eva-cinema-mode />` component must still be in the template — it subscribes to `cinemaModeSubject` and manages the backdrop:
+
+```html
+<eva-player>
+  <eva-cinema-mode />
+  <eva-controls-container>
+    <eva-settings-panel [evaSettingsMenuItems]="settingsItems()" (evaSettingsMenuItemSelected)="onSettingChanged($event)" />
+  </eva-controls-container>
+</eva-player>
+```
+
+```typescript
+private isCinemaMode = false;
+
+protected readonly settingsItems = signal<EvaSettingsMenuItem[]>([
+  { id: 'cinema', label: 'Cinema mode', currentValue: 'Off' },
+]);
+
+protected onSettingChanged(event: EvaSettingsMenuEvent): void {
+  if (event.itemId === 'cinema') {
+    this.isCinemaMode = !this.isCinemaMode;
+    this.api.cinemaModeSubject.next(this.isCinemaMode);
+    this.settingsItems.update(items =>
+      items.map(item =>
+        item.id === 'cinema'
+          ? { ...item, currentValue: this.isCinemaMode ? 'On' : 'Off' }
+          : item,
+      ),
+    );
+  }
+}
+```

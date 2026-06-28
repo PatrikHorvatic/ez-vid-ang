@@ -1,0 +1,77 @@
+<div class="eva-settings-panel-button">
+	<span class="eva-settings-panel-icon">
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+			stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+			<circle cx="12" cy="12" r="3" />
+			<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+		</svg>
+	</span>
+</div>
+
+<div #dropdown class="eva-settings-panel-dropdown" [class.show]="isOpen()">
+	<div #panelContent class="eva-settings-panel-content">
+		@if (isInSubMenu()) {
+		<!-- Sub-menu view -->
+		<div class="eva-settings-panel-header">
+			<button type="button" class="eva-settings-panel-back" aria-label="Back"
+				(click)="goBack(); $event.stopPropagation()"
+				(keydown.enter)="goBack(); $event.stopPropagation()"
+				(keydown.space)="goBack(); $event.stopPropagation()">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+					stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<polyline points="15 18 9 12 15 6" />
+				</svg>
+			</button>
+			<span class="eva-settings-panel-header-title">{{ activeSubMenu()?.label }}</span>
+		</div>
+		<div class="eva-settings-panel-options" role="listbox">
+			@for (option of activeSubMenu()?.options; track option.id) {
+			<button type="button" class="eva-settings-panel-option" role="option"
+				[class.selected]="option.selected"
+				[class.focused]="isOptionFocused($index)"
+				[attr.aria-selected]="option.selected"
+				(click)="onOptionClick(option); $event.stopPropagation()"
+				(keydown)="onOptionKeyDown($event, option)">
+				<span class="eva-settings-panel-option-check">
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+						stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<polyline points="20 6 9 17 4 12" />
+					</svg>
+				</span>
+				<span class="eva-settings-panel-option-label">{{ option.label }}</span>
+			</button>
+			}
+		</div>
+		} @else {
+		<!-- Main menu view -->
+		<div class="eva-settings-panel-header">
+			<span class="eva-settings-panel-header-title">{{ evaSettingsPanelTitle() }}</span>
+		</div>
+		<div class="eva-settings-panel-items" role="menu">
+			@for (item of evaSettingsMenuItems(); track item.id) {
+			<button type="button" class="eva-settings-panel-item" role="menuitem"
+				[class.disabled]="item.disabled"
+				[class.focused]="isMainItemFocused($index)"
+				[attr.aria-disabled]="item.disabled || null"
+				(click)="onMainItemClick(item); $event.stopPropagation()"
+				(keydown)="onMainItemKeyDown($event, item)">
+				<span class="eva-settings-panel-item-label">{{ item.label }}</span>
+				<span class="eva-settings-panel-item-right">
+					@if (item.currentValue) {
+					<span class="eva-settings-panel-item-value">{{ item.currentValue }}</span>
+					}
+					@if (item.options?.length) {
+					<span class="eva-settings-panel-item-arrow">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+							stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<polyline points="9 18 15 12 9 6" />
+						</svg>
+					</span>
+					}
+				</span>
+			</button>
+			}
+		</div>
+		}
+	</div>
+</div>

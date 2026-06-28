@@ -63,5 +63,8 @@ export const DEFAULT_UNMUTE_VOLUME = 0.75;
 
 export const DEFAULT_STORAGE_KEY = "EVA_PLAYER_CONFIGURATION";
 
+// Settings panel height animation fallback (milliseconds)
+export const HEIGHT_TRANSITION_FALLBACK_MS = 350;
+
 // Screenshot
 export const DEFAULT_IMAGE_QUALITY = 0.92;

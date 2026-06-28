@@ -1,0 +1,32 @@
+<div class="eva-shortcuts-overlay-panel">
+	<div class="eva-shortcuts-overlay-header">
+		<span class="eva-shortcuts-overlay-title">{{ evaShortcutsOverlayTitle() }}</span>
+		<button type="button" class="eva-shortcuts-overlay-close" aria-label="Close shortcuts overlay"
+			(click)="closeOverlay()">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+			</svg>
+		</button>
+	</div>
+	<div class="eva-shortcuts-overlay-body">
+		@for (group of shortcutGroups(); track group.title) {
+		<div class="eva-shortcuts-overlay-group">
+			<div class="eva-shortcuts-overlay-group-title">{{ group.title }}</div>
+			@for (shortcut of group.shortcuts; track shortcut.description) {
+			<div class="eva-shortcuts-overlay-row">
+				<span class="eva-shortcuts-overlay-description">{{ shortcut.description }}</span>
+				<span class="eva-shortcuts-overlay-keys">
+					@for (key of shortcut.keys; track $index) {
+					@if (!$first) {
+					<span class="eva-shortcuts-overlay-key-separator">/</span>
+					}
+					<kbd class="eva-shortcuts-overlay-key">{{ key }}</kbd>
+					}
+				</span>
+			</div>
+			}
+		</div>
+		}
+	</div>
+</div>

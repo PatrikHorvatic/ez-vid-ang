@@ -81,3 +81,45 @@ A playback speed selector component that renders a dropdown of available speeds.
 | Property | Default |
 |---|---|
 | `ariaLabel` | `"Playback speed"` |
+
+### Settings Panel Integration
+
+Instead of using `<eva-playback-speed>` as a standalone button, you can consolidate speed selection into the `EvaSettingsPanel`:
+
+```typescript
+protected readonly settingsItems = signal<EvaSettingsMenuItem[]>([
+  {
+    id: 'speed',
+    label: 'Playback speed',
+    currentValue: 'Normal',
+    options: [
+      { id: '0.25', label: '0.25x' },
+      { id: '0.5', label: '0.5x' },
+      { id: '1', label: 'Normal', selected: true },
+      { id: '1.5', label: '1.5x' },
+      { id: '2', label: '2x' },
+    ],
+  },
+]);
+
+protected onSettingChanged(event: EvaSettingsMenuEvent): void {
+  if (event.itemId === 'speed') {
+    this.api.setPlaybackSpeed(Number(event.optionId));
+    // Update sub-menu to reflect new selection
+    this.settingsItems.update(items =>
+      items.map(item =>
+        item.id === 'speed'
+          ? {
+              ...item,
+              currentValue: event.label,
+              options: item.options?.map(opt => ({
+                ...opt,
+                selected: opt.id === event.optionId,
+              })),
+            }
+          : item,
+      ),
+    );
+  }
+}
+```

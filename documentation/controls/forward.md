@@ -74,3 +74,19 @@ On click or keyboard activation, the component calls `EvaApi.seekForward(evaForw
   </eva-controls-container>
 </eva-player>
 ```
+
+## Settings Panel Integration
+
+You can add seek-forward actions to the `EvaSettingsPanel` — useful for "Skip intro" or "Jump ahead" features:
+
+```typescript
+protected readonly settingsItems = signal<EvaSettingsMenuItem[]>([
+  { id: 'skip-intro', label: 'Skip intro' },
+]);
+
+protected onSettingChanged(event: EvaSettingsMenuEvent): void {
+  if (event.itemId === 'skip-intro') {
+    this.api.seekForward(30);
+  }
+}
+```

@@ -25,20 +25,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `evaLocalStorageConfiguration` input — granular flags (`{ volume, playbackSpeed, cinemaMode, loop }`), toggleable at runtime.
   - Saved values restored on player init, overriding config defaults (user's last choice wins).
   - Volume `0` (muted) not persisted. All `localStorage` access wrapped in try-catch.
+- **`EvaSettingsPanel`**: New YouTube-style settings panel component. Gear icon button in the control bar that opens a navigable dropdown menu. Items with `options` navigate into a sub-menu with back button; items without `options` emit directly. Animated height transitions between main menu and sub-menus. Dynamic position clamping within the player boundary (prevents overflow on left/right placement). Sub-menu selection returns to main menu instead of closing. Stateless design — consumer provides `EvaSettingsMenuItem[]` and handles `EvaSettingsMenuEvent` output. Full keyboard navigation (Arrow keys, Enter/Space, Home/End, Escape). 30+ `--eva-settings-panel-*` CSS variables.
+- **`EvaKeyboardShortcutsOverlay`**: New keyboard shortcuts overlay component. Centered panel listing all configured keyboard shortcuts, grouped by category (Playback, Seeking, Media). Integrated with the `EvaKeyboardShortcuts` directive — toggled automatically via `?` key. Reads open state and configuration from `EvaApi` — zero-configuration usage (`<eva-keyboard-shortcuts-overlay />`). Key labels auto-formatted for display (`ARROWLEFT` → `←`, `SPACE` → `Space`). Closes on Escape, click outside, or close button. Tree-shakable. 20+ `--eva-shortcuts-overlay-*` CSS variables.
+- **`EvaApi.keyboardShortcutsOverlaySubject`**: New `BehaviorSubject<boolean>` that broadcasts the keyboard shortcuts overlay open/close state. Toggled by `EvaKeyboardShortcuts` on `?` key press.
+- **`EvaApi.keyboardShortcutsConfigSubject`**: New `BehaviorSubject` that holds the resolved keyboard shortcuts configuration. Published by `EvaKeyboardShortcuts` on init.
+- **`EvaKeyboardShortcuts`**: Now handles `?` key to toggle the keyboard shortcuts overlay. Publishes the resolved configuration to `EvaApi.keyboardShortcutsConfigSubject` on init.
+- **`EvaSettingsMenuItem`**, **`EvaSettingsMenuOption`**, **`EvaSettingsMenuEvent`**: New types for the settings panel. Optional properties use `| undefined` for `exactOptionalPropertyTypes` compatibility.
+- **`EvaSettingsPanelAria`**: New ARIA type with transform.
 - **`EvaDownloadEvent`**, **`EvaScreenshotEvent`**, **`EvaContextMenuItem`**, **`EvaContextMenuEvent`**: New types.
 - **`EvaDownloadAria`**, **`EvaScreenshotAria`**, **`EvaErrorOverlayAria`**, **`EvaCinemaModeAria`**: New ARIA types with transforms.
-- **`DEFAULT_IMAGE_QUALITY`**, **`DEFAULT_STORAGE_KEY`**: New constants.
-
-### Bug Fixes
-
-- **`EvaApi.captureScreenshot()`**: `canvas.toBlob()` on a tainted canvas (cross-origin) threw an unhandled `SecurityError`, causing the Promise to never resolve. Wrapped in try-catch.
-- **`ConfigurationStorage`**: Subscription callbacks captured a stale `key` variable via closure. If `evaLocalStorageKey` changed at runtime, preferences were saved under the wrong key. Now reads the signal live inside each callback.
-- **`EvaContextMenu`**: `@for` used `track item.id` which broke rendering when multiple dividers shared the same ID. Changed to `track $index`.
-- **`EvaCinemaMode`**: Backdrop click ran outside Angular's change detection zone, so host bindings and consumer outputs didn't update. Wrapped in `NgZone.run()`.
+- **`HEIGHT_TRANSITION_FALLBACK_MS`**, **`DEFAULT_IMAGE_QUALITY`**, **`DEFAULT_STORAGE_KEY`**: New constants.
 
 ### Documentation
 
+- New: `documentation/controls/settings-panel.md` — full documentation with integration examples for all player features (playback speed, quality, loop, cinema mode, screenshot, PiP, download, fullscreen, mute, volume, track selector).
+- New: `documentation/controls/keyboard-shortcuts-overlay.md`.
 - New: `documentation/controls/download.md`, `documentation/controls/screenshot.md`, `documentation/controls/context-menu.md`, `documentation/controls/error-overlay.md`, `documentation/controls/cinema-mode.md`, `documentation/core/configuration-storage.md`.
+- Updated: 14 component docs with "Settings Panel Integration" sections showing how to consolidate each feature into `EvaSettingsPanel`.
 - Updated: `eva-api.md` (screenshot section), `player.md` (storage inputs), `directives.md` (storage directive), `example-configuration.md` (storage usage), `constants.md`, `picture-in-picture.md`.
 
 ---

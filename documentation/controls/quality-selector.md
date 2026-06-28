@@ -104,3 +104,58 @@ The dropdown closes on quality selection, outside click, blur, or `Escape`.
 | Property | Default |
 |---|---|
 | `ariaLabel` | `"Quality selector"` |
+
+### Settings Panel Integration
+
+Instead of using `<eva-quality-selector>` as a standalone button, you can consolidate quality selection into the `EvaSettingsPanel`. Subscribe to `EvaApi.qualityLevelsSubject` to dynamically populate the sub-menu when streaming levels become available:
+
+```typescript
+private qualitySub: Subscription | null = null;
+
+public ngOnInit(): void {
+  this.qualitySub = this.api.qualityLevelsSubject.subscribe(levels => {
+    if (!levels.length) { return; }
+
+    const qualityItem: EvaSettingsMenuItem = {
+      id: 'quality',
+      label: 'Quality',
+      currentValue: 'Auto',
+      options: levels.map(level => ({
+        id: String(level.qualityIndex),
+        label: level.isAuto ? 'Auto' : level.label,
+        selected: level.selected,
+      })),
+    };
+
+    this.settingsItems.update(items => {
+      const idx = items.findIndex(i => i.id === 'quality');
+      if (idx !== -1) {
+        const copy = [...items];
+        copy[idx] = qualityItem;
+        return copy;
+      }
+      return [...items, qualityItem];
+    });
+  });
+}
+
+protected onSettingChanged(event: EvaSettingsMenuEvent): void {
+  if (event.itemId === 'quality') {
+    this.api.setQuality(Number(event.optionId));
+    this.settingsItems.update(items =>
+      items.map(item =>
+        item.id === 'quality'
+          ? {
+              ...item,
+              currentValue: event.label,
+              options: item.options?.map(opt => ({
+                ...opt,
+                selected: opt.id === event.optionId,
+              })),
+            }
+          : item,
+      ),
+    );
+  }
+}
+```

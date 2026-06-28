@@ -1,6 +1,6 @@
 import { EventEmitter, Injectable, signal } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { EvaState, EvaChapterMarker, EvaQualityLevel, EvaScreenshotEvent, EvaTrack, EvaTrackInternal } from '../types';
+import { EvaState, EvaChapterMarker, EvaKeyboardShortcutsConfiguration, EvaQualityLevel, EvaScreenshotEvent, EvaTrack, EvaTrackInternal } from '../types';
 import { MAX_DIGIT_KEY, DIGIT_DIVISOR, READY_STATE_HAVE_FUTURE_DATA, BUFFERING_DETECTION_DELAY_MS, CHAPTER_UPDATE_DEBOUNCE_MS, DEFAULT_ARROW_SEEK_SECONDS, DEFAULT_UNMUTE_VOLUME, DEFAULT_IMAGE_QUALITY } from '../constants';
 
 /**
@@ -178,6 +178,12 @@ export class EvaApi {
 
 	/** Broadcasts the cinema mode state. Updated by `EvaCinemaMode` and `ConfigurationStorage`. */
 	public cinemaModeSubject = new BehaviorSubject<boolean>(false);
+
+	/** Broadcasts the keyboard shortcuts overlay open/close state. Toggled by `EvaKeyboardShortcuts` on `?` key. */
+	public keyboardShortcutsOverlaySubject = new BehaviorSubject<boolean>(false);
+
+	/** Holds the resolved keyboard shortcuts configuration. Published by `EvaKeyboardShortcuts` on init. */
+	public keyboardShortcutsConfigSubject = new BehaviorSubject<Required<EvaKeyboardShortcutsConfiguration> | null>(null);
 
 	public lastActiveVolume = 1;
 

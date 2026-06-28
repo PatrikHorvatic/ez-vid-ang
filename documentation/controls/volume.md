@@ -64,3 +64,43 @@ Volume changes are announced to screen readers via a live region controlled by `
 | Property | Default |
 |---|---|
 | `ariaLabel` | `"Volume control"` |
+
+### Settings Panel Integration
+
+You can add volume presets to the `EvaSettingsPanel` as a sub-menu:
+
+```typescript
+protected readonly settingsItems = signal<EvaSettingsMenuItem[]>([
+  {
+    id: 'volume',
+    label: 'Volume',
+    currentValue: '100%',
+    options: [
+      { id: '1', label: '100%', selected: true },
+      { id: '0.75', label: '75%' },
+      { id: '0.5', label: '50%' },
+      { id: '0.25', label: '25%' },
+    ],
+  },
+]);
+
+protected onSettingChanged(event: EvaSettingsMenuEvent): void {
+  if (event.itemId === 'volume') {
+    this.api.setVideoVolume(Number(event.optionId));
+    this.settingsItems.update(items =>
+      items.map(item =>
+        item.id === 'volume'
+          ? {
+              ...item,
+              currentValue: event.label,
+              options: item.options?.map(opt => ({
+                ...opt,
+                selected: opt.id === event.optionId,
+              })),
+            }
+          : item,
+      ),
+    );
+  }
+}
+```

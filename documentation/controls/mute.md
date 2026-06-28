@@ -60,3 +60,29 @@ Built-in icon classes are suppressed entirely when `evaCustomIcon` is `true`.
 | `ariaLabel` | `"mute"` |
 | `ariaValueTextMuted` | `"Muted"` |
 | `ariaValueTextUnmuted` | `"Unmuted"` |
+
+### Settings Panel Integration
+
+You can add a mute toggle to the `EvaSettingsPanel`:
+
+```typescript
+private isMuted = false;
+
+protected readonly settingsItems = signal<EvaSettingsMenuItem[]>([
+  { id: 'mute', label: 'Mute', currentValue: 'Off' },
+]);
+
+protected onSettingChanged(event: EvaSettingsMenuEvent): void {
+  if (event.itemId === 'mute') {
+    this.api.muteOrUnmuteVideo();
+    this.isMuted = !this.isMuted;
+    this.settingsItems.update(items =>
+      items.map(item =>
+        item.id === 'mute'
+          ? { ...item, currentValue: this.isMuted ? 'On' : 'Off' }
+          : item,
+      ),
+    );
+  }
+}
+```

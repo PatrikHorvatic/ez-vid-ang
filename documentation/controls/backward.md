@@ -74,3 +74,19 @@ On click or keyboard activation, the component calls `EvaApi.seekBack(evaForward
 </eva-player>
 
 ```
+
+## Settings Panel Integration
+
+You can add a seek-backward action to the `EvaSettingsPanel`:
+
+```typescript
+protected readonly settingsItems = signal<EvaSettingsMenuItem[]>([
+  { id: 'replay', label: 'Replay last 10s' },
+]);
+
+protected onSettingChanged(event: EvaSettingsMenuEvent): void {
+  if (event.itemId === 'replay') {
+    this.api.seekBack(10);
+  }
+}
+```

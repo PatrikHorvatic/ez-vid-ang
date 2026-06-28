@@ -160,3 +160,28 @@ The component renders as `role="button"` with `tabindex="0"`. Keyboard activatio
 | Property | Type | Default | Description |
 |---|---|---|---|
 | `ariaLabel` | `string` | `"Screenshot"` | Static `aria-label` for the button element. |
+
+### Settings Panel Integration
+
+You can add a screenshot action to the `EvaSettingsPanel` using `EvaApi.captureScreenshot()`:
+
+```typescript
+protected readonly settingsItems = signal<EvaSettingsMenuItem[]>([
+  { id: 'screenshot', label: 'Take screenshot' },
+]);
+
+protected onSettingChanged(event: EvaSettingsMenuEvent): void {
+  if (event.itemId === 'screenshot') {
+    this.api.captureScreenshot('image/png', 0.92).then(result => {
+      if (result?.blob) {
+        const url = URL.createObjectURL(result.blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `screenshot-${result.currentTime.toFixed(1)}s.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    });
+  }
+}
+```

@@ -70,3 +70,33 @@ When loop is inactive, the icon is rendered at `0.6` opacity.
 | `ariaLabel` | `"Loop"` |
 | `ariaValueText.active` | `"Loop is on"` |
 | `ariaValueText.inactive` | `"Loop is off"` |
+
+### Settings Panel Integration
+
+Instead of using `<eva-loop>` as a standalone button, you can add a loop toggle to the `EvaSettingsPanel`:
+
+```typescript
+private isLooping = false;
+
+protected readonly settingsItems = signal<EvaSettingsMenuItem[]>([
+  { id: 'loop', label: 'Loop', currentValue: 'Off' },
+]);
+
+protected onSettingChanged(event: EvaSettingsMenuEvent): void {
+  if (event.itemId === 'loop') {
+    this.isLooping = !this.isLooping;
+    const video = this.api.assignedVideoElement;
+    if (video) {
+      video.loop = this.isLooping;
+      this.api.loopSubject.next(this.isLooping);
+    }
+    this.settingsItems.update(items =>
+      items.map(item =>
+        item.id === 'loop'
+          ? { ...item, currentValue: this.isLooping ? 'On' : 'Off' }
+          : item,
+      ),
+    );
+  }
+}
+```

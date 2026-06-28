@@ -68,3 +68,37 @@ Two ARIA attributes are managed independently:
 |---|---|
 | `EvaApi.pictureInPictureSubject` | Subscribed on init. Updates `isPictureInPictureActive` to keep icon and `aria-valuetext` in sync. |
 | `EvaApi.changePictureInPictureStatus()` | Called on click and keyboard activation. Handles all browser guards, support checks, and multi-player coordination. |
+
+### Settings Panel Integration
+
+You can add a PiP toggle to the `EvaSettingsPanel`. Subscribe to `EvaApi.pictureInPictureSubject` to keep the current value in sync when PiP is entered/exited externally (e.g. via browser UI):
+
+```typescript
+private pipSub: Subscription | null = null;
+
+protected readonly settingsItems = signal<EvaSettingsMenuItem[]>([
+  { id: 'pip', label: 'Picture-in-Picture', currentValue: 'Off' },
+]);
+
+public ngOnInit(): void {
+  this.pipSub = this.api.pictureInPictureSubject.subscribe(active => {
+    this.settingsItems.update(items =>
+      items.map(item =>
+        item.id === 'pip'
+          ? { ...item, currentValue: active ? 'On' : 'Off' }
+          : item,
+      ),
+    );
+  });
+}
+
+public ngOnDestroy(): void {
+  this.pipSub?.unsubscribe();
+}
+
+protected onSettingChanged(event: EvaSettingsMenuEvent): void {
+  if (event.itemId === 'pip') {
+    this.api.changePictureInPictureStatus();
+  }
+}
+```

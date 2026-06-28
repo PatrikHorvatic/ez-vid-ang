@@ -53,3 +53,23 @@ A fullscreen toggle button rendered as a `role="button"` element. Tracks fullscr
 |---|---|
 | `enterFullscreen` | `"Enter fullscreen"` |
 | `exitFullscreen` | `"Exit fullscreen"` |
+
+### Settings Panel Integration
+
+You can add a fullscreen toggle to the `EvaSettingsPanel` using `EvaFullscreenAPI`:
+
+```typescript
+import { EvaFullscreenAPI } from 'ez-vid-ang';
+
+private readonly fullscreenService = inject(EvaFullscreenAPI);
+
+protected readonly settingsItems = signal<EvaSettingsMenuItem[]>([
+  { id: 'fullscreen', label: 'Fullscreen' },
+]);
+
+protected onSettingChanged(event: EvaSettingsMenuEvent): void {
+  if (event.itemId === 'fullscreen') {
+    this.fullscreenService.toggleFullscreen();
+  }
+}
+```

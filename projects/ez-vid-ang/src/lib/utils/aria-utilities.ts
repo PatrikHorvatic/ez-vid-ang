@@ -529,3 +529,25 @@ export function transformEvaCinemaModeAria(v: EvaCinemaModeAria | undefined): Ev
 		}
 	}
 }
+
+// ─── EvaSettingsPanel ──────────────────────────────────────────────────────
+
+export type EvaSettingsPanelAria = {
+	ariaLabel?: string,
+}
+
+export type EvaSettingsPanelAriaTransformed = {
+	ariaLabel: string,
+}
+
+export function transformEvaSettingsPanelAria(v: EvaSettingsPanelAria | undefined): EvaSettingsPanelAriaTransformed {
+	if (!v) {
+		return {
+			ariaLabel: "Settings",
+		}
+	}
+
+	return {
+		ariaLabel: v.ariaLabel ?? "Settings",
+	}
+}

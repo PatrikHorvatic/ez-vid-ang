@@ -96,3 +96,73 @@ Track selection changes are announced to screen readers by temporarily injecting
 | `--eva-track-selector-dropdown-content-speed-option-font-color` | `rgba(255, 255, 255, 0.95)` | Color of track option labels. |
 | `--eva-track-selector-dropdown-content-speed-option-checkmark-size` | `16px` | Size of the checkmark icon on the active track. |
 | `--eva-track-selector-dropdown-content-speed-option-checkmark-color` | `rgb(59, 130, 246)` | Color of the checkmark icon on the active track. |
+
+### Settings Panel Integration
+
+You can add subtitle/caption track selection to the `EvaSettingsPanel`. Subscribe to `EvaApi.videoTracksSubject` to dynamically populate the sub-menu:
+
+```typescript
+private tracksSub: Subscription | null = null;
+
+public ngOnInit(): void {
+  this.tracksSub = this.api.videoTracksSubject.subscribe(tracks => {
+    if (!tracks?.length) { return; }
+
+    const subtitleTracks = tracks.filter(
+      t => t.kind === 'subtitles' || t.kind === 'captions',
+    );
+    if (!subtitleTracks.length) { return; }
+
+    const trackItem: EvaSettingsMenuItem = {
+      id: 'subtitles',
+      label: 'Subtitles',
+      currentValue: 'Off',
+      options: [
+        { id: 'off', label: 'Off', selected: true },
+        ...subtitleTracks.map(t => ({
+          id: t.label ?? t.srclang ?? 'unknown',
+          label: t.label ?? t.srclang ?? 'Unknown',
+        })),
+      ],
+    };
+
+    this.settingsItems.update(items => {
+      const idx = items.findIndex(i => i.id === 'subtitles');
+      if (idx !== -1) {
+        const copy = [...items];
+        copy[idx] = trackItem;
+        return copy;
+      }
+      return [...items, trackItem];
+    });
+  });
+}
+
+public ngOnDestroy(): void {
+  this.tracksSub?.unsubscribe();
+}
+
+protected onSettingChanged(event: EvaSettingsMenuEvent): void {
+  if (event.itemId === 'subtitles') {
+    this.api.subtitlesChanged(
+      event.optionId === 'off'
+        ? null
+        : { id: event.optionId, label: event.label, selected: true },
+    );
+    this.settingsItems.update(items =>
+      items.map(item =>
+        item.id === 'subtitles'
+          ? {
+              ...item,
+              currentValue: event.label,
+              options: item.options?.map(opt => ({
+                ...opt,
+                selected: opt.id === event.optionId,
+              })),
+            }
+          : item,
+      ),
+    );
+  }
+}
+```

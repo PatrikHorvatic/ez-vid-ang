@@ -64,3 +64,19 @@ Built-in icon classes are suppressed entirely when `evaCustomIcon` is `true`.
 | `ariaValueText.paused` | `"paused"` |
 | `ariaValueText.ended` | `"ended"` |
 | `ariaValueText.errored` | `"errored"` |
+
+### Settings Panel Integration
+
+You can add a play/pause action to the `EvaSettingsPanel`:
+
+```typescript
+protected readonly settingsItems = signal<EvaSettingsMenuItem[]>([
+  { id: 'play-pause', label: 'Play / Pause' },
+]);
+
+protected onSettingChanged(event: EvaSettingsMenuEvent): void {
+  if (event.itemId === 'play-pause') {
+    this.api.playOrPauseVideo();
+  }
+}
+```

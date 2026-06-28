@@ -23,6 +23,7 @@ CLAUDE.md
 skills-lock.json
 .agents
 .claude
+copy-paste-for-v21.md
 
 # Visual Studio Code
 .vscode/*

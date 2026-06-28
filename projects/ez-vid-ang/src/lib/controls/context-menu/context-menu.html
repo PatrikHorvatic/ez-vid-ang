@@ -1,0 +1,14 @@
+<div #menuContainer class="eva-context-menu" role="menu" tabindex="-1" [class.eva-context-menu-open]="isOpen()"
+	[style.left.px]="menuLeft()" [style.top.px]="menuTop()" (keydown)="onKeyDown($event)">
+	@for (item of evaMenuItems(); track $index) {
+	@if (item.divider) {
+	<div class="eva-context-menu-divider" role="separator"></div>
+	} @else {
+	<div class="eva-context-menu-item" role="menuitem" tabindex="0" [class.disabled]="item.disabled"
+		[class.focused]="getActionableIndex(item) === focusedIndex()" [attr.aria-disabled]="item.disabled || null"
+		(click)="selectItem(item)" (keydown.enter)="selectItem(item)" (keydown.space)="selectItem(item)">
+		{{ item.label }}
+	</div>
+	}
+	}
+</div>

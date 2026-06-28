@@ -6,6 +6,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [22.0.3] - 2026-06-28
+
+### Added
+
+- **`EvaDownload`**: New download button component. Emits `EvaDownloadEvent` with `currentSrc`, `currentTime`, and `duration` on click — consumer handles the download logic. Supports custom icons via content projection. Built-in SVG download icon.
+- **`EvaScreenshot`**: New screenshot button component. Captures the current video frame via `EvaApi.captureScreenshot()` and emits `EvaScreenshotEvent` with `Blob`, data URL, timestamp, and frame dimensions. Configurable image format (`image/png`, `image/jpeg`, `image/webp`) and quality. Cross-origin tainted canvas emits `null` instead of throwing. Built-in SVG camera icon.
+- **`EvaApi.captureScreenshot()`**: New async method that draws the current video frame to an offscreen canvas. Can be called programmatically (e.g. from a context menu action) without the `EvaScreenshot` component.
+- **`EvaContextMenu`**: New custom context menu component. Replaces the browser's right-click menu on the player with a branded dropdown. Positioned at cursor, clamped within player bounds. Supports menu items, dividers, and disabled items. Animated open/close (scale + opacity). Closes on item click, outside click, Escape, or second right-click. Emits `EvaContextMenuEvent` with item ID and current video state. 13 `--eva-context-menu-*` CSS variables.
+- **`EvaErrorOverlay`**: New error overlay component. Shows automatically when `EvaState.ERROR` fires. Displays configurable error message and retry button. Retry calls `videoElement.load()` and emits `evaRetryClicked`. Supports full content projection via `evaCustomContent`. 17 `--eva-error-overlay-*` CSS variables. `role="alert"` for screen reader announcement.
+- **`EvaCinemaMode`**: New cinema mode toggle button. Adds `eva-cinema-mode` class to the parent `<eva-player>` and injects a backdrop overlay into `document.body`. Consumer CSS controls the layout change. Backdrop click exits cinema mode. Auto-deactivates on destroy. Animated backdrop with `--eva-cinema-backdrop-*` CSS variables.
+- **`EvaApi.cinemaModeSubject`**: New `BehaviorSubject<boolean>` that broadcasts the cinema mode state. Used by `EvaCinemaMode` and `ConfigurationStorage`.
+- **Configuration Storage**: New feature that persists user preferences to `localStorage`:
+  - `ConfigurationStorage` directive applied on the `<video>` element, managed via `EvaPlayer` inputs.
+  - `EvaConfigurationStorage` service with read/write methods for volume, playback speed, cinema mode, and loop.
+  - `evaLocalStorageEnabled` input — master toggle.
+  - `evaLocalStorageKey` input — key prefix for multi-player isolation.
+  - `evaLocalStorageConfiguration` input — granular flags (`{ volume, playbackSpeed, cinemaMode, loop }`), toggleable at runtime.
+  - Saved values restored on player init, overriding config defaults (user's last choice wins).
+  - Volume `0` (muted) not persisted. All `localStorage` access wrapped in try-catch.
+- **`EvaDownloadEvent`**, **`EvaScreenshotEvent`**, **`EvaContextMenuItem`**, **`EvaContextMenuEvent`**: New types.
+- **`EvaDownloadAria`**, **`EvaScreenshotAria`**, **`EvaErrorOverlayAria`**, **`EvaCinemaModeAria`**: New ARIA types with transforms.
+- **`DEFAULT_IMAGE_QUALITY`**, **`DEFAULT_STORAGE_KEY`**: New constants.
+
+### Bug Fixes
+
+- **`EvaApi.captureScreenshot()`**: `canvas.toBlob()` on a tainted canvas (cross-origin) threw an unhandled `SecurityError`, causing the Promise to never resolve. Wrapped in try-catch.
+- **`ConfigurationStorage`**: Subscription callbacks captured a stale `key` variable via closure. If `evaLocalStorageKey` changed at runtime, preferences were saved under the wrong key. Now reads the signal live inside each callback.
+- **`EvaContextMenu`**: `@for` used `track item.id` which broke rendering when multiple dividers shared the same ID. Changed to `track $index`.
+- **`EvaCinemaMode`**: Backdrop click ran outside Angular's change detection zone, so host bindings and consumer outputs didn't update. Wrapped in `NgZone.run()`.
+
+### Documentation
+
+- New: `documentation/controls/download.md`, `documentation/controls/screenshot.md`, `documentation/controls/context-menu.md`, `documentation/controls/error-overlay.md`, `documentation/controls/cinema-mode.md`, `documentation/core/configuration-storage.md`.
+- Updated: `eva-api.md` (screenshot section), `player.md` (storage inputs), `directives.md` (storage directive), `example-configuration.md` (storage usage), `constants.md`, `picture-in-picture.md`.
+
+---
+
 ## [22.0.2] - 2026-06-22
 
 ### Added

@@ -1,0 +1,70 @@
+:host {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 500;
+
+	background: var(--eva-error-overlay-background, rgba(0, 0, 0, 0.85));
+
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition:
+		opacity var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1),
+		visibility var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:host(.eva-error-overlay-visible) {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+}
+
+.eva-error-overlay-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--eva-error-overlay-gap, 16px);
+	padding: var(--eva-error-overlay-padding, 24px);
+	text-align: center;
+}
+
+.eva-error-overlay-icon {
+	width: var(--eva-error-overlay-icon-size, 48px);
+	height: var(--eva-error-overlay-icon-size, 48px);
+}
+
+.eva-error-overlay-message {
+	margin: 0;
+	font-family: var(--eva-font-family, sans-serif);
+	font-size: var(--eva-error-overlay-font-size, 14px);
+	color: var(--eva-error-overlay-text-color, rgba(255, 255, 255, 0.9));
+	max-width: var(--eva-error-overlay-max-width, 300px);
+}
+
+.eva-error-overlay-retry {
+	padding: var(--eva-error-overlay-retry-padding, 8px 24px);
+	border: var(--eva-error-overlay-retry-border, 1px solid rgba(255, 255, 255, 0.3));
+	border-radius: var(--eva-error-overlay-retry-border-radius, 4px);
+	background: var(--eva-error-overlay-retry-background, rgba(255, 255, 255, 0.1));
+	color: var(--eva-error-overlay-retry-color, rgba(255, 255, 255, 0.9));
+	font-family: var(--eva-font-family, sans-serif);
+	font-size: var(--eva-error-overlay-retry-font-size, 14px);
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+
+	&:hover {
+		background: var(--eva-error-overlay-retry-hover-background, rgba(255, 255, 255, 0.2));
+	}
+
+	&:focus-visible {
+		outline: 2px solid var(--eva-error-overlay-retry-focus-color, rgba(255, 255, 255, 0.6));
+		outline-offset: 2px;
+	}
+}

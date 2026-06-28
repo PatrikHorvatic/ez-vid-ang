@@ -60,3 +60,8 @@ export const DEFAULT_ARROW_SEEK_SECONDS = 5;
 
 // Default unmute volume (0–1 normalized)
 export const DEFAULT_UNMUTE_VOLUME = 0.75;
+
+export const DEFAULT_STORAGE_KEY = "EVA_PLAYER_CONFIGURATION";
+
+// Screenshot
+export const DEFAULT_IMAGE_QUALITY = 0.92;

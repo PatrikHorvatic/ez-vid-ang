@@ -421,3 +421,111 @@ export function transformEvaLoopAria(v: EvaLoopAria | undefined): EvaLoopAriaTra
 		}
 	};
 }
+
+// ─── EvaDownload ────────────────────────────────────────────────────────────
+
+export type EvaDownloadAria = {
+	ariaLabel?: string
+}
+
+export type EvaDownloadAriaTransformed = {
+	ariaLabel: string
+}
+
+export function transformEvaDownloadAria(v: EvaDownloadAria | undefined): EvaDownloadAriaTransformed {
+	if (!v) {
+		return {
+			ariaLabel: "Download"
+		}
+	}
+
+	return {
+		ariaLabel: v.ariaLabel ?? "Download"
+	}
+}
+
+// ─── EvaScreenshot ──────────────────────────────────────────────────────────
+
+export type EvaScreenshotAria = {
+	ariaLabel?: string
+}
+
+export type EvaScreenshotAriaTransformed = {
+	ariaLabel: string
+}
+
+export function transformEvaScreenshotAria(v: EvaScreenshotAria | undefined): EvaScreenshotAriaTransformed {
+	if (!v) {
+		return {
+			ariaLabel: "Screenshot"
+		}
+	}
+
+	return {
+		ariaLabel: v.ariaLabel ?? "Screenshot"
+	}
+}
+
+// ─── EvaErrorOverlay ────────────────────────────────────────────────────────
+
+export type EvaErrorOverlayAria = {
+	ariaLabel?: string,
+	retryAriaLabel?: string,
+}
+
+export type EvaErrorOverlayAriaTransformed = {
+	ariaLabel: string,
+	retryAriaLabel: string,
+}
+
+export function transformEvaErrorOverlayAria(v: EvaErrorOverlayAria | undefined): EvaErrorOverlayAriaTransformed {
+	if (!v) {
+		return {
+			ariaLabel: "Video playback error",
+			retryAriaLabel: "Retry playback",
+		}
+	}
+
+	return {
+		ariaLabel: v.ariaLabel ?? "Video playback error",
+		retryAriaLabel: v.retryAriaLabel ?? "Retry playback",
+	}
+}
+
+// ─── EvaCinemaMode ──────────────────────────────────────────────────────────
+
+export type EvaCinemaModeAria = {
+	ariaLabel?: string,
+	ariaValueText?: {
+		active?: string,
+		inactive?: string,
+	}
+}
+
+export type EvaCinemaModeAriaTransformed = {
+	ariaLabel: string,
+	ariaValueText: {
+		active: string,
+		inactive: string,
+	}
+}
+
+export function transformEvaCinemaModeAria(v: EvaCinemaModeAria | undefined): EvaCinemaModeAriaTransformed {
+	if (!v) {
+		return {
+			ariaLabel: "Cinema mode",
+			ariaValueText: {
+				active: "Cinema mode is on",
+				inactive: "Cinema mode is off",
+			}
+		}
+	}
+
+	return {
+		ariaLabel: v.ariaLabel ?? "Cinema mode",
+		ariaValueText: {
+			active: v.ariaValueText?.active ?? "Cinema mode is on",
+			inactive: v.ariaValueText?.inactive ?? "Cinema mode is off",
+		}
+	}
+}

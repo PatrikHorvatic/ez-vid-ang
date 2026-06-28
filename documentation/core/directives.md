@@ -226,3 +226,40 @@ Applied as a template directive on the `<video>` element inside `EvaPlayer` — 
 - The listener is attached to `document`, not the host element, so shortcuts work regardless of which element has focus.
 - **Multi-player scoping:** when focus is inside a specific `eva-player`, only that player handles the event. When focus is outside all players (e.g. on `document.body`), the last-interacted player responds. This prevents multiple players from reacting to the same keystroke.
 - Cleanup is handled via `DestroyRef` — the listener is always removed when the directive is destroyed.
+
+---
+
+## ConfigurationStorage
+
+A directive that persists user preferences (volume, playback speed) to `localStorage` and restores them when the player initializes. Applied as a template directive on the `<video>` element inside `EvaPlayer` — consumers configure it via inputs on `<eva-player>` directly.
+
+Each preference is managed independently via `EvaStorageConfiguration` flags. Subscriptions are created and torn down at runtime as flags change.
+
+Volume `0` (muted state) is not persisted to avoid restoring a muted state the user did not intend to keep.
+
+For full documentation, see [Configuration Storage](configuration-storage.md).
+
+### Selector
+
+```html
+<video evaConfigurationStorage />
+```
+
+### Inputs
+
+| Input | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `evaLocalStorageEnabled` | `boolean` | ✅ Yes | — | Master toggle. When `false`, nothing is saved or restored. |
+| `evaLocalStorageKey` | `string` | No | `"EVA_PLAYER_CONFIGURATION"` | Prefix for localStorage keys. Use different values to isolate multi-player preferences. |
+| `evaLocalStorageConfiguration` | `EvaStorageConfiguration` | ✅ Yes | — | Granular flags: `{ volume: boolean, playbackSpeed: boolean }`. |
+
+### Usage
+
+```html
+<eva-player
+  id="player"
+  [evaVideoSources]="sources"
+  [evaLocalStorageEnabled]="true"
+  [evaLocalStorageConfiguration]="{ volume: true, playbackSpeed: true }"
+/>
+```

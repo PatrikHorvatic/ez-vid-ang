@@ -1,3 +1,5 @@
+import { DEFAULT_STORAGE_KEY } from "./constants";
+
 /**
  * Configuration object for the native `<video>` element.
  * Passed to `EvaVideoConfigurationDirective` via `EvaPlayer`.
@@ -70,6 +72,22 @@ export type EvaKeyboardShortcutsConfiguration = {
 
 }
 
+export type EvaStorageConfiguration = {
+	volume?: boolean,
+	playbackSpeed?: boolean,
+	cinemaMode?: boolean,
+	loop?: boolean
+}
+
+
+export const validateAndTransformStorageKey = (v: string | undefined): string => {
+	if (!v) {
+		return DEFAULT_STORAGE_KEY;
+	}
+
+	return v;
+}
+
 /**
  * Internal representation of a text track option within the dropdown.
  * Derived from `EvaTrack` with a simplified structure for local state management.
@@ -98,6 +116,66 @@ export type EvaVideoSource = {
 	// Sizes?: string;
 	// Width?: number;
 	// Height?: number;
+}
+
+/**
+ * Data emitted by `EvaDownload` when the download button is clicked.
+ * Contains the current video source URL and the current playback time,
+ * giving the consumer everything needed to implement custom download logic.
+ */
+export type EvaDownloadEvent = {
+	/** The current video source URL (`HTMLVideoElement.currentSrc`), or an empty string if not available. */
+	currentSrc: string;
+	/** The current playback time in seconds at the moment of the click. */
+	currentTime: number;
+	/** The total video duration in seconds. `Infinity` for live streams. */
+	duration: number;
+}
+
+/**
+ * A single item in the `EvaContextMenu` dropdown.
+ */
+export type EvaContextMenuItem = {
+	/** Display label shown in the menu. */
+	label: string;
+	/** Unique identifier emitted when the item is clicked. */
+	id: string;
+	/** Whether the item is a visual separator instead of an actionable item. */
+	divider?: boolean;
+	/** Whether the item is disabled (visible but not clickable). */
+	disabled?: boolean;
+}
+
+/**
+ * Data emitted by `EvaContextMenu` when a menu item is clicked.
+ */
+export type EvaContextMenuEvent = {
+	/** The `id` of the clicked menu item. */
+	itemId: string;
+	/** The `label` of the clicked menu item. */
+	label: string;
+	/** The current video source URL at the time of the click. */
+	currentSrc: string;
+	/** The current playback time in seconds. */
+	currentTime: number;
+}
+
+/**
+ * Data emitted by `EvaScreenshot` when the screenshot button is clicked.
+ * Contains the captured frame as a `Blob` and data URL, plus the capture timestamp.
+ * Both are `null` if the capture failed (e.g. cross-origin tainted canvas).
+ */
+export type EvaScreenshotEvent = {
+	/** The captured frame as a `Blob`, or `null` if capture failed. */
+	blob: Blob | null;
+	/** The captured frame as a base64 data URL, or `null` if capture failed. */
+	dataUrl: string | null;
+	/** The playback time in seconds at which the frame was captured. */
+	currentTime: number;
+	/** The natural width of the captured frame in pixels. */
+	width: number;
+	/** The natural height of the captured frame in pixels. */
+	height: number;
 }
 
 /**

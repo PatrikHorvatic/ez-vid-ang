@@ -1,5 +1,5 @@
-import { EvaKeyboardShortcutsConfiguration, EvaTrack } from "../types";
-import { MIN_PLAYBACK_SPEED, MAX_PLAYBACK_SPEED, DEFAULT_SEEK_SECONDS } from '../constants';
+import { DEFAULT_SEEK_SECONDS, MAX_PLAYBACK_SPEED, MIN_PLAYBACK_SPEED } from '../constants';
+import { EvaKeyboardShortcutsConfiguration, EvaStorageConfiguration, EvaTrack } from "../types";
 
 export function transformTimeoutDuration(v: number): number {
 	if (!v) {
@@ -119,5 +119,26 @@ export function validateAndTransformEvaKeyboardShortcutsConfiguration(conf: EvaK
 		playPause: (conf.playPause ?? "SPACE").toUpperCase(),
 		oneFrameBackward: (conf.oneFrameBackward ?? ",").toUpperCase(),
 		oneFrameForward: (conf.oneFrameForward ?? ".").toUpperCase(),
+	}
+}
+
+export function prepareDefaultStorageConfiguration(): Required<EvaStorageConfiguration> {
+	return {
+		playbackSpeed: false,
+		volume: false,
+		cinemaMode: false,
+		loop: false
+	}
+}
+
+export function validateAndTransformEvaStorageConfiguration(conf: EvaStorageConfiguration): Required<EvaStorageConfiguration> {
+	if (!conf) {
+		return prepareDefaultStorageConfiguration();
+	}
+	return {
+		playbackSpeed: conf.playbackSpeed ?? false,
+		volume: conf.volume ?? false,
+		cinemaMode: conf.cinemaMode ?? false,
+		loop: conf.loop ?? false
 	}
 }

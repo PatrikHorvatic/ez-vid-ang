@@ -5,7 +5,9 @@ Here you can see how you can configure your Eva video player. All of the compone
 ```html
 <eva-player #evaVideoPlayer [id]="'vid'" [evaVideoSources]="[]" [evaVideoConfiguration]="videoConfiguration()"
 	[evaVideoTracks]="videoTracks()" [evaKeyboardShortcutsEnabled]="true"
-	[evaKeyboardShortcutsConfiguration]="keyboardConfig()" evaHls [evaHlsSrc]="hlsSource()">
+	[evaKeyboardShortcutsConfiguration]="keyboardConfig()"
+	[evaLocalStorageEnabled]="true" [evaLocalStorageConfiguration]="{ volume: true, playbackSpeed: true }"
+	evaHls [evaHlsSrc]="hlsSource()">
 	<eva-overlay-play [evaCustomIcon]="true">
 		<p>Overlay play custom content</p>
 	</eva-overlay-play>

@@ -1,7 +1,7 @@
 import { EventEmitter, Injectable, signal } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { EvaState, EvaChapterMarker, EvaQualityLevel, EvaTrack, EvaTrackInternal } from '../types';
-import { MAX_DIGIT_KEY, DIGIT_DIVISOR, READY_STATE_HAVE_FUTURE_DATA, BUFFERING_DETECTION_DELAY_MS, CHAPTER_UPDATE_DEBOUNCE_MS, DEFAULT_ARROW_SEEK_SECONDS, DEFAULT_UNMUTE_VOLUME } from '../constants';
+import { EvaState, EvaChapterMarker, EvaQualityLevel, EvaScreenshotEvent, EvaTrack, EvaTrackInternal } from '../types';
+import { MAX_DIGIT_KEY, DIGIT_DIVISOR, READY_STATE_HAVE_FUTURE_DATA, BUFFERING_DETECTION_DELAY_MS, CHAPTER_UPDATE_DEBOUNCE_MS, DEFAULT_ARROW_SEEK_SECONDS, DEFAULT_UNMUTE_VOLUME, DEFAULT_IMAGE_QUALITY } from '../constants';
 
 /**
  * Core API service for the Eva video player.
@@ -175,6 +175,9 @@ export class EvaApi {
 
 	/** Broadcasts the current loop state. Updated by `EvaVideoConfigurationDirective` and `EvaLoop`. */
 	public loopSubject = new BehaviorSubject<boolean>(false);
+
+	/** Broadcasts the cinema mode state. Updated by `EvaCinemaMode` and `ConfigurationStorage`. */
+	public cinemaModeSubject = new BehaviorSubject<boolean>(false);
 
 	public lastActiveVolume = 1;
 
@@ -830,6 +833,66 @@ export class EvaApi {
 
 
 
+	// ─── Screenshot ──────────────────────────────────────────────────────────
+
+	/**
+	 * Captures the current video frame by drawing it to an offscreen canvas.
+	 *
+	 * Returns a promise that resolves with an `EvaScreenshotEvent` containing
+	 * the frame as a `Blob` and data URL, plus the capture timestamp and
+	 * dimensions. Both `blob` and `dataUrl` are `null` if the canvas is
+	 * tainted (cross-origin video without `crossorigin="anonymous"`).
+	 *
+	 * Returns `null` if the player is not ready, the video element is not
+	 * assigned, or the video has no rendered frames (`videoWidth === 0`).
+	 *
+	 * @param format - Image MIME type (default `"image/png"`).
+	 * @param quality - Quality for lossy formats, `0`–`1` (default `0.92`). Ignored for PNG.
+	 */
+	public async captureScreenshot(format = 'image/png', quality = DEFAULT_IMAGE_QUALITY): Promise<EvaScreenshotEvent | null> {
+		if (!this.validateVideoAndPlayerBeforeAction()) {
+			return null;
+		}
+		const video = this.assignedVideoElement!;
+		const width = video.videoWidth;
+		const height = video.videoHeight;
+		if (width === 0 || height === 0) {
+			return null;
+		}
+
+		const canvas = document.createElement('canvas');
+		canvas.width = width;
+		canvas.height = height;
+		const ctx = canvas.getContext('2d');
+		if (!ctx) {
+			return null;
+		}
+
+		ctx.drawImage(video, 0, 0, width, height);
+		const currentTime = video.currentTime;
+
+		let dataUrl: string | null = null;
+		try {
+			dataUrl = canvas.toDataURL(format, quality);
+		} catch {
+			// Tainted canvas (cross-origin)
+		}
+
+		return await new Promise<EvaScreenshotEvent>(resolve => {
+			try {
+				canvas.toBlob(
+					(blob: Blob | null) => {
+						resolve({ blob, dataUrl, currentTime, width, height });
+					},
+					format,
+					quality
+				);
+			} catch {
+				resolve({ blob: null, dataUrl, currentTime, width, height });
+			}
+		});
+	}
+
 	// ─── Utilities ────────────────────────────────────────────────────────────
 
 	/**
@@ -938,6 +1001,7 @@ export class EvaApi {
 		// Complete all subjects — notifies subscribers and prevents further emissions
 		this.pictureInPictureSubject.complete();
 		this.loopSubject.complete();
+		this.cinemaModeSubject.complete();
 		this.videoStateSubject.complete();
 		this.videoVolumeSubject.complete();
 		this.playbackRateSubject.complete();

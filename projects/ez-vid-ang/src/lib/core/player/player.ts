@@ -1,13 +1,16 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, inject, input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges, viewChild } from '@angular/core';
+import { AfterViewInit, booleanAttribute, ChangeDetectionStrategy, Component, ElementRef, inject, input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges, viewChild } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
-import { EvaKeyboardShortcutsConfiguration, EvaTrack, EvaVideoElementConfiguration, EvaVideoSource } from '../../types';
-import { prepareDefaultKeyboardShortcutsConfiguration, validateAndTransformEvaKeyboardShortcutsConfiguration, validateTracks } from '../../utils/utilities';
+import { EvaKeyboardShortcutsConfiguration, EvaStorageConfiguration, EvaTrack, EvaVideoElementConfiguration, EvaVideoSource, validateAndTransformStorageKey } from '../../types';
+import { DEFAULT_STORAGE_KEY } from '../../constants';
+import { prepareDefaultKeyboardShortcutsConfiguration, prepareDefaultStorageConfiguration, validateAndTransformEvaKeyboardShortcutsConfiguration, validateAndTransformEvaStorageConfiguration, validateTracks } from '../../utils/utilities';
 import { EvaCueChangeDirective } from '../directives/cue-change';
 import { EvaKeyboardShortcuts } from "../directives/keyboard-shortcuts";
 import { EvaMediaEventListenersDirective } from '../directives/media-event-listeners';
 import { EvaVideoConfigurationDirective } from '../directives/video-configuration';
+import { ConfigurationStorage } from "../directives/configuration-storage";
+import { EvaConfigurationStorage } from '../../api/configuration-storage';
 
 /**
  * Root player component for the Eva video player.
@@ -35,10 +38,12 @@ import { EvaVideoConfigurationDirective } from '../directives/video-configuratio
  */
 @Component({
   selector: 'eva-player',
-  imports: [EvaMediaEventListenersDirective, EvaVideoConfigurationDirective, EvaCueChangeDirective, EvaKeyboardShortcuts],
+  imports: [EvaMediaEventListenersDirective,
+    EvaVideoConfigurationDirective,
+    EvaCueChangeDirective, EvaKeyboardShortcuts, ConfigurationStorage],
   templateUrl: './player.html',
   styleUrl: './player.scss',
-  providers: [EvaApi, EvaFullscreenAPI],
+  providers: [EvaApi, EvaFullscreenAPI, EvaConfigurationStorage],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
@@ -78,6 +83,30 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
    * @default false
    */
   public readonly evaKeyboardShortcutsEnabled = input<boolean>(false);
+
+  /**
+   * Enables localStorage persistence for user preferences (volume, playback speed).
+   * See `evaLocalStorageConfiguration` for granular control.
+   *
+   * @default false
+   */
+  public readonly evaLocalStorageEnabled = input<boolean, boolean>(false, { transform: booleanAttribute });
+
+  /**
+   * Prefix for localStorage keys. Use different values to isolate
+   * preferences across multiple player instances on the same origin.
+   *
+   * @default "EVA_PLAYER_CONFIGURATION"
+   */
+  public readonly evaLocalStorageKey = input<string, string>(DEFAULT_STORAGE_KEY, { transform: validateAndTransformStorageKey });
+
+  /**
+   * Controls which preferences are persisted to localStorage.
+   * Each flag can be toggled at runtime.
+   *
+   * @default { volume: false, playbackSpeed: false }
+   */
+  public readonly evaLocalStorageConfiguration = input<Required<EvaStorageConfiguration>, EvaStorageConfiguration>(prepareDefaultStorageConfiguration(), { transform: validateAndTransformEvaStorageConfiguration });
 
   /**
    * Key binding configuration for keyboard shortcuts.

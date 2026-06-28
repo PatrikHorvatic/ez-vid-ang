@@ -108,3 +108,20 @@
 	--eva-volume-knob-size: 15px;
 	--eva-volume-knob-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
+
+.eva-cinema-backdrop {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	z-index: var(--eva-cinema-backdrop-z-index, 999);
+	background: var(--eva-cinema-backdrop-background, rgba(0, 0, 0, 0.7));
+	cursor: pointer;
+	animation: eva-cinema-backdrop-fade-in var(--eva-transition-duration, 0.25s) ease forwards;
+}
+
+@keyframes eva-cinema-backdrop-fade-in {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}

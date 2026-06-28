@@ -1,4 +1,6 @@
-<video #evaVideoElement evaMediaEventListeners evaVideoConfiguration evaKeyboardShortcuts [id]="id()"
+<video #evaVideoElement evaMediaEventListeners evaConfigurationStorage evaVideoConfiguration evaKeyboardShortcuts
+	[evaLocalStorageEnabled]="evaLocalStorageEnabled()" [evaLocalStorageKey]="evaLocalStorageKey()"
+	[evaLocalStorageConfiguration]="evaLocalStorageConfiguration()" [id]="id()"
 	[evaKeyboardShortcutsEnabled]="evaKeyboardShortcutsEnabled()"
 	[evaKeyboardShortcutsConfiguration]="evaKeyboardShortcutsConfiguration()" [evaVideoConfig]="evaVideoConfiguration()"
 	(videoConfigurationDone)="videoConfigReady()">

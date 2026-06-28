@@ -1,0 +1,63 @@
+.eva-context-menu {
+	position: absolute;
+	z-index: 1200;
+
+	min-width: var(--eva-context-menu-min-width, 180px);
+	max-width: var(--eva-context-menu-max-width, 300px);
+
+	padding: var(--eva-context-menu-padding, 4px 0);
+
+	background: var(--eva-context-menu-background, rgba(20, 20, 20, 0.95));
+	backdrop-filter: blur(12px);
+	border-radius: var(--eva-context-menu-border-radius, 8px);
+	box-shadow: var(--eva-context-menu-box-shadow, 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08));
+
+	font-family: var(--eva-font-family, sans-serif);
+	font-size: var(--eva-context-menu-font-size, 13px);
+	color: var(--eva-context-menu-color, rgba(255, 255, 255, 0.9));
+
+	user-select: none;
+	overflow: hidden;
+
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transform: scale(0.95);
+	transform-origin: top left;
+	transition:
+		transform var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1),
+		opacity var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1),
+		visibility var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.eva-context-menu-open {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+	transform: scale(1);
+}
+
+.eva-context-menu-item {
+	padding: var(--eva-context-menu-item-padding, 8px 16px);
+	cursor: pointer;
+	white-space: nowrap;
+	transition: background-color 0.1s ease;
+	outline: none;
+
+	&:hover,
+	&.focused {
+		background: var(--eva-context-menu-item-hover-background, rgba(255, 255, 255, 0.1));
+	}
+
+	&.disabled {
+		color: var(--eva-context-menu-item-disabled-color, rgba(255, 255, 255, 0.35));
+		cursor: default;
+		pointer-events: none;
+	}
+}
+
+.eva-context-menu-divider {
+	height: 1px;
+	margin: var(--eva-context-menu-divider-margin, 4px 0);
+	background: var(--eva-context-menu-divider-color, rgba(255, 255, 255, 0.12));
+}

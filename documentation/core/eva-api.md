@@ -60,6 +60,14 @@ All player components and directives communicate through `EvaApi` rather than di
 | `assignPictureInPictureWindow` | `(e: PictureInPictureEvent) => void` | Called from the `enterpictureinpicture` event listener. Stores the PiP window reference and broadcasts `true` to `pictureInPictureSubject`. |
 | `removePictureInPictureWindow` | `(e: PictureInPictureEvent) => void` | Called from the `leavepictureinpicture` event listener. Clears the PiP window reference and broadcasts `false` to `pictureInPictureSubject`. |
 
+### Screenshot
+
+| Method | Signature | Description |
+|---|---|---|
+| `captureScreenshot` | `(format?: string, quality?: number) => Promise<EvaScreenshotEvent \| null>` | Captures the current video frame to an offscreen canvas. Returns `null` if the player is not ready or no frames are rendered. `blob` and `dataUrl` are `null` on tainted canvas (cross-origin). Default format: `"image/png"`, default quality: `0.92`. |
+
+Can be called directly for programmatic use (e.g. from a context menu action) without needing the `EvaScreenshot` component.
+
 ### Quality Streaming
 
 | Method | Signature | Description |

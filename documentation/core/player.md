@@ -37,6 +37,14 @@ The `EvaPlayer` component is the top-level host of the Eva video player library.
   [evaKeyboardShortcutsConfiguration]="{ backwardsKeyOne: 'ArrowLeft', forwardKeyOne: 'ArrowRight' }"
 />
 
+<!-- With persistent user preferences -->
+<eva-player
+  id="main-player"
+  [evaVideoSources]="sources"
+  [evaLocalStorageEnabled]="true"
+  [evaLocalStorageConfiguration]="{ volume: true, playbackSpeed: true }"
+/>
+
 <!-- Full-featured player with all controls -->
 <eva-player
   id="main-player"
@@ -107,6 +115,9 @@ The `EvaPlayer` component is the top-level host of the Eva video player library.
 | `evaKeyboardShortcutsEnabled` | `boolean` | No | `false` | When `true`, enables keyboard shortcuts on the player. See [`EvaKeyboardShortcutsConfiguration`](#evakeyboardshortcutsconfiguration). |
 | `evaKeyboardShortcutsConfiguration` | `EvaKeyboardShortcutsConfiguration` | No | See [defaults](#default-keyboard-shortcuts) | Configures which keys trigger player actions. Missing properties fall back to defaults. |
 | `evaVideoTracks` | `EvaTrack[]` | No | `[]` | List of subtitle/text tracks to attach to the video element. Runtime changes are automatically forwarded to child components. |
+| `evaLocalStorageEnabled` | `boolean` | No | `false` | When `true`, persists user preferences to `localStorage`. See [Configuration Storage](configuration-storage.md). |
+| `evaLocalStorageKey` | `string` | No | `"EVA_PLAYER_CONFIGURATION"` | Prefix for localStorage keys. Use different values to isolate preferences across multiple players. |
+| `evaLocalStorageConfiguration` | `EvaStorageConfiguration` | No | `{ volume: false, playbackSpeed: false }` | Controls which preferences are persisted. Each flag can be toggled at runtime. |
 | `evaNotSupportedText` | `string` | No | `"I'm sorry; your browser doesn't support HTML video."` | Fallback text displayed inside the `<video>` element for browsers that do not support HTML5 video. |
 
 ---

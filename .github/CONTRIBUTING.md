@@ -2,4 +2,4 @@
 
 Hello and thank you for showing interest in contributing to the project.
 
-As this project is still in early development, no contributions are accepted. This will change in the future when the code is ready for production.
+Currently no contributions are accepted. If you want to request a feature, you can open a new issue.

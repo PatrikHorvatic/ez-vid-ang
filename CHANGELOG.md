@@ -42,7 +42,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - New: `documentation/controls/keyboard-shortcuts-overlay.md`.
 - New: `documentation/controls/download.md`, `documentation/controls/screenshot.md`, `documentation/controls/context-menu.md`, `documentation/controls/error-overlay.md`, `documentation/controls/cinema-mode.md`, `documentation/core/configuration-storage.md`.
 - Updated: 14 component docs with "Settings Panel Integration" sections showing how to consolidate each feature into `EvaSettingsPanel`.
-- Updated: `eva-api.md` (screenshot section), `player.md` (storage inputs), `directives.md` (storage directive), `example-configuration.md` (storage usage), `constants.md`, `picture-in-picture.md`.
+- New: `documentation/example-simple.md` — minimal player example with essential controls only.
+- Updated: `documentation/example-configuration.md` — rewritten as full-featured example showcasing every component and feature.
+- Updated: `eva-api.md` (screenshot section), `player.md` (storage inputs), `directives.md` (storage directive), `constants.md`, `picture-in-picture.md`.
 
 ---
 

@@ -7,11 +7,15 @@ Highly configurable, performant and easy-to-use Angular component library for vi
 ⚡ **Zoneless** - Built for zoneless Angular applications by default<br/>
 🧩 **Standalone architecture** – No NgModules required; simpler imports, better tree-shaking, and improved DX<br/>
 🚀 **High performance** – Powered by RxJS; change detection runs only when needed (no zone pollution)<br/>
-🎨 **Highly customizable** – Styling variables, custom icons, and fonts. Bring your own assets<br/>
+🎨 **Highly customizable** – 200+ CSS variables, custom icons, and fonts. Bring your own assets<br/>
 ♿ **ARIA compliant** – All components follow ARIA standards and support custom inputs<br/>
 🌍 **Multilanguage support** – Configurable text inputs for full localization<br/>
 ▶️ **Inspired by modern players** – Familiar UX similar to popular platforms<br/>
 📱 **Responsive design** - Works across all screen sizes and devices<br/>
+⚙️ **Settings panel** – YouTube-style navigable settings menu with sub-menus<br/>
+⌨️ **Keyboard shortcuts overlay** – Press `?` to show all shortcuts, auto-integrated<br/>
+💾 **Configuration storage** – Persist user preferences (volume, speed, loop, cinema mode) to localStorage<br/>
+🎬 **Cinema mode** – Dim the page and focus on the video<br/>
 
 ## Example project
 
@@ -106,57 +110,56 @@ Add the required styles to your angular.json:
 > }
 > ```
 
-Import the needed components and types into your standalone component or NgModule:
-```
-import { Component } from '@angular/core';
+Import only the components you need — every component is standalone and tree-shakable:
+```typescript
+import { Component, signal } from '@angular/core';
 import {
-  EvaActiveChapter,
-  EvaBackward,
   EvaBuffering,
-  EvaChapterMarker,
+  EvaControlsContainer,
+  EvaControlsDivider,
+  EvaFullscreen,
+  EvaMute,
   EvaOverlayPlay,
-  EvaControlsContainer, EvaControlsDivider,
-  EvaForward, EvaFullscreen, EvaHlsDirective,
-  EvaMute, EvaMuteAria, EvaPlaybackSpeed, EvaPlayer,
-  EvaPlayPause, EvaQualitySelector, EvaScrubBar,
-  EvaScrubBarBufferingTime, EvaScrubBarCurrentTime,
-  EvaSubtitleDisplay,EvaPictureInPicture,
-  EvaTimeDisplay, EvaTrack, EvaTrackSelector,
-  EvaVideoElementConfiguration, EvaVideoSource, EvaVolume
-} from "ez-vid-ang";
+  EvaPlayer,
+  EvaPlayPause,
+  EvaScrubBar,
+  EvaScrubBarBufferingTime,
+  EvaScrubBarCurrentTime,
+  EvaTimeDisplay,
+  EvaUserInteractionEventsDirective,
+  EvaVideoSource,
+  EvaVolume,
+} from 'ez-vid-ang';
 
 @Component({
-  selector: 'lt-home-page',
-  templateUrl: './home-page.html',
-  styleUrl: './home-page.scss',
+  selector: 'app-player',
+  templateUrl: './player.html',
+  styleUrl: './player.scss',
   imports: [
-EvaActiveChapter,
-    EvaBackward,
     EvaBuffering,
-    EvaOverlayPlay,
     EvaControlsContainer,
     EvaControlsDivider,
-    EvaForward,
     EvaFullscreen,
-    EvaHlsDirective,
     EvaMute,
-    EvaPlaybackSpeed,
+    EvaOverlayPlay,
     EvaPlayer,
     EvaPlayPause,
-    EvaPictureInPicture,
-    EvaQualitySelector,
     EvaScrubBar,
     EvaScrubBarBufferingTime,
     EvaScrubBarCurrentTime,
-    EvaSubtitleDisplay,
-    EvaTimeDisplay, 
-    EvaTrackSelector,
-    EvaVolume
-  ]
+    EvaTimeDisplay,
+    EvaUserInteractionEventsDirective,
+    EvaVolume,
+  ],
 })
-export class HomePage {}
-
+export class PlayerComponent {
+  protected readonly sources = signal<EvaVideoSource[]>([
+    { type: 'video/mp4', src: '/video.mp4' },
+  ]);
+}
 ```
+
+See [Simple Example](documentation/example-simple.md) and [Full-Featured Example](documentation/example-configuration.md) for complete usage.
 
 ## Development
 
@@ -173,11 +176,11 @@ All magic numbers are centralized in `src/lib/constants.ts`. See [linting docume
 
 ## Components
 
-Library has four groups of components. You can click on the name to go to the documentation:
-- [**EvaCore**](documentation/core) – Main player component, directives, and providers
-- [**EvaControls**](documentation/controls) – Video control components and pipes
+Library has four groups of components. Click on the name to go to the documentation:
+- [**EvaCore**](documentation/core) – Main player component, directives (keyboard shortcuts, configuration storage), and providers
+- [**EvaControls**](documentation/controls) – Video control components (play/pause, volume, scrub bar, fullscreen, playback speed, quality selector, track selector, loop, picture-in-picture, download, screenshot, context menu, settings panel, keyboard shortcuts overlay, cinema mode, error overlay, chapter list, and more)
 - [**EvaBuffering**](documentation/buffering) – Loading and buffering indicators
-- [**EvaStreaming**](documentation/streaming) – Directives for live streaming support
+- [**EvaStreaming**](documentation/streaming) – Directives for HLS and DASH live streaming support
 
 ---
 ### 💖 Support This Project

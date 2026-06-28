@@ -1,6 +1,6 @@
 {
   "name": "ez-vid-ang",
-  "version": "22.0.3",
+  "version": "22.0.4",
   "license": "MIT",
   "exports": {
     "./assets/styling.scss": {

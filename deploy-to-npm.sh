@@ -6,6 +6,7 @@ PACKAGE_PATH="./dist/ez-vid-ang"
 # Ensure tag argument is provided
 if [ $# -eq 0 ]; then
   echo "❌ Usage: ./deploy-to-npm.sh <tag>"
+  echo "Example: ./deploy-to-npm.sh latest"
   echo "Example: ./deploy-to-npm.sh angular21"
   exit 1
 fi

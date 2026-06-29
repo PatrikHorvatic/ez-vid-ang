@@ -74,6 +74,7 @@ This example demonstrates every available component and feature in the library: 
 
     <eva-time-display evaTimeProperty="remaining" evaTimeFormating="HH:mm:ss" />
 
+    <eva-remote-playback />
     <eva-download (evaDownloadClicked)="onDownload($event)" />
     <eva-screenshot (evaScreenshotCaptured)="onScreenshot($event)" />
     <eva-track-selector />
@@ -129,6 +130,7 @@ import {
   EvaPlayer,
   EvaPlayPause,
   EvaQualitySelector,
+  EvaRemotePlayback,
   EvaScreenshot,
   EvaScreenshotEvent,
   EvaScrubBar,
@@ -175,6 +177,7 @@ import {
     EvaPlayer,
     EvaPlayPause,
     EvaQualitySelector,
+    EvaRemotePlayback,
     EvaScreenshot,
     EvaScrubBar,
     EvaScrubBarBufferingTime,

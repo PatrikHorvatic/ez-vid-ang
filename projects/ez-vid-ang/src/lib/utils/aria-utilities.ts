@@ -530,6 +530,48 @@ export function transformEvaCinemaModeAria(v: EvaCinemaModeAria | undefined): Ev
 	}
 }
 
+// ─── EvaRemotePlayback ─────────────────────────────────────────────────────
+
+export type EvaRemotePlaybackAria = {
+	ariaLabel?: string,
+	ariaValueText?: {
+		disconnected?: string,
+		connecting?: string,
+		connected?: string,
+	}
+}
+
+export type EvaRemotePlaybackAriaTransformed = {
+	ariaLabel: string,
+	ariaValueText: {
+		disconnected: string,
+		connecting: string,
+		connected: string,
+	}
+}
+
+export function transformEvaRemotePlaybackAria(v: EvaRemotePlaybackAria | undefined): EvaRemotePlaybackAriaTransformed {
+	if (!v) {
+		return {
+			ariaLabel: "Cast",
+			ariaValueText: {
+				disconnected: "Not connected",
+				connecting: "Connecting…",
+				connected: "Connected",
+			}
+		}
+	}
+
+	return {
+		ariaLabel: v.ariaLabel ?? "Cast",
+		ariaValueText: {
+			disconnected: v.ariaValueText?.disconnected ?? "Not connected",
+			connecting: v.ariaValueText?.connecting ?? "Connecting…",
+			connected: v.ariaValueText?.connected ?? "Connected",
+		}
+	}
+}
+
 // ─── EvaSettingsPanel ──────────────────────────────────────────────────────
 
 export type EvaSettingsPanelAria = {

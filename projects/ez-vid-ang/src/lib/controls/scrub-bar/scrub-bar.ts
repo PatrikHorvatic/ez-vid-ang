@@ -454,6 +454,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
     }
   };
 
+  /** Computes and updates hover tooltip signals (time, chapter, thumbnail, position). Called once per animation frame. */
   private updateHoverTooltip(clientX: number, clientY: number): void {
     const rect = this.elementRef.nativeElement.getBoundingClientRect();
     const isOverHost =
@@ -753,11 +754,13 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
     }, this.evaAutohideTime());
   }
 
+  /** Returns the thumbnail cue matching the given time, or `null` if no VTT is loaded or no cue matches. */
   private getThumbnailAtTime(time: number): EvaThumbnailCue | null {
     if (!this.thumbnailCues.length) { return null; }
     return this.thumbnailCues.find(c => time >= c.startTime && time < c.endTime) ?? null;
   }
 
+  /** Fetches and parses a VTT thumbnail file. Aborts any in-flight fetch before starting a new one. */
   private async loadThumbnailVtt(url: string): Promise<void> {
     this.thumbnailAbortController?.abort();
     this.thumbnailAbortController = null;
@@ -783,6 +786,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
     }
   }
 
+  /** Splits VTT text into blocks and parses each into an `EvaThumbnailCue`. Invalid blocks are skipped. */
   private parseThumbnailVtt(text: string, vttUrl: string): EvaThumbnailCue[] {
     const cues: EvaThumbnailCue[] = [];
     const blocks = text.split(/\n\s*\n/u);
@@ -798,6 +802,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
     return cues;
   }
 
+  /** Parses a single VTT block into an `EvaThumbnailCue`. Returns `null` if the block is invalid. */
   private parseThumbnailBlock(block: string, baseUrl: string): EvaThumbnailCue | null {
     const lines = block.trim().split('\n');
     let timeLine = '';
@@ -838,6 +843,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
     return { startTime, endTime, url, x: coords[0], y: coords[1], width, height };
   }
 
+  /** Parses a VTT timestamp (`HH:MM:SS.mmm` or `MM:SS.mmm`) into seconds. Returns `-1` on failure. */
   private parseVttTimestamp(timestamp: string): number {
     const parts = timestamp.split(':');
     if (parts.length < VTT_TIMESTAMP_MIN_PARTS || parts.length > VTT_TIMESTAMP_MAX_PARTS) { return -1; }
@@ -866,6 +872,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
     return hours * SECONDS_PER_HOUR + minutes * SECONDS_PER_MINUTE + seconds + ms / MS_PER_SECOND;
   }
 
+  /** Preloads unique sprite image URLs via `new Image()` to avoid flicker on first hover. */
   private preloadThumbnailSprites(): void {
     const urls = new Set(this.thumbnailCues.map(c => c.url));
     for (const url of urls) {

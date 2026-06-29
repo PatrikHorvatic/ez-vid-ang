@@ -139,7 +139,10 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
   private readonly evaVideoElement = viewChild.required<ElementRef<HTMLVideoElement>>('evaVideoElement');
 
 
+  /** Subscription to `EvaApi.videoSubtitlesSubject`. Keeps `activeSubtitleLabel` in sync. */
   private subtitleChangeSubject: Subscription | null = null;
+
+  /** The label of the currently active subtitle track. Used by cue-change directive activation. */
   protected readonly activeSubtitleLabel = signal<string | null>(null);
 
   /**
@@ -186,6 +189,7 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
     this.playerMainAPI.destroy();
   }
 
+  /** Called by `EvaVideoConfigurationDirective` after initial config is applied. Triggers `EvaApi.onPlayerReady()`. */
   protected videoConfigReady(): void {
     this.playerMainAPI.onPlayerReady();
   }

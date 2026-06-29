@@ -58,6 +58,7 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
   private readonly elementRef = inject<ElementRef<HTMLVideoElement>>(ElementRef);
   private readonly sanitizer = inject(DomSanitizer);
 
+  /** Emitted after the initial video configuration is applied. Triggers `EvaApi.onPlayerReady()` via `EvaPlayer`. */
   public readonly videoConfigurationDone = output();
 
   /**

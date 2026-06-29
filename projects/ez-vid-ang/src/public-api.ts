@@ -18,6 +18,7 @@ export * from "./lib/controls/pipes/time-display-pipe";
 export * from "./lib/controls/play-pause/play-pause";
 export * from "./lib/controls/playback-speed/playback-speed";
 export * from "./lib/controls/quality-selector/quality-selector";
+export * from "./lib/controls/remote-playback/remote-playback";
 export * from "./lib/controls/scrub-bar-buffering-time/scrub-bar-buffering-time";
 export * from "./lib/controls/scrub-bar-current-time/scrub-bar-current-time";
 export * from "./lib/controls/keyboard-shortcuts-overlay/keyboard-shortcuts-overlay";

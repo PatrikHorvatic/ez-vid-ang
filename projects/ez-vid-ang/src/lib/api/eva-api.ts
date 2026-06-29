@@ -99,8 +99,10 @@ export class EvaApi {
 	 */
 	public videoVolumeSubject = new BehaviorSubject<number | null>(null);
 
+	/** Broadcasts whether the controls container is currently hidden. Used by scrub bar auto-hide sync. */
 	public componentsContainerVisibilityStateSubject = new BehaviorSubject<boolean>(false);
 
+	/** Broadcasts whether a selector dropdown (speed, quality, track, settings) is currently open. Prevents auto-hide while active. */
 	public controlsSelectorComponentActive = new BehaviorSubject<boolean>(false);
 
 	/**
@@ -112,6 +114,7 @@ export class EvaApi {
 	/** Broadcasts the current list of available `EvaTrack` objects. Updated by `EvaPlayer` on input changes. */
 	public videoTracksSubject = new BehaviorSubject<EvaTrack[] | null>([]);
 
+	/** Broadcasts the currently active subtitle track. Updated by `EvaTrackSelector` and `subtitlesChanged()`. */
 	public videoSubtitlesSubject = new BehaviorSubject<EvaTrackInternal | null>(null);
 
 	/**
@@ -160,6 +163,7 @@ export class EvaApi {
 	public triggerUserInteraction = new Subject<MouseEvent | TouchEvent | PointerEvent>();
 
 
+	/** The text content of the currently active subtitle cue. `null` when no cue is active. Updated by `onCueChange()`. */
 	public readonly currentSubtitleCue = signal<string | null>(null);
 
 
@@ -185,6 +189,22 @@ export class EvaApi {
 	/** Holds the resolved keyboard shortcuts configuration. Published by `EvaKeyboardShortcuts` on init. */
 	public keyboardShortcutsConfigSubject = new BehaviorSubject<Required<EvaKeyboardShortcutsConfiguration> | null>(null);
 
+	/** Broadcasts the current remote playback connection state. Updated by `EvaRemotePlayback`. */
+	public remotePlaybackStateSubject = new BehaviorSubject<'disconnected' | 'connecting' | 'connected'>('disconnected');
+
+	/** Registered callback for prompting the remote playback device picker. Set by `EvaRemotePlayback`. */
+	private remotePlaybackPromptFn: (() => void) | null = null;
+
+	/** Registers the remote playback prompt function. Called by `EvaRemotePlayback` on init. */
+	public registerRemotePlaybackPrompt(fn: () => void): void {
+		this.remotePlaybackPromptFn = fn;
+	}
+
+	/** Opens the browser's remote playback device picker (Cast/AirPlay). No-op if not available. */
+	public promptRemotePlayback(): void {
+		this.remotePlaybackPromptFn?.();
+	}
+
 	public lastActiveVolume = 1;
 
 
@@ -199,12 +219,14 @@ export class EvaApi {
 	/** The playback position recorded at the start of the current `timeupdate` cycle. */
 	private currentPlayPos = 0;
 
+	/** Whether at least one chapter marker is present. Enables per-frame chapter detection in `updateVideoTime()`. */
 	public isActiveChapterPresent = false;
 
 	/** When `true`, chapters were provided via the `evaChapters` input and VTT-parsed chapters should not overwrite them. */
 	public hasExternalChapters = false;
 	private trackTimeout: ReturnType<typeof setTimeout> | null = null;
 
+	/** Broadcasts the given tracks via `videoTracksSubject` and schedules VTT chapter parsing after a debounce. */
 	public updateAndPrepareTracks(tracks: EvaTrack[]): void {
 		this.videoTracksSubject.next(tracks);
 
@@ -828,11 +850,13 @@ export class EvaApi {
 		}
 	}
 
+	/** Stores the PiP window reference and broadcasts `true` via `pictureInPictureSubject`. Called on `enterpictureinpicture`. */
 	public assignPictureInPictureWindow(p: PictureInPictureEvent): void {
 		this.pipWindow = p.pictureInPictureWindow;
 		this.pictureInPictureSubject.next(true);
 	}
 
+	/** Clears the PiP window reference and broadcasts `false` via `pictureInPictureSubject`. Called on `leavepictureinpicture`. */
 	public removePictureInPictureWindow(_p: PictureInPictureEvent): void {
 		this.pipWindow = null;
 		this.pictureInPictureSubject.next(false);
@@ -938,6 +962,7 @@ export class EvaApi {
 
 	// ---------------- SUBTITLES -------------------------
 
+	/** Broadcasts the newly selected subtitle track. Pass `null` to disable subtitles. */
 	public subtitlesChanged(label: EvaTrackInternal | null): void {
 		this.videoSubtitlesSubject.next(label);
 	}
@@ -1023,6 +1048,8 @@ export class EvaApi {
 		this.controlsSelectorComponentActive.complete();
 		this.keyboardShortcutsOverlaySubject.complete();
 		this.keyboardShortcutsConfigSubject.complete();
+		this.remotePlaybackStateSubject.complete();
+		this.remotePlaybackPromptFn = null;
 		this.triggerUserInteraction.complete();
 		this.playerReadyEvent.complete();
 	}

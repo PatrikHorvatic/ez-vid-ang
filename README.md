@@ -17,6 +17,7 @@ Highly configurable, performant and easy-to-use Angular component library for vi
 💾 **Configuration storage** – Persist user preferences (volume, speed, loop, cinema mode) to localStorage<br/>
 🎬 **Cinema mode** – Dim the page and focus on the video<br/>
 🖼️ **Thumbnail preview** – Hover the scrub bar to see video frame thumbnails via VTT sprite sheets<br/>
+📺 **Remote playback** – Cast to ChromeCast or AirPlay with one click, auto-hides when no devices available<br/>
 
 ## Example project
 

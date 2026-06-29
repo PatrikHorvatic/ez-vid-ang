@@ -168,6 +168,7 @@ export class EvaFullscreenAPI {
     }
   }
 
+  /** Subscribes to native fullscreen change events on the appropriate target (document or video element for iOS). */
   private setupFullscreenListeners(): void {
     this.fullscreenSub?.unsubscribe();
     const target = this.isiOSDevice() && this.evaAPI.assignedVideoElement

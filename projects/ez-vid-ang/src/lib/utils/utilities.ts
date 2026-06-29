@@ -1,6 +1,7 @@
 import { DEFAULT_SEEK_SECONDS, MAX_PLAYBACK_SPEED, MIN_PLAYBACK_SPEED } from '../constants';
 import { EvaKeyboardShortcutsConfiguration, EvaStorageConfiguration, EvaTrack } from "../types";
 
+/** Input transform that clamps negative timeout values to `0`. */
 export function transformTimeoutDuration(v: number): number {
 	if (!v) {
 		return 0;
@@ -11,6 +12,7 @@ export function transformTimeoutDuration(v: number): number {
 	return v;
 }
 
+/** Input transform that validates a default playback speed. Returns `1` if outside `[0.25, 4]`. */
 export function transformDefaultPlaybackSpeed(v: number): number {
 	if (!v) { return 1; }
 	if (v < MIN_PLAYBACK_SPEED) { return 1; }
@@ -18,6 +20,7 @@ export function transformDefaultPlaybackSpeed(v: number): number {
 	return v;
 }
 
+/** Input transform that filters speeds to `[0.25, 4]`, removes duplicates, and falls back to `[1]` if empty. */
 export function validateAndTransformPlaybackSpeeds(v: number[]): number[] {
 	// In case of an empty array, component exists and some value must be provided. Of course the default will be 1.0
 	if (v.length === 0) {
@@ -35,6 +38,7 @@ export function validateAndTransformPlaybackSpeeds(v: number[]): number[] {
 	return unique;
 }
 
+/** Input transform that clamps volume to `[0, 1]`. Returns `1` if undefined. */
 export function validateAndPrepareStartingVideoVolume(v: number | undefined): number {
 	if (v === undefined) {
 		return 1;

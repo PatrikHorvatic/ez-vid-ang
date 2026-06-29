@@ -141,16 +141,19 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
   /** Whether we're currently in a sub-menu view. */
   protected readonly isInSubMenu = computed(() => this.activeSubMenu() !== null);
 
+  /** Caches the parent player element and attaches the document-level click-outside listener. */
   public ngOnInit(): void {
     this.playerElement = this.el.nativeElement.closest('eva-player');
     this.clickOutsideListener = this.handleClickOutside.bind(this);
     document.addEventListener('click', this.clickOutsideListener, true);
   }
 
+  /** Takes an initial height snapshot for the content element. */
   public ngAfterViewInit(): void {
     this.snapshotHeight();
   }
 
+  /** Removes the document-level click-outside listener. */
   public ngOnDestroy(): void {
     if (this.clickOutsideListener) {
       document.removeEventListener('click', this.clickOutsideListener, true);
@@ -165,6 +168,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
     this.togglePanel();
   }
 
+  /** Handles keyboard navigation: Enter/Space toggle, Arrow keys navigate, Escape closes, Home/End jump. */
   protected onHostKeyDown(event: KeyboardEvent): void {
     switch (event.key) {
       case 'Enter':
@@ -297,6 +301,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
     return this.isInSubMenu() && this.focusedIndex() === index;
   }
 
+  /** Toggles the panel open/closed. Resets sub-menu and focus on open, clamps position after first frame. */
   private togglePanel(): void {
     const wasOpen = this.isOpen();
     this.isOpen.set(!wasOpen);
@@ -313,6 +318,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  /** Closes the panel, resets sub-menu and focus, and notifies `controlsSelectorComponentActive`. */
   private closePanel(): void {
     this.isOpen.set(false);
     this.activeSubMenu.set(null);
@@ -320,6 +326,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
     this.evaAPI.controlsSelectorComponentActive.next(false);
   }
 
+  /** Moves the focused index by `direction` (+1 or -1), clamped to the visible items range. */
   private moveFocus(direction: number): void {
     const items = this.visibleItems();
     const current = this.focusedIndex();
@@ -330,6 +337,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  /** Closes the panel when a click is detected outside the host element. Debounced to ignore the opening click. */
   private handleClickOutside(event: MouseEvent): void {
     if (!this.isOpen()) { return; }
     if (Date.now() - this.openedAt < CLICK_OUTSIDE_DEBOUNCE_MS) { return; }
@@ -339,6 +347,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  /** Sets the content element's height to its current `scrollHeight` for transition readiness. */
   private snapshotHeight(): void {
     const el = this.contentEl()?.nativeElement;
     if (el) {
@@ -346,6 +355,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  /** Measures the dropdown against the player bounds and shifts it inward if it overflows. */
   private clampDropdownPosition(): void {
     const dropdown = this.dropdownEl()?.nativeElement;
     if (!dropdown || !this.playerElement) { return; }
@@ -369,6 +379,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
+  /** Clears inline position styles so the next open starts from default CSS positioning. */
   private resetDropdownPosition(): void {
     const dropdown = this.dropdownEl()?.nativeElement;
     if (!dropdown) { return; }
@@ -378,6 +389,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
     dropdown.style.top = '';
   }
 
+  /** Animates the content height from current to new value using a double-rAF FLIP pattern with a timeout fallback. */
   private animateHeightTransition(changeFn: () => void): void {
     const el = this.contentEl()?.nativeElement;
     if (!el) {

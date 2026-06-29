@@ -191,7 +191,7 @@ export class FullExampleComponent implements AfterViewInit, OnInit, OnDestroy {
   private pipSub: Subscription | null = null;
 
   private get api(): EvaApi {
-    return this.player().evaAPI;
+    return this.player().playerMainAPI;
   }
 
   // ─── Video sources ─────────────────────────────────────────────────────────

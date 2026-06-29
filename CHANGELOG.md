@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [22.0.4] - 2026-06-29
+## [22.0.5] - 2026-06-29
 
 ### Added
 
@@ -29,7 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [22.0.3] - 2026-06-28
+## [22.0.4] - 2026-06-28
 
 ### Added
 

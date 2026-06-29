@@ -177,6 +177,9 @@ Valid cues must have:
 - **Sprite preloading** — unique sprite image URLs are preloaded after parsing to avoid flicker on first hover.
 - **No VTT or failed fetch** — the hover tooltip shows just the time (and chapter if applicable), with no thumbnail. No errors are thrown.
 - **Edge clamping** — the thumbnail tooltip is clamped within the scrub bar boundaries. Near the left/right edges, the tooltip shifts inward based on half the thumbnail width to prevent overflow.
+- **Performance** — hover tooltip updates are coalesced via `requestAnimationFrame`. Multiple `mousemove` events between frames are collapsed into a single update. Seeking remains unthrottled for immediate feedback.
+- **Fade-in** — thumbnails fade in with an opacity animation on first appearance, using `--eva-transition-duration`.
+- **GPU compositing** — the thumbnail element uses `will-change: background-position` to hint the browser to optimize frequent sprite position changes.
 
 #### Thumbnail SCSS Variables
 

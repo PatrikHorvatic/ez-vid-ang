@@ -95,6 +95,14 @@
 	border: var(--eva-scrub-bar-thumbnail-border, 2px solid rgba(255, 255, 255, 0.9));
 	box-shadow: var(--eva-scrub-bar-thumbnail-box-shadow, 0 2px 8px rgba(0, 0, 0, 0.4));
 	flex-shrink: 0;
+	will-change: background-position;
+	transition: opacity var(--eva-transition-duration, 0.25s) ease;
+	animation: thumbnailFadeIn var(--eva-transition-duration, 0.25s) ease;
+}
+
+@keyframes thumbnailFadeIn {
+	from { opacity: 0; }
+	to { opacity: 1; }
 }
 
 .eva-hover-time {

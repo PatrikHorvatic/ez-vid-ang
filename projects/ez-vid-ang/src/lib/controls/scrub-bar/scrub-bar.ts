@@ -15,10 +15,10 @@ import {
 } from '@angular/core';
 import { skip, Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
-import { EvaChapterMarker, EvaTimeFormating } from '../../types';
+import { EvaChapterMarker, EvaThumbnailCue, EvaTimeFormating } from '../../types';
 import { transformEvaScrubBarAria, EvaScrubBarAria, EvaScrubBarAriaTransformed } from '../../utils/aria-utilities';
 import { transformTimeoutDuration } from '../../utils/utilities';
-import { PERCENTAGE, SCRUB_BAR_MAX_SEEK_PERCENT, SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_DISPLAY_PAD_WIDTH, DEFAULT_AUTOHIDE_TIMEOUT_MS, SCRUB_BAR_TOOLTIP_HALF_WIDTH_PX } from '../../constants';
+import { PERCENTAGE, SCRUB_BAR_MAX_SEEK_PERCENT, SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_DISPLAY_PAD_WIDTH, DEFAULT_AUTOHIDE_TIMEOUT_MS, SCRUB_BAR_TOOLTIP_HALF_WIDTH_PX, HALF_DIVISOR, VTT_XYWH_COORDS_LENGTH, VTT_XYWH_PREFIX_LENGTH, VTT_TIMESTAMP_MIN_PARTS, VTT_TIMESTAMP_MAX_PARTS, VTT_MS_PAD_LENGTH, MS_PER_SECOND } from '../../constants';
 
 /**
  * Scrub bar (seek bar) component for the Eva video player.
@@ -159,6 +159,16 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
  */
   public readonly evaChapters = input<EvaChapterMarker[]>([]);
 
+  /**
+   * URL to a VTT file that maps time ranges to regions in a thumbnail sprite image.
+   * When provided, a thumbnail preview is shown above the scrub bar on hover.
+   *
+   * The VTT file should contain cues with `#xywh=x,y,w,h` fragments pointing to a sprite image.
+   *
+   * @default ''
+   */
+  public readonly evaThumbnailVtt = input<string>('');
+
   /** Whether the scrub bar is currently hidden. Applies the `hide` class to the host. */
   protected readonly hideControls = signal(false);
 
@@ -176,6 +186,18 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
 
   /** Resolves the `aria-label` from the transformed aria input. */
   protected readonly ariaLabel = computed<string>(() => this.evaAria().ariaLabel);
+
+  /** The active thumbnail cue matching the current hover position, or `null` when not hovering or no VTT. */
+  protected readonly hoverThumbnail = signal<EvaThumbnailCue | null>(null);
+
+  /** Parsed thumbnail cues from the VTT file. */
+  private thumbnailCues: EvaThumbnailCue[] = [];
+
+  /** AbortController for the current VTT fetch. Cancelled when the URL changes or on destroy. */
+  private thumbnailAbortController: AbortController | null = null;
+
+  /** Pending requestAnimationFrame ID for hover tooltip updates. */
+  private hoverRafId: number | null = null;
 
   /** Whether the user is currently dragging/seeking along the scrub bar. */
   private isSeeking = false;
@@ -201,6 +223,9 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
     if (changes['evaChapters'] && !changes['evaChapters'].firstChange) {
       this.syncExternalChapters(this.evaChapters());
     }
+    if (changes['evaThumbnailVtt'] && !changes['evaThumbnailVtt'].firstChange) {
+      this.loadThumbnailVtt(this.evaThumbnailVtt());
+    }
   }
 
   /**
@@ -212,6 +237,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
       this.startListening();
     }
     this.initChapters();
+    this.loadThumbnailVtt(this.evaThumbnailVtt());
   }
 
 
@@ -244,6 +270,10 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
 
     document.removeEventListener('mousemove', this.onDocumentMouseMove);
     document.removeEventListener('touchmove', this.onDocumentTouchMove);
+    if (this.hoverRafId !== null) {
+      cancelAnimationFrame(this.hoverRafId);
+    }
+    this.thumbnailAbortController?.abort();
   }
 
   /**
@@ -412,51 +442,64 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
       this.runInZone(() => { this.seekMove(this.getOffsetFromEvent(e.clientX)); });
     }
 
-    // Handle tooltip - check if mouse is over the scrub bar
+    // Handle tooltip — coalesce to one update per animation frame
     if (this.evaShowTimeOnHover()) {
-      const rect = this.elementRef.nativeElement.getBoundingClientRect();
-      const isOverHost =
-        e.clientX >= rect.left &&
-        e.clientX <= rect.right &&
-        e.clientY >= rect.top &&
-        e.clientY <= rect.bottom;
+      if (this.hoverRafId !== null) { return; }
+      const clientX = e.clientX;
+      const clientY = e.clientY;
+      this.hoverRafId = requestAnimationFrame(() => {
+        this.hoverRafId = null;
+        this.updateHoverTooltip(clientX, clientY);
+      });
+    }
+  };
 
-      if (isOverHost) {
-        const offset = e.clientX - rect.left;
-        const scrollWidth = this.elementRef.nativeElement.clientWidth;
-        const percentage = Math.max(Math.min((offset * PERCENTAGE) / scrollWidth, SCRUB_BAR_MAX_SEEK_PERCENT), 0);
-        const time = (percentage * this.evaAPI.time().total) / PERCENTAGE;
-        const tooltipHalfWidth = SCRUB_BAR_TOOLTIP_HALF_WIDTH_PX;
-        const clampedLeft = Math.max(tooltipHalfWidth, Math.min(offset, rect.width - tooltipHalfWidth));
-        const formatted = this.formatTime(time);
-        const chapter = this.getChapterAtTime(time);
+  private updateHoverTooltip(clientX: number, clientY: number): void {
+    const rect = this.elementRef.nativeElement.getBoundingClientRect();
+    const isOverHost =
+      clientX >= rect.left &&
+      clientX <= rect.right &&
+      clientY >= rect.top &&
+      clientY <= rect.bottom;
 
-        if (
-          this.hoverLeft() !== clampedLeft ||
-          this.hoverTime() !== formatted ||
-          this.hoverChapter() !== chapter
-        ) {
-          this.runInZone(() => {
-            this.hoverTime.set(formatted);
-            this.hoverLeft.set(clampedLeft);
-            this.hoverChapter.set(chapter);
-            if (!this.evaAPI.controlsSelectorComponentActive.getValue()) {
-              this.evaAPI.controlsSelectorComponentActive.next(true);
-            }
-          });
-        }
-      } else if (this.hoverTime() !== null) {
-        // Mouse left the scrub bar
+    if (isOverHost) {
+      const offset = clientX - rect.left;
+      const scrollWidth = this.elementRef.nativeElement.clientWidth;
+      const percentage = Math.max(Math.min((offset * PERCENTAGE) / scrollWidth, SCRUB_BAR_MAX_SEEK_PERCENT), 0);
+      const time = (percentage * this.evaAPI.time().total) / PERCENTAGE;
+      const formatted = this.formatTime(time);
+      const chapter = this.getChapterAtTime(time);
+      const thumbnail = this.getThumbnailAtTime(time);
+      const halfWidth = thumbnail ? Math.max(thumbnail.width / HALF_DIVISOR, SCRUB_BAR_TOOLTIP_HALF_WIDTH_PX) : SCRUB_BAR_TOOLTIP_HALF_WIDTH_PX;
+      const clampedLeft = Math.max(halfWidth, Math.min(offset, rect.width - halfWidth));
+
+      if (
+        this.hoverLeft() !== clampedLeft ||
+        this.hoverTime() !== formatted ||
+        this.hoverChapter() !== chapter ||
+        this.hoverThumbnail() !== thumbnail
+      ) {
         this.runInZone(() => {
-          this.hoverTime.set(null);
-          this.hoverChapter.set(null);
-          if (this.evaAPI.controlsSelectorComponentActive.getValue()) {
-            this.evaAPI.controlsSelectorComponentActive.next(false);
+          this.hoverTime.set(formatted);
+          this.hoverLeft.set(clampedLeft);
+          this.hoverChapter.set(chapter);
+          this.hoverThumbnail.set(thumbnail);
+          if (!this.evaAPI.controlsSelectorComponentActive.getValue()) {
+            this.evaAPI.controlsSelectorComponentActive.next(true);
           }
         });
       }
+    } else if (this.hoverTime() !== null) {
+      this.runInZone(() => {
+        this.hoverTime.set(null);
+        this.hoverChapter.set(null);
+        this.hoverThumbnail.set(null);
+        if (this.evaAPI.controlsSelectorComponentActive.getValue()) {
+          this.evaAPI.controlsSelectorComponentActive.next(false);
+        }
+      });
     }
-  };
+  }
 
   /**
    * Document-level `touchmove` handler registered outside Angular's zone.
@@ -708,5 +751,126 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
     this.hideTimeout = setTimeout(() => {
       this.hideControls.set(true);
     }, this.evaAutohideTime());
+  }
+
+  private getThumbnailAtTime(time: number): EvaThumbnailCue | null {
+    if (!this.thumbnailCues.length) { return null; }
+    return this.thumbnailCues.find(c => time >= c.startTime && time < c.endTime) ?? null;
+  }
+
+  private async loadThumbnailVtt(url: string): Promise<void> {
+    this.thumbnailAbortController?.abort();
+    this.thumbnailAbortController = null;
+    this.thumbnailCues = [];
+    this.hoverThumbnail.set(null);
+
+    if (!url) { return; }
+
+    const controller = new AbortController();
+    this.thumbnailAbortController = controller;
+
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok || controller.signal.aborted) { return; }
+      const text = await response.text();
+      if (!text || controller.signal.aborted) { return; }
+      this.thumbnailCues = this.parseThumbnailVtt(text, url);
+      this.preloadThumbnailSprites();
+    } catch {
+      if (!controller.signal.aborted) {
+        this.thumbnailCues = [];
+      }
+    }
+  }
+
+  private parseThumbnailVtt(text: string, vttUrl: string): EvaThumbnailCue[] {
+    const cues: EvaThumbnailCue[] = [];
+    const blocks = text.split(/\n\s*\n/u);
+    const baseUrl = vttUrl.substring(0, vttUrl.lastIndexOf('/') + 1);
+
+    for (const block of blocks) {
+      const parsed = this.parseThumbnailBlock(block, baseUrl);
+      if (parsed) {
+        cues.push(parsed);
+      }
+    }
+
+    return cues;
+  }
+
+  private parseThumbnailBlock(block: string, baseUrl: string): EvaThumbnailCue | null {
+    const lines = block.trim().split('\n');
+    let timeLine = '';
+    let imageLine = '';
+
+    for (const line of lines) {
+      if (line.includes('-->')) {
+        timeLine = line.trim();
+      } else if (line.includes('#xywh=') || line.includes('.jpg') || line.includes('.png') || line.includes('.webp')) {
+        imageLine = line.trim();
+      }
+    }
+
+    if (!timeLine || !imageLine) { return null; }
+
+    const times = timeLine.split('-->').map(t => t.trim());
+    if (times.length !== VTT_TIMESTAMP_MIN_PARTS) { return null; }
+
+    const startTime = this.parseVttTimestamp(times[0]);
+    const endTime = this.parseVttTimestamp(times[1]);
+    if (startTime < 0 || endTime < 0 || endTime <= startTime) { return null; }
+
+    const hashIndex = imageLine.indexOf('#xywh=');
+    if (hashIndex === -1) { return null; }
+
+    let url = imageLine.substring(0, hashIndex);
+    if (!url.startsWith('http') && !url.startsWith('/') && !url.startsWith('data:')) {
+      url = baseUrl + url;
+    }
+
+    const coords = imageLine.substring(hashIndex + VTT_XYWH_PREFIX_LENGTH).split(',').map(Number);
+    if (coords.length !== VTT_XYWH_COORDS_LENGTH || !coords.every(Number.isFinite) || coords.some(c => c < 0)) { return null; }
+
+    const width = coords[VTT_TIMESTAMP_MIN_PARTS];
+    const height = coords[VTT_TIMESTAMP_MAX_PARTS];
+    if (width <= 0 || height <= 0) { return null; }
+
+    return { startTime, endTime, url, x: coords[0], y: coords[1], width, height };
+  }
+
+  private parseVttTimestamp(timestamp: string): number {
+    const parts = timestamp.split(':');
+    if (parts.length < VTT_TIMESTAMP_MIN_PARTS || parts.length > VTT_TIMESTAMP_MAX_PARTS) { return -1; }
+
+    let hours = 0;
+    let minutes: number;
+    let secondsPart: string;
+
+    if (parts.length === VTT_TIMESTAMP_MAX_PARTS) {
+      hours = Number(parts[0]);
+      minutes = Number(parts[1]);
+      secondsPart = parts[VTT_TIMESTAMP_MIN_PARTS];
+    } else {
+      minutes = Number(parts[0]);
+      secondsPart = parts[1];
+    }
+
+    const secParts = secondsPart.split('.');
+    const seconds = Number(secParts[0]);
+    const ms = secParts.length > 1 ? Number(secParts[1].padEnd(VTT_MS_PAD_LENGTH, '0').substring(0, VTT_MS_PAD_LENGTH)) : 0;
+
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes) || !Number.isFinite(seconds) || !Number.isFinite(ms)) {
+      return -1;
+    }
+
+    return hours * SECONDS_PER_HOUR + minutes * SECONDS_PER_MINUTE + seconds + ms / MS_PER_SECOND;
+  }
+
+  private preloadThumbnailSprites(): void {
+    const urls = new Set(this.thumbnailCues.map(c => c.url));
+    for (const url of urls) {
+      const img = new Image();
+      img.src = url;
+    }
   }
 }

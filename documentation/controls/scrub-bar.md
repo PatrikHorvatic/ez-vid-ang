@@ -22,6 +22,7 @@ Mouse and touch event listeners are registered outside Angular's zone to avoid u
 | `evaTimeFormat` | `EvaTimeFormating` | No | `'mm:ss'` | Format used for the hover tooltip and any internal time display. See [Types — `EvaTimeFormating`](#). |
 | `evaShowChapters` | `boolean` | No | `true` | When `true`, chapter markers are rendered on the bar. |
 | `evaChapters` | `EvaChapterMarker[]` | No | `[]` | Chapter markers to display. Takes priority over any VTT text track on the video element. See [Types — `EvaChapterMarker`](#). |
+| `evaThumbnailVtt` | `string` | No | `''` | URL to a VTT file that maps time ranges to regions in a thumbnail sprite image. When provided, a thumbnail preview is shown above the scrub bar on hover. |
 
 ### Usage
 
@@ -83,6 +84,107 @@ Mouse and touch event listeners are registered outside Angular's zone to avoid u
   </eva-controls-container>
 </eva-player>
 ```
+
+### Thumbnail Preview
+
+When `evaThumbnailVtt` is provided, a thumbnail preview of the video frame is shown above the scrub bar while hovering. The thumbnail appears alongside the existing time tooltip.
+
+#### VTT File Format
+
+The VTT file maps time ranges to rectangular regions in a sprite image using the `#xywh=x,y,w,h` URI fragment:
+
+```
+WEBVTT
+
+00:00:00.000 --> 00:00:05.000
+thumbnails.jpg#xywh=0,0,160,90
+
+00:00:05.000 --> 00:00:10.000
+thumbnails.jpg#xywh=160,0,160,90
+
+00:00:10.000 --> 00:00:15.000
+thumbnails.jpg#xywh=320,0,160,90
+```
+
+Each cue contains:
+- A time range (`start --> end`)
+- A sprite image URL with `#xywh=x,y,width,height` specifying which rectangle to display
+
+#### Generating Thumbnails
+
+Use `ffmpeg` to generate the sprite image and a tool like `vtt-thumbnail-generator` for the VTT file:
+
+```bash
+# Extract a frame every 5 seconds, scaled to 160x90, tiled in a 10-column grid
+ffmpeg -i video.mp4 -vf "fps=1/5,scale=160:90,tile=10x10" thumbnails.jpg
+```
+
+#### Usage
+
+```html
+<!-- With thumbnail preview -->
+<eva-scrub-bar
+  [evaThumbnailVtt]="'assets/thumbnails.vtt'"
+  [evaShowTimeOnHover]="true"
+>
+  <eva-scrub-bar-buffering-time />
+  <eva-scrub-bar-current-time />
+</eva-scrub-bar>
+
+<!-- With thumbnail preview and chapters -->
+<eva-scrub-bar
+  [evaThumbnailVtt]="thumbnailVttUrl()"
+  [evaShowTimeOnHover]="true"
+  [evaShowChapters]="true"
+  [evaChapters]="chapters()"
+>
+  <eva-scrub-bar-buffering-time />
+  <eva-scrub-bar-current-time />
+</eva-scrub-bar>
+
+<!-- Dynamic — updates when the video source changes -->
+<eva-scrub-bar [evaThumbnailVtt]="currentThumbnailVtt()">
+  <eva-scrub-bar-buffering-time />
+  <eva-scrub-bar-current-time />
+</eva-scrub-bar>
+```
+
+#### VTT Validation
+
+The parser validates each cue and silently skips invalid entries:
+
+| Condition | Result |
+|---|---|
+| Missing `-->` time line | Cue skipped |
+| Missing image line | Cue skipped |
+| Unparseable timestamp | Cue skipped |
+| `endTime <= startTime` | Cue skipped |
+| Missing `#xywh=` fragment | Cue skipped — sprite coordinates are required |
+| Negative x, y, width, or height | Cue skipped |
+| Zero or negative width/height | Cue skipped — prevents invisible thumbnails |
+| Non-finite coordinate values | Cue skipped |
+
+Valid cues must have:
+- A parseable time range with `endTime > startTime`
+- An image URL with `#xywh=x,y,width,height` where all values are finite, non-negative, and width/height are greater than zero
+
+#### Runtime Behaviour
+
+- **VTT URL changes** — the previous fetch is aborted via `AbortController`, stale thumbnails are cleared immediately, and the new VTT is fetched and parsed.
+- **Component destroyed during fetch** — the in-flight fetch is cancelled via `AbortController`.
+- **VTT cleared** — setting `evaThumbnailVtt` to an empty string clears all thumbnails.
+- **Relative sprite URLs** — sprite image paths in the VTT file are resolved relative to the VTT file's location (e.g. if the VTT is at `assets/thumbnails.vtt` and a cue references `sprites.jpg`, the resolved URL is `assets/sprites.jpg`). Absolute URLs (`https://...`) and root-relative URLs (`/assets/...`) are used as-is.
+- **Sprite preloading** — unique sprite image URLs are preloaded after parsing to avoid flicker on first hover.
+- **No VTT or failed fetch** — the hover tooltip shows just the time (and chapter if applicable), with no thumbnail. No errors are thrown.
+- **Edge clamping** — the thumbnail tooltip is clamped within the scrub bar boundaries. Near the left/right edges, the tooltip shifts inward based on half the thumbnail width to prevent overflow.
+
+#### Thumbnail SCSS Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `--eva-scrub-bar-thumbnail-border-radius` | `4px` | Border radius of the thumbnail preview. |
+| `--eva-scrub-bar-thumbnail-border` | `2px solid rgba(255, 255, 255, 0.9)` | Border around the thumbnail preview. |
+| `--eva-scrub-bar-thumbnail-box-shadow` | `0 2px 8px rgba(0, 0, 0, 0.4)` | Box shadow of the thumbnail preview. |
 
 ### Chapter Markers
 

@@ -66,5 +66,16 @@ export const DEFAULT_STORAGE_KEY = "EVA_PLAYER_CONFIGURATION";
 // Settings panel height animation fallback (milliseconds)
 export const HEIGHT_TRANSITION_FALLBACK_MS = 350;
 
+// Tooltip clamping
+export const HALF_DIVISOR = 2;
+
+// VTT thumbnail parsing
+export const VTT_XYWH_COORDS_LENGTH = 4;
+export const VTT_XYWH_PREFIX_LENGTH = 6;
+export const VTT_TIMESTAMP_MIN_PARTS = 2;
+export const VTT_TIMESTAMP_MAX_PARTS = 3;
+export const VTT_MS_PAD_LENGTH = 3;
+export const MS_PER_SECOND = 1000;
+
 // Screenshot
 export const DEFAULT_IMAGE_QUALITY = 0.92;

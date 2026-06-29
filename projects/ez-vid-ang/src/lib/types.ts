@@ -72,6 +72,20 @@ export type EvaKeyboardShortcutsConfiguration = {
 
 }
 
+/**
+ * A single parsed thumbnail cue from a VTT thumbnail sprite sheet.
+ * Maps a time range to a rectangular region in a sprite image.
+ */
+export type EvaThumbnailCue = {
+	startTime: number;
+	endTime: number;
+	url: string;
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+}
+
 export type EvaStorageConfiguration = {
 	volume?: boolean,
 	playbackSpeed?: boolean,

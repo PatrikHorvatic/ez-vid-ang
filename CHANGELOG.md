@@ -25,6 +25,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - `evaLocalStorageConfiguration` input — granular flags (`{ volume, playbackSpeed, cinemaMode, loop }`), toggleable at runtime.
   - Saved values restored on player init, overriding config defaults (user's last choice wins).
   - Volume `0` (muted) not persisted. All `localStorage` access wrapped in try-catch.
+- **`EvaScrubBar` — Thumbnail Preview**: New `evaThumbnailVtt` input. Accepts a VTT sprite sheet URL and shows thumbnail previews on scrub bar hover. Parses `#xywh=x,y,w,h` fragments. Sprite images are preloaded after parsing. Thumbnails are edge-clamped to stay within the scrub bar. Supports runtime VTT URL changes with `AbortController` fetch cancellation. Validates all cue data: rejects negative coords, zero dimensions, inverted time ranges, and missing sprite fragments. 3 `--eva-scrub-bar-thumbnail-*` CSS variables.
+- **`EvaThumbnailCue`**: New type for parsed VTT thumbnail cues.
+- **`EvaApi`**: Now exported from the public API for direct consumer access to player methods (e.g. `setPlaybackSpeed()`, `captureScreenshot()`, `cinemaModeSubject`).
 - **`EvaSettingsPanel`**: New YouTube-style settings panel component. Gear icon button in the control bar that opens a navigable dropdown menu. Items with `options` navigate into a sub-menu with back button; items without `options` emit directly. Animated height transitions between main menu and sub-menus. Dynamic position clamping within the player boundary (prevents overflow on left/right placement). Sub-menu selection returns to main menu instead of closing. Stateless design — consumer provides `EvaSettingsMenuItem[]` and handles `EvaSettingsMenuEvent` output. Full keyboard navigation (Arrow keys, Enter/Space, Home/End, Escape). 30+ `--eva-settings-panel-*` CSS variables.
 - **`EvaKeyboardShortcutsOverlay`**: New keyboard shortcuts overlay component. Centered panel listing all configured keyboard shortcuts, grouped by category (Playback, Seeking, Media). Integrated with the `EvaKeyboardShortcuts` directive — toggled automatically via `?` key. Reads open state and configuration from `EvaApi` — zero-configuration usage (`<eva-keyboard-shortcuts-overlay />`). Key labels auto-formatted for display (`ARROWLEFT` → `←`, `SPACE` → `Space`). Closes on Escape, click outside, or close button. Tree-shakable. 20+ `--eva-shortcuts-overlay-*` CSS variables.
 - **`EvaApi.keyboardShortcutsOverlaySubject`**: New `BehaviorSubject<boolean>` that broadcasts the keyboard shortcuts overlay open/close state. Toggled by `EvaKeyboardShortcuts` on `?` key press.
@@ -34,7 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **`EvaSettingsPanelAria`**: New ARIA type with transform.
 - **`EvaDownloadEvent`**, **`EvaScreenshotEvent`**, **`EvaContextMenuItem`**, **`EvaContextMenuEvent`**: New types.
 - **`EvaDownloadAria`**, **`EvaScreenshotAria`**, **`EvaErrorOverlayAria`**, **`EvaCinemaModeAria`**: New ARIA types with transforms.
-- **`HEIGHT_TRANSITION_FALLBACK_MS`**, **`DEFAULT_IMAGE_QUALITY`**, **`DEFAULT_STORAGE_KEY`**: New constants.
+- **`HEIGHT_TRANSITION_FALLBACK_MS`**, **`HALF_DIVISOR`**, **`VTT_XYWH_COORDS_LENGTH`**, **`VTT_XYWH_PREFIX_LENGTH`**, **`VTT_TIMESTAMP_MIN_PARTS`**, **`VTT_TIMESTAMP_MAX_PARTS`**, **`VTT_MS_PAD_LENGTH`**, **`MS_PER_SECOND`**, **`DEFAULT_IMAGE_QUALITY`**, **`DEFAULT_STORAGE_KEY`**: New constants.
 
 ### Bug Fixes
 

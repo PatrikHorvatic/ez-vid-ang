@@ -16,6 +16,7 @@ Highly configurable, performant and easy-to-use Angular component library for vi
 ⌨️ **Keyboard shortcuts overlay** – Press `?` to show all shortcuts, auto-integrated<br/>
 💾 **Configuration storage** – Persist user preferences (volume, speed, loop, cinema mode) to localStorage<br/>
 🎬 **Cinema mode** – Dim the page and focus on the video<br/>
+🖼️ **Thumbnail preview** – Hover the scrub bar to see video frame thumbnails via VTT sprite sheets<br/>
 
 ## Example project
 

@@ -34,11 +34,12 @@ This example demonstrates every available component and feature in the library: 
     (evaMenuItemClicked)="onContextMenuAction($event)"
   />
 
-  <!-- Scrub bar with chapters -->
+  <!-- Scrub bar with chapters and thumbnail preview -->
   <eva-scrub-bar
     [evaShowTimeOnHover]="true"
     [evaShowChapters]="true"
     [evaChapters]="chapters()"
+    [evaThumbnailVtt]="thumbnailVtt()"
     [hideWithControlsContainer]="true"
   >
     <eva-scrub-bar-buffering-time />
@@ -201,6 +202,8 @@ export class FullExampleComponent implements AfterViewInit, OnInit, OnDestroy {
   ]);
 
   protected readonly hlsSource = signal('https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8');
+
+  protected readonly thumbnailVtt = signal('assets/thumbnails.vtt');
 
   protected readonly videoConfiguration = signal<EvaVideoElementConfiguration>({
     autoplay: false,

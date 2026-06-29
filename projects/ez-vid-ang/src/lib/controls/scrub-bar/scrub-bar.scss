@@ -88,6 +88,15 @@
 	text-overflow: ellipsis;
 }
 
+.eva-hover-thumbnail {
+	background-size: auto;
+	background-repeat: no-repeat;
+	border-radius: var(--eva-scrub-bar-thumbnail-border-radius, 4px);
+	border: var(--eva-scrub-bar-thumbnail-border, 2px solid rgba(255, 255, 255, 0.9));
+	box-shadow: var(--eva-scrub-bar-thumbnail-box-shadow, 0 2px 8px rgba(0, 0, 0, 0.4));
+	flex-shrink: 0;
+}
+
 .eva-hover-time {
 	background-color: var(--eva-scrub-bar-chapter-hover-tooltip-background-color);
 	color: var(--eva-scrub-bar-chapter-hover-tooltip-text-color);

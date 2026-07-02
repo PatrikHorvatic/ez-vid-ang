@@ -3,6 +3,7 @@ import { EvaApi } from '../../api/eva-api';
 import { EvaScreenshotEvent } from '../../types';
 import { transformEvaScreenshotAria, EvaScreenshotAria, EvaScreenshotAriaTransformed } from '../../utils/aria-utilities';
 import { DEFAULT_IMAGE_QUALITY } from '../../constants';
+import { EvaIcon } from '../../core/icon/icon';
 
 /**
  * Screenshot button component for the Eva video player.
@@ -14,7 +15,15 @@ import { DEFAULT_IMAGE_QUALITY } from '../../constants';
  * The consumer handles the captured data (download, copy to clipboard,
  * upload, etc.).
  *
- * Supports custom icons via content projection when `evaCustomIcon` is `true`.
+ * The default `screenshot` icon is resolved from the Eva icon registry.
+ * Register it with `addEvaIcons` before using the component. Use `evaCustomIcon`
+ * to suppress the registry icon and project your own content instead.
+ *
+ * @example
+ * // Register icon once (e.g. in main.ts or app config)
+ * import { addEvaIcons } from 'ez-vid-ang';
+ * import { evaScreenshotIcon } from 'ez-vid-ang/icons';
+ * addEvaIcons({ evaScreenshotIcon });
  *
  * @example
  * // Default icon
@@ -33,6 +42,7 @@ import { DEFAULT_IMAGE_QUALITY } from '../../constants';
  */
 @Component({
   selector: 'eva-screenshot',
+  imports: [EvaIcon],
   templateUrl: './screenshot.html',
   styleUrl: './screenshot.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,8 +58,8 @@ export class EvaScreenshot {
   private readonly evaAPI = inject(EvaApi);
 
   /**
-   * When `true`, hides the built-in SVG icon so you can provide
-   * your own icon via content projection.
+   * When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead,
+   * allowing you to project a custom screenshot icon.
    *
    * @default false
    */

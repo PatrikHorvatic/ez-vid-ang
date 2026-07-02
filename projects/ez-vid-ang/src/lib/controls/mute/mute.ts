@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { transformEvaMuteAria, validateAndTransformVolumeRange, EvaMuteAria, EvaMuteAriaTransformed } from '../../utils/aria-utilities';
 import { DEFAULT_LOW_VOLUME_THRESHOLD, DEFAULT_MIDDLE_VOLUME_THRESHOLD } from '../../constants';
+import { EvaIcon } from '../../core/icon/icon';
 
 /**
  * Mute/unmute button component for the Eva video player.
@@ -10,15 +11,23 @@ import { DEFAULT_LOW_VOLUME_THRESHOLD, DEFAULT_MIDDLE_VOLUME_THRESHOLD } from '.
  * Renders as a `role="button"` element with `tabindex="0"`, making it focusable
  * and keyboard accessible without a native `<button>` element.
  *
- * The component reflects the current video volume through four built-in icon states:
- * - `eva-icon-volume_up` — volume >= `evaMiddleVolume`
- * - `eva-icon-volume_middle` — volume >= `evaLowVolume` and < `evaMiddleVolume`
- * - `eva-icon-volume_low` — volume > 0 and < `evaLowVolume`
- * - `eva-icon-volume_off` — volume is 0
+ * The component reflects the current video volume through four icon states resolved
+ * from the Eva icon registry at render time:
+ * - `volume-high` — volume >= `evaMiddleVolume`
+ * - `volume-medium` — volume >= `evaLowVolume` and < `evaMiddleVolume`
+ * - `volume-low` — volume > 0 and < `evaLowVolume`
+ * - `volume-mute` — volume is 0
  *
- * Built-in icons can be suppressed with `evaCustomIcon` to use your own.
+ * Register icons with `addEvaIcons` before using the component. Use `evaCustomIcon`
+ * to suppress registry icons and project your own volume icon set instead.
  *
  * Keyboard support: `Enter` and `Space` toggle mute/unmute.
+ *
+ * @example
+ * // Register icons once (e.g. in main.ts or app config)
+ * import { addEvaIcons } from 'ez-vid-ang';
+ * import { evaVolumeHighIcon, evaVolumeMediumIcon, evaVolumeLowIcon, evaVolumeMuteIcon } from 'ez-vid-ang/icons';
+ * addEvaIcons({ evaVolumeHighIcon, evaVolumeMediumIcon, evaVolumeLowIcon, evaVolumeMuteIcon });
  *
  * @example
  * // Minimal usage
@@ -39,6 +48,7 @@ import { DEFAULT_LOW_VOLUME_THRESHOLD, DEFAULT_MIDDLE_VOLUME_THRESHOLD } from '.
  */
 @Component({
   selector: 'eva-mute',
+  imports: [EvaIcon],
   templateUrl: './mute.html',
   styleUrl: './mute.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,11 +57,6 @@ import { DEFAULT_LOW_VOLUME_THRESHOLD, DEFAULT_MIDDLE_VOLUME_THRESHOLD } from '.
     "role": "button",
     "[attr.aria-label]": "muteAriaLabel()",
     "[attr.aria-valuetext]": "muteAriaValueText()",
-    "[class.eva-icon]": "!evaCustomIcon()",
-    "[class.eva-icon-volume_up]": "!evaCustomIcon() && evaIconVolumeUp()",
-    "[class.eva-icon-volume_middle]": "!evaCustomIcon() && evaIconVolumeMiddle()",
-    "[class.eva-icon-volume_low]": "!evaCustomIcon() && evaIconVolumeLow()",
-    "[class.eva-icon-volume_off]": "!evaCustomIcon() && evaIconVolumeOff()",
     "(click)": "muteClicked()",
     "(keydown)": "muteClickKeyboard($event)"
   }
@@ -70,8 +75,9 @@ export class EvaMute implements OnInit, OnDestroy {
   public readonly evaAria = input<EvaMuteAriaTransformed, EvaMuteAria>(transformEvaMuteAria(undefined), { transform: transformEvaMuteAria });
 
   /**
-   * When `true`, suppresses all built-in icon classes (`eva-icon`, `eva-icon-volume_*`)
-   * so you can provide your own icon.
+   * When `true`, suppresses the registry-sourced icons and renders `<ng-content>` instead,
+   * allowing you to project a custom icon set using the `evaVolumeOff`, `evaVolumeLow`,
+   * `evaVolumeMiddle`, and `evaVolumeUp` content selectors.
    *
    * @default false
    */
@@ -101,16 +107,16 @@ export class EvaMute implements OnInit, OnDestroy {
     ? this.evaAria().ariaValueTextUnmuted
     : this.evaAria().ariaValueTextMuted);
 
-  /** `true` when volume is >= `evaMiddleVolume`. Applies `eva-icon-volume_up`. */
+  /** `true` when volume is >= `evaMiddleVolume` — selects the `volume-high` registry icon. */
   protected readonly evaIconVolumeUp = computed<boolean>(() => this.videoVolume() >= this.evaMiddleVolume());
 
-  /** `true` when volume is >= `evaLowVolume` and < `evaMiddleVolume`. Applies `eva-icon-volume_middle`. */
+  /** `true` when volume is >= `evaLowVolume` and < `evaMiddleVolume` — selects the `volume-medium` registry icon. */
   protected readonly evaIconVolumeMiddle = computed<boolean>(() => this.videoVolume() >= this.evaLowVolume() && this.videoVolume() < this.evaMiddleVolume());
 
-  /** `true` when volume is > `0` and < `evaLowVolume`. Applies `eva-icon-volume_low`. */
+  /** `true` when volume is > `0` and < `evaLowVolume` — selects the `volume-low` registry icon. */
   protected readonly evaIconVolumeLow = computed<boolean>(() => this.videoVolume() > 0 && this.videoVolume() < this.evaLowVolume());
 
-  /** `true` when volume is `0`. Applies `eva-icon-volume_off`. */
+  /** `true` when volume is `0` — selects the `volume-mute` registry icon. */
   protected readonly evaIconVolumeOff = computed<boolean>(() => !this.videoVolume());
 
   /** Reactive signal holding the current video volume. */

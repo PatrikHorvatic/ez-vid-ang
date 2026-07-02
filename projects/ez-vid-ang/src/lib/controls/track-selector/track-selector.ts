@@ -55,7 +55,6 @@ import { SCREEN_READER_ANNOUNCEMENT_DURATION_MS } from '../../constants';
   styleUrl: './track-selector.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "[class.eva-icon]": "true",
     "[class.open]": "isOpen()",
     "[attr.aria-label]": "evaTrackSelectorText()"
   }

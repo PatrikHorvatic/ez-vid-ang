@@ -6,7 +6,72 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [22.0.5] - 2026-06-29
+## [22.0.6, 21.2.6] - 2026-07-01
+
+### Breaking Changes
+
+- **Icon font removed**: `assets/eva-icons-and-fonts.scss` and `assets/videogular.woff` have been deleted. Remove both from the `styles` array in your `angular.json`. Only `eva-required-import.scss` is still required.
+- **Icon registration required**: Built-in icons are no longer bundled automatically. Call `addEvaIcons()` once before your components render (e.g. in `main.ts`). Without registration, components render no icon.
+- **Host icon classes removed**: `[class.eva-icon]`, `[class.eva-icon-pause]`, `[class.eva-icon-play_arrow]`, `[class.eva-icon-forward_10]`, `[class.eva-icon-forward_30]`, `[class.eva-icon-replay_10]`, `[class.eva-icon-replay_30]`, `[class.eva-icon-volume_up]`, `[class.eva-icon-volume_middle]`, `[class.eva-icon-volume_low]`, `[class.eva-icon-volume_off]` are no longer applied to any host element. Consumer CSS targeting these classes must be updated.
+- **`EvaCinemaMode` is now a pure state toggle**: The component no longer touches the `<eva-player>` DOM in any way — it no longer adds/removes the `eva-cinema-mode` CSS class, no longer appends a backdrop `<div>` to `document.body`, and no longer performs any cleanup on `ngOnDestroy`. It only updates `EvaApi.cinemaModeSubject` and emits `evaCinemaToggled`. All layout changes, CSS class bindings, and backdrop effects are now the consumer's responsibility. The component should be placed inside `<eva-controls-container>`, not with overlays.
+
+### Added
+
+- **SVG Icon Registry**: New module-level `Map<string, string>` that stores SVG strings keyed by name. All built-in icons use `fill="currentColor"` so they inherit the component's CSS `color` property.
+  - **`addEvaIcons(icons)`**: New public function. Accepts a `Record<string, string>` of icon export names to SVG strings. Converts camelCase export names to kebab-case registry keys (e.g. `evaForward10Icon` → `forward-10`). Call once at startup. Safe to call multiple times.
+  - **`getEvaIcon(name)`**: New internal function used by the `EvaIcon` component to look up an SVG string by registry key.
+- **`EvaIcon` component** (`<eva-icon>`): New internal component exported from the public API. Accepts a `name` input (required), looks up the SVG from the registry, and injects it as trusted HTML via `DomSanitizer.bypassSecurityTrustHtml()`. Both the host element and the inner `<span>` use `display: contents` so the SVG participates in the parent's layout as if it were a direct child.
+- **`ez-vid-ang/icons` secondary entry point**: New tree-shakable package entry with 19 individual SVG icon constants and an `evaAllIcons` barrel object for convenience registration. Constants: `evaPlayIcon`, `evaPauseIcon`, `evaForward10Icon`, `evaForward30Icon`, `evaBackward10Icon`, `evaBackward30Icon`, `evaVolumeHighIcon`, `evaVolumeMediumIcon`, `evaVolumeLowIcon`, `evaVolumeMuteIcon`, `evaFullscreenIcon`, `evaFullscreenExitIcon`, `evaCinemaModeIcon`, `evaLoopIcon`, `evaPictureInPictureIcon`, `evaRemotePlaybackIcon`, `evaDownloadIcon`, `evaScreenshotIcon`, `evaSettingsIcon`.
+- **`EvaSettingsPanel` — `evaCustomIcon` input**: New `boolean` input (default `false`). When `true`, suppresses the registry-sourced gear icon and renders projected content instead, consistent with all other icon-bearing components.
+
+### Changed
+
+- **Icon rendering — all control components**: The icon font CSS class approach has been replaced with the SVG registry across all 11 icon-bearing components. Each now imports and uses `<eva-icon name="...">` in its template instead of CSS class bindings on the host element.
+  - `EvaPlayPause`: Registry keys `play` / `pause` (conditioned on playback state).
+  - `EvaMute`: Registry keys `volume-high` / `volume-medium` / `volume-low` / `volume-mute` (conditioned on volume thresholds).
+  - `EvaForward`: Registry key `forward-10` or `forward-30` (conditioned on `evaForwardSeconds`).
+  - `EvaBackward`: Registry key `backward-10` or `backward-30` (conditioned on `evaBackwardSeconds`).
+  - `EvaFullscreen`: Registry key `fullscreen` / `fullscreen-exit` (conditioned on fullscreen state).
+  - `EvaOverlayPlay`: Registry key `play`.
+  - `EvaCinemaMode`: Registry key `cinema-mode` (replaces previous inline SVG).
+  - `EvaLoop`: Registry key `loop` (replaces previous inline SVG).
+  - `EvaPictureInPicture`: Registry key `picture-in-picture` (replaces previous inline SVG).
+  - `EvaRemotePlayback`: Registry key `remote-playback` (replaces previous inline SVG). Connecting/connected state styles moved from `> svg` child selectors to `:host` level, since the SVG inherits color via `currentColor`.
+  - `EvaDownload`: Registry key `download` (replaces previous inline SVG).
+  - `EvaScreenshot`: Registry key `screenshot` (replaces previous inline SVG).
+  - `EvaSettingsPanel`: Registry key `settings` (replaces previous inline stroke SVG with a `fill="currentColor"` Material Design gear icon for consistency with the registry pattern).
+- **`EvaTrackSelector`**: Removed `[class.eva-icon]: "true"` host binding. The icon font base class was providing layout rules (`display: inline-flex`, `width`, `font-size`) that are already declared in the component's own `:host` SCSS — removing the binding has no visual effect.
+- **`evaCustomIcon` input description** (all components): Updated to accurately reflect the new behaviour — "suppresses the registry-sourced icon and renders `<ng-content>` instead" — replacing the stale reference to "built-in icon classes".
+
+### Removed
+
+- **`assets/eva-icons-and-fonts.scss`**: Deleted. The icon font utility classes (`eva-icon`, `eva-icon-*`) and `@font-face` declaration for `videogular.woff` are no longer part of the library.
+- **`assets/videogular.woff`**: Deleted. Material Icons subset font file no longer loaded or distributed.
+- **`.eva-cinema-backdrop`**: Removed from `eva-required-import.scss`, along with the `eva-cinema-backdrop-fade-in` keyframes and the `--eva-cinema-backdrop-z-index` / `--eva-cinema-backdrop-background` CSS variables. `EvaCinemaMode` no longer creates this element (see Breaking Changes).
+
+### Documentation
+- **`AI_INSTRUCTIONS.md`**: New file at repo root. Copy/paste reference for AI coding assistants (Claude, Cursor, Copilot, etc.) working in projects that consume `ez-vid-ang` — covers required setup steps, the standalone composition model, a full selector/input/output reference for every exported component and directive, the icon registry table, and common-mistake rules to prevent hallucinated APIs.
+- **`README.md`**: Removed `eva-icons-and-fonts.scss` from the `angular.json` setup snippet. Replaced the NOTE about the optional font file with icon registration instructions (`addEvaIcons(evaAllIcons)` and a tree-shaking example).
+- **`documentation/example-simple.md`**: Added `addEvaIcons` import and registration call for the icons used in the simple player.
+- **`documentation/example-configuration.md`**: Added `addEvaIcons(evaAllIcons)` registration at the top of the TypeScript block. Moved `<eva-cinema-mode>` from the overlays section into `<eva-controls-container>`.
+- **`documentation/controls/play-pause.md`**: Renamed "Icon States" → "Icon Registry Keys". Replaced CSS class names with registry keys. Added `addEvaIcons` snippet.
+- **`documentation/controls/mute.md`**: Renamed "Icon States" → "Icon Registry Keys". Replaced CSS class names with registry keys. Added `addEvaIcons` snippet.
+- **`documentation/controls/forward.md`**: Removed icon-related host binding rows. Renamed "Icon Classes" → "Icon Registry Keys" with updated key names. Added `addEvaIcons` snippet.
+- **`documentation/controls/backward.md`**: Corrected all `evaForwardSeconds` references to `evaBackwardSeconds` (the actual input name). Renamed "Icon Classes" → "Icon Registry Keys" with updated key names. Added `addEvaIcons` snippet.
+- **`documentation/controls/fullscreen.md`**: Added "Icon Registry Keys" section. Added `addEvaIcons` snippet.
+- **`documentation/controls/overlay-play.md`**: Added "Icon Registry Keys" section. Added `addEvaIcons` snippet.
+- **`documentation/controls/cinema-mode.md`**: Rewritten — removed all references to the component managing CSS classes or DOM. Updated placement guidance (controls bar, not overlays), updated consumer CSS and settings-panel examples to reflect full consumer ownership of layout and state.
+- **`documentation/controls/loop.md`**: Added "Icon Registry Keys" section. Added `addEvaIcons` snippet.
+- **`documentation/controls/picture-in-picture.md`**: Added "Icon Registry Keys" section. Added `addEvaIcons` snippet.
+- **`documentation/controls/remote-playback.md`**: Added "Icon Registry Keys" section. Added `addEvaIcons` snippet.
+- **`documentation/controls/download.md`**: Added "Icon Registry Keys" section. Added `addEvaIcons` snippet.
+- **`documentation/controls/screenshot.md`**: Added "Icon Registry Keys" section. Added `addEvaIcons` snippet.
+- **`documentation/controls/settings-panel.md`**: Added `evaCustomIcon` to the inputs table. Added "Icon Registry Keys" section with `evaSettingsIcon` registration and custom icon projection example.
+
+
+---
+
+## [22.0.5, 21.2.5] - 2026-06-29
 
 ### Added
 
@@ -29,7 +94,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [22.0.4] - 2026-06-28
+## [22.0.4, 21.2.4] - 2026-06-28
 
 ### Added
 
@@ -80,7 +145,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [22.0.2] - 2026-06-22
+## [22.0.2, 21.2.2] - 2026-06-22
 
 ### Added
 
@@ -182,7 +247,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [22.0.1] - 2026-06-21
+## [22.0.1, 21.2.1] - 2026-06-21
 
 ### Added
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-`EvaBackward` is acomponent that renders a backward seek button for the Eva video player. Clicking the button seeks the video backward by a configurable number of seconds via `EvaApi`.
+`EvaBackward` is a component that renders a backward seek button for the Eva video player. Clicking the button seeks the video backward by a configurable number of seconds via `EvaApi`.
 
 **Selector:** `eva-backward`
 
@@ -11,8 +11,8 @@
 | Input | Type | Default | Description |
 |---|---|---|---|
 | `evaAria` | `EvaBackwardAria` | See below | ARIA label for the button. |
-| `evaCustomIcon` | `boolean` | `false` | When `true`, suppresses all built-in icon classes. |
-| `evaForwardSeconds` | `number` | `10` | Number of seconds to seek backward. Affects which icon class is applied. Validated via `validateAndTransformEvaForwardAndBackwardSeconds`. |
+| `evaCustomIcon` | `boolean` | `false` | When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead. |
+| `evaBackwardSeconds` | `number` | `10` | Number of seconds to seek backward. Affects which registry icon is used. Validated via `validateAndTransformEvaForwardAndBackwardSeconds`. |
 
 ### `evaAria` defaults
 
@@ -27,31 +27,36 @@
 | `role="button"` | Identifies the element as a button for assistive technologies. |
 | `tabindex="0"` | Makes the element focusable via keyboard. |
 | `aria-label` | Bound to `evaAria().ariaLabel`. |
-| `eva-icon` | Applied when `evaCustomIcon` is `false`. Base icon class. |
-| `eva-icon-replay_10` | Applied when `evaCustomIcon` is `false` and `evaForwardSeconds` is `10`. |
-| `eva-icon-replay_30` | Applied when `evaCustomIcon` is `false` and `evaForwardSeconds` is `30`. |
 
-## Icon Classes
+## Icon Registry Keys
 
-The built-in icon is determined by the value of `evaForwardSeconds`:
+The built-in icon is determined by the value of `evaBackwardSeconds`:
 
-| `evaForwardSeconds` | Applied class |
+| `evaBackwardSeconds` | Registry key |
 |---|---|
-| `10` | `eva-icon-replay_10` |
-| `30` | `eva-icon-replay_30` |
+| `10` | `backward-10` |
+| `30` | `backward-30` |
 
-For any other value, no built-in icon class is applied — use `evaCustomIcon` and provide your own.
+For any other value, no built-in icon is rendered — use `evaCustomIcon` and provide your own.
+
+Register icons before using the component:
+
+```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaBackward10Icon, evaBackward30Icon } from 'ez-vid-ang/icons';
+addEvaIcons({ evaBackward10Icon, evaBackward30Icon });
+```
 
 ## Keyboard Support
 
 | Key | Action |
 |---|---|
-| `Enter` | Seek backward by `evaForwardSeconds` |
-| `Space` | Seek backward by `evaForwardSeconds` |
+| `Enter` | Seek backward by `evaBackwardSeconds` |
+| `Space` | Seek backward by `evaBackwardSeconds` |
 
 ## Behaviour
 
-On click or keyboard activation, the component calls `EvaApi.seekBack(evaForwardSeconds())`, delegating the seek logic entirely to the API layer.
+On click or keyboard activation, the component calls `EvaApi.seekBack(evaBackwardSeconds())`, delegating the seek logic entirely to the API layer.
 
 ## Usage Examples
 
@@ -63,7 +68,7 @@ On click or keyboard activation, the component calls `EvaApi.seekBack(evaForward
     <eva-backward />
 
     <!-- Seek backward 30 seconds: -->
-    <eva-backward [evaForwardSeconds]="30" />
+    <eva-backward [evaBackwardSeconds]="30" />
 
     <!-- Custom icon and ARIA label: -->
     <eva-backward  [evaCustomIcon]="true" [evaAria]="{ ariaLabel: 'Rewind 10 seconds' }">

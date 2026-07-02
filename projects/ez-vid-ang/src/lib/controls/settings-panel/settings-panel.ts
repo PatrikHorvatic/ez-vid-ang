@@ -16,14 +16,15 @@ import { EvaApi } from '../../api/eva-api';
 import { EvaSettingsMenuItem, EvaSettingsMenuEvent, EvaSettingsMenuOption } from '../../types';
 import { EvaSettingsPanelAria, EvaSettingsPanelAriaTransformed, transformEvaSettingsPanelAria } from '../../utils/aria-utilities';
 import { CLICK_OUTSIDE_DEBOUNCE_MS, HEIGHT_TRANSITION_FALLBACK_MS } from '../../constants';
+import { EvaIcon } from '../../core/icon/icon';
 
 /**
  * YouTube-style settings panel component for the Eva video player.
  *
- * Renders as a gear-icon button in the control bar. When clicked, a panel
- * opens above the button showing the main menu. Items with `options` navigate
- * into a sub-menu with a back button; items without `options` emit a click
- * event directly.
+ * Renders as a button in the control bar using the `settings` icon from the Eva
+ * icon registry. When clicked, a panel opens above the button showing the main menu.
+ * Items with `options` navigate into a sub-menu with a back button; items without
+ * `options` emit a click event directly.
  *
  * The panel closes when:
  * - Focus moves outside the component (`blur`)
@@ -34,6 +35,15 @@ import { CLICK_OUTSIDE_DEBOUNCE_MS, HEIGHT_TRANSITION_FALLBACK_MS } from '../../
  * - `Enter` / `Space` — toggle the panel or select an item
  * - `ArrowUp` / `ArrowDown` — navigate menu items
  * - `Escape` — close sub-menu (back to main) or close the panel
+ *
+ * Register the icon with `addEvaIcons` before using the component. Use `evaCustomIcon`
+ * to suppress the registry icon and project your own gear icon instead.
+ *
+ * @example
+ * // Register icon once (e.g. in main.ts or app config)
+ * import { addEvaIcons } from 'ez-vid-ang';
+ * import { evaSettingsIcon } from 'ez-vid-ang/icons';
+ * addEvaIcons({ evaSettingsIcon });
  *
  * @example
  * <eva-settings-panel
@@ -48,9 +58,16 @@ import { CLICK_OUTSIDE_DEBOUNCE_MS, HEIGHT_TRANSITION_FALLBACK_MS } from '../../
  *   ]"
  *   (evaSettingsMenuItemSelected)="onSettingChanged($event)"
  * />
+ *
+ * @example
+ * // Custom icon
+ * <eva-settings-panel [evaCustomIcon]="true" [evaSettingsMenuItems]="items">
+ *   <img src="my-settings-icon.svg" alt="" />
+ * </eva-settings-panel>
  */
 @Component({
   selector: 'eva-settings-panel',
+  imports: [EvaIcon],
   templateUrl: './settings-panel.html',
   styleUrl: './settings-panel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -78,6 +95,14 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
 
   /** Cached parent `eva-player` element, resolved once on init. */
   private playerElement: HTMLElement | null = null;
+
+  /**
+   * When `true`, suppresses the built-in gear icon so you can provide
+   * your own icon via content projection.
+   *
+   * @default false
+   */
+  public readonly evaCustomIcon = input<boolean>(false);
 
   /**
    * The list of settings menu items displayed in the main menu.

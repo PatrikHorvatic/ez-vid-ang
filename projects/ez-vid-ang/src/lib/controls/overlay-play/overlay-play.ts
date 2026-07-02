@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { transformEvaOverlayPlayAria, EvaOverlayPlayAria, EvaOverlayPlayAriaTransformed } from '../../utils/aria-utilities';
 import { EvaState } from '../../types';
+import { EvaIcon } from '../../core/icon/icon';
 
 /**
  * Overlay play button component for the Eva video player.
@@ -13,10 +14,18 @@ import { EvaState } from '../../types';
  * class binding.
  *
  * The component tracks the current video state via `EvaApi.videoStateSubject` and shows
- * or hides the play icon accordingly. The built-in icon can be suppressed with
- * `evaCustomIcon` to use your own.
+ * or hides the play icon accordingly. The default `play` icon is resolved from the Eva
+ * icon registry. Register it with `addEvaIcons` before using the component.
+ *
+ * Use `evaCustomIcon` to suppress the registry icon and project your own content instead.
  *
  * Keyboard support: `Enter` and `Space` trigger play/pause.
+ *
+ * @example
+ * // Register icons once (e.g. in main.ts or app config)
+ * import { addEvaIcons } from 'ez-vid-ang';
+ * import { evaPlayIcon } from 'ez-vid-ang/icons';
+ * addEvaIcons({ evaPlayIcon });
  *
  * @example
  * // Minimal usage
@@ -34,6 +43,7 @@ import { EvaState } from '../../types';
  */
 @Component({
   selector: 'eva-overlay-play',
+  imports: [EvaIcon],
   templateUrl: './overlay-play.html',
   styleUrl: './overlay-play.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,8 +51,6 @@ import { EvaState } from '../../types';
     "tabindex": "0",
     "role": "button",
     "[attr.aria-label]": "ariaLabel()",
-    "[class.eva-icon]": "!evaCustomIcon()",
-    "[class.eva-icon-play_arrow]": "!evaCustomIcon() && evaIconPlay()",
     "[class.eva-display-overlay-play]": "evaIconPlay() && !evaAPI.isBuffering()",
     "(click)": "playClicked()"
   }
@@ -58,8 +66,8 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
   public readonly evaOvelayPlayAria = input<EvaOverlayPlayAriaTransformed, EvaOverlayPlayAria>(transformEvaOverlayPlayAria(undefined), { transform: transformEvaOverlayPlayAria });
 
   /**
-   * When `true`, suppresses all built-in icon classes (`eva-icon`, `eva-icon-play_arrow`)
-   * so you can provide your own icon.
+   * When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead,
+   * allowing you to project a custom overlay play icon.
    *
    * @default false
    */
@@ -71,8 +79,7 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
   /**
    * `true` when the play icon should be visible — that is, when the current video
    * state is one of `loading`, `paused`, `ended`, or `error`.
-   * Applies `eva-icon-play_arrow` and `eva-display-overlay-play` to the host element,
-   * with the latter additionally gated on `!evaAPI.isBuffering()`.
+   * Also controls the `eva-display-overlay-play` host class (gated on `!evaAPI.isBuffering()`).
    */
   protected readonly evaIconPlay = computed<boolean>(() => this.playingState() === EvaState.LOADING || this.playingState() === EvaState.PAUSED || this.playingState() === EvaState.ENDED || this.playingState() === EvaState.ERROR);
 

@@ -14,8 +14,18 @@ The button automatically hides when no remote playback devices are available or 
 
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses the built-in cast icon so a custom icon can be projected via `<ng-content>`. |
+| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead. |
 | `evaAria` | `EvaRemotePlaybackAria` | No | See [`EvaRemotePlaybackAria`](#evaremoteplaybackaria) | ARIA labels for the button. |
+
+### Icon Registry Keys
+
+The built-in icon uses the `remote-playback` registry key. Register it before using the component:
+
+```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaRemotePlaybackIcon } from 'ez-vid-ang/icons';
+addEvaIcons({ evaRemotePlaybackIcon });
+```
 
 ### Outputs
 

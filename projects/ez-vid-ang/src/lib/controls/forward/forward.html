@@ -1,3 +1,5 @@
-@if(evaCustomIcon()){
-<ng-content />
+@if (evaCustomIcon()) {
+  <ng-content />
+} @else {
+  <eva-icon [name]="evaForwardSeconds() === 30 ? 'forward-30' : 'forward-10'" />
 }

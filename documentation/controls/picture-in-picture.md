@@ -36,7 +36,17 @@ Two ARIA attributes are managed independently:
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
 | `evaAria` | `EvaPictureInPictureAria` | No | See below | ARIA configuration for the button. |
-| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses the built-in icon. Project a custom icon via content projection. |
+| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead. |
+
+### Icon Registry Keys
+
+The built-in icon uses the `picture-in-picture` registry key. Register it before using the component:
+
+```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaPictureInPictureIcon } from 'ez-vid-ang/icons';
+addEvaIcons({ evaPictureInPictureIcon });
+```
 
 ### Keyboard Support
 

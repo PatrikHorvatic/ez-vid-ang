@@ -155,6 +155,7 @@ module.exports = defineConfig([
       angular.configs.templateAccessibility,
     ],
     rules: {
+      "@angular-eslint/template/cyclomatic-complexity": ["error", { maxComplexity: 10 }],
       "@angular-eslint/template/no-call-expression": "off",
       "@angular-eslint/template/no-inline-styles": "off",
       "@angular-eslint/template/no-interpolation-in-attributes": "off",

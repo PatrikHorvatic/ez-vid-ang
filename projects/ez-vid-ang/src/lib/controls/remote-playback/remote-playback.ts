@@ -16,6 +16,7 @@ import {
   EvaRemotePlaybackAriaTransformed,
   transformEvaRemotePlaybackAria,
 } from '../../utils/aria-utilities';
+import { EvaIcon } from '../../core/icon/icon';
 
 /**
  * The current state of the remote playback connection.
@@ -36,6 +37,16 @@ export type EvaRemotePlaybackState = 'disconnected' | 'connecting' | 'connected'
  * For Safari (which doesn't support the Remote Playback API), the component
  * falls back to `webkitShowPlaybackTargetPicker()`.
  *
+ * The default `remote-playback` icon is resolved from the Eva icon registry.
+ * Register it with `addEvaIcons` before using the component. Use `evaCustomIcon`
+ * to suppress the registry icon and project your own content instead.
+ *
+ * @example
+ * // Register icon once (e.g. in main.ts or app config)
+ * import { addEvaIcons } from 'ez-vid-ang';
+ * import { evaRemotePlaybackIcon } from 'ez-vid-ang/icons';
+ * addEvaIcons({ evaRemotePlaybackIcon });
+ *
  * @example
  * <eva-remote-playback />
  *
@@ -47,6 +58,7 @@ export type EvaRemotePlaybackState = 'disconnected' | 'connecting' | 'connected'
  */
 @Component({
   selector: 'eva-remote-playback',
+  imports: [EvaIcon],
   templateUrl: './remote-playback.html',
   styleUrl: './remote-playback.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,15 +72,15 @@ export type EvaRemotePlaybackState = 'disconnected' | 'connecting' | 'connected'
     '[class.eva-remote-playback-connected]': 'state() === "connected"',
     '(click)': 'onClicked()',
     '(keydown)': 'onKeyDown($event)',
-  },
+  }
 })
 export class EvaRemotePlayback implements OnInit, OnDestroy {
 
   private readonly evaAPI = inject(EvaApi);
 
   /**
-   * When `true`, suppresses the built-in icon so a custom icon can be
-   * projected via `<ng-content>`.
+   * When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead,
+   * allowing you to project a custom remote-playback icon.
    *
    * @default false
    */

@@ -1,12 +1,11 @@
-@if (evaCustomIcon() && evaIconVolumeOff()) {
-<ng-content select="[evaVolumeOff]" />
-}
-@if (evaCustomIcon() && evaIconVolumeLow()) {
-<ng-content select="[evaVolumeLow]" />
-}
-@if (evaCustomIcon() && evaIconVolumeMiddle()) {
-<ng-content select="[evaVolumeMiddle]" />
-}
-@if (evaCustomIcon() && evaIconVolumeUp()) {
-<ng-content select="[evaVolumeUp]" />
+@if (evaCustomIcon()) {
+@if (evaIconVolumeOff()) { <ng-content select="[evaVolumeOff]" /> }
+@if (evaIconVolumeLow()) { <ng-content select="[evaVolumeLow]" /> }
+@if (evaIconVolumeMiddle()) { <ng-content select="[evaVolumeMiddle]" /> }
+@if (evaIconVolumeUp()) { <ng-content select="[evaVolumeUp]" /> }
+} @else {
+@if (evaIconVolumeOff()) { <eva-icon name="volume-mute" /> }
+@if (evaIconVolumeLow()) { <eva-icon name="volume-low" /> }
+@if (evaIconVolumeMiddle()) { <eva-icon name="volume-medium" /> }
+@if (evaIconVolumeUp()) { <eva-icon name="volume-high" /> }
 }

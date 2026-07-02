@@ -107,21 +107,129 @@
 	--eva-volume-knob-background-color: white;
 	--eva-volume-knob-size: 15px;
 	--eva-volume-knob-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-}
 
-.eva-cinema-backdrop {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100vw;
-	height: 100vh;
-	z-index: var(--eva-cinema-backdrop-z-index, 999);
-	background: var(--eva-cinema-backdrop-background, rgba(0, 0, 0, 0.7));
-	cursor: pointer;
-	animation: eva-cinema-backdrop-fade-in var(--eva-transition-duration, 0.25s) ease forwards;
-}
+	--eva-scrub-bar-thumbnail-border-radius: 4px;
+	--eva-scrub-bar-thumbnail-border: 2px solid rgba(255, 255, 255, 0.9);
+	--eva-scrub-bar-thumbnail-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 
-@keyframes eva-cinema-backdrop-fade-in {
-	from { opacity: 0; }
-	to { opacity: 1; }
+	--eva-context-menu-min-width: 180px;
+	--eva-context-menu-max-width: 300px;
+	--eva-context-menu-padding: 4px 0;
+	--eva-context-menu-background: rgba(20, 20, 20, 0.95);
+	--eva-context-menu-border-radius: 8px;
+	--eva-context-menu-box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.08);
+	--eva-context-menu-font-size: 13px;
+	--eva-context-menu-color: rgba(255, 255, 255, 0.9);
+	--eva-context-menu-item-padding: 8px 16px;
+	--eva-context-menu-item-hover-background: rgba(255, 255, 255, 0.1);
+	--eva-context-menu-item-disabled-color: rgba(255, 255, 255, 0.35);
+	--eva-context-menu-divider-margin: 4px 0;
+	--eva-context-menu-divider-color: rgba(255, 255, 255, 0.12);
+
+	--eva-error-overlay-background: rgba(0, 0, 0, 0.85);
+	--eva-error-overlay-gap: 16px;
+	--eva-error-overlay-padding: 24px;
+	--eva-error-overlay-icon-size: 48px;
+	--eva-error-overlay-font-size: 14px;
+	--eva-error-overlay-text-color: rgba(255, 255, 255, 0.9);
+	--eva-error-overlay-max-width: 300px;
+	--eva-error-overlay-retry-padding: 8px 24px;
+	--eva-error-overlay-retry-border: 1px solid rgba(255, 255, 255, 0.3);
+	--eva-error-overlay-retry-border-radius: 4px;
+	--eva-error-overlay-retry-background: rgba(255, 255, 255, 0.1);
+	--eva-error-overlay-retry-color: rgba(255, 255, 255, 0.9);
+	--eva-error-overlay-retry-font-size: 14px;
+	--eva-error-overlay-retry-hover-background: rgba(255, 255, 255, 0.2);
+	--eva-error-overlay-retry-focus-color: rgba(255, 255, 255, 0.6);
+
+	--eva-settings-panel-button-width: 44px;
+	--eva-settings-panel-hover-background: rgba(255, 255, 255, 0.1);
+	--eva-settings-panel-open-background: rgba(255, 255, 255, 0.15);
+	--eva-settings-panel-icon-size: 22px;
+	--eva-settings-panel-icon-color: white;
+	--eva-settings-panel-background: rgba(0, 0, 0, 0.92);
+	--eva-settings-panel-border-radius: 8px;
+	--eva-settings-panel-box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+	--eva-settings-panel-min-width: 220px;
+	--eva-settings-panel-min-width-mobile: 180px;
+	--eva-settings-panel-max-height: 280px;
+	--eva-settings-panel-header-padding: 10px 14px 8px;
+	--eva-settings-panel-header-border: 1px solid rgba(255, 255, 255, 0.1);
+	--eva-settings-panel-header-font-size: 12px;
+	--eva-settings-panel-header-color: rgba(255, 255, 255, 0.6);
+	--eva-settings-panel-back-color: rgba(255, 255, 255, 0.7);
+	--eva-settings-panel-item-padding: 10px 14px;
+	--eva-settings-panel-item-hover-background: rgba(255, 255, 255, 0.1);
+	--eva-settings-panel-item-font-size: 14px;
+	--eva-settings-panel-item-color: rgba(255, 255, 255, 0.95);
+	--eva-settings-panel-item-value-font-size: 13px;
+	--eva-settings-panel-item-value-color: rgba(255, 255, 255, 0.5);
+	--eva-settings-panel-item-arrow-color: rgba(255, 255, 255, 0.4);
+	--eva-settings-panel-option-padding: 10px 14px;
+	--eva-settings-panel-option-hover-background: rgba(255, 255, 255, 0.1);
+	--eva-settings-panel-option-selected-background: rgba(59, 130, 246, 0.2);
+	--eva-settings-panel-option-check-size: 16px;
+	--eva-settings-panel-option-check-color: rgba(59, 130, 246, 1);
+	--eva-settings-panel-option-font-size: 14px;
+	--eva-settings-panel-option-color: rgba(255, 255, 255, 0.95);
+
+	--eva-chapter-list-top: 8px;
+	--eva-chapter-list-width: 280px;
+	--eva-chapter-list-max-width: 40%;
+	--eva-chapter-list-max-width-mobile: 60%;
+	--eva-chapter-list-max-height: calc(100% - var(--eva-control-element-height) - 24px);
+	--eva-chapter-list-offset: 8px;
+	--eva-chapter-list-background: rgba(0, 0, 0, 0.92);
+	--eva-chapter-list-border-radius: 8px;
+	--eva-chapter-list-box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+	--eva-chapter-list-header-padding: 12px 16px;
+	--eva-chapter-list-header-border: 1px solid rgba(255, 255, 255, 0.1);
+	--eva-chapter-list-close-size: 28px;
+	--eva-chapter-list-close-color: rgba(255, 255, 255, 0.6);
+	--eva-chapter-list-title-font-size: 14px;
+	--eva-chapter-list-title-color: rgba(255, 255, 255, 0.9);
+	--eva-chapter-list-count-font-size: 12px;
+	--eva-chapter-list-count-color: rgba(255, 255, 255, 0.5);
+	--eva-chapter-list-count-background: rgba(255, 255, 255, 0.1);
+	--eva-chapter-list-items-padding: 4px;
+	--eva-chapter-list-scrollbar-color: rgba(255, 255, 255, 0.2);
+	--eva-chapter-list-item-gap: 12px;
+	--eva-chapter-list-item-padding: 10px 12px;
+	--eva-chapter-list-item-hover-background: rgba(255, 255, 255, 0.1);
+	--eva-chapter-list-item-active-background: rgba(59, 130, 246, 0.25);
+	--eva-chapter-list-item-active-title-color: rgb(59, 130, 246);
+	--eva-chapter-list-item-active-time-color: rgb(59, 130, 246);
+	--eva-chapter-list-item-time-font-size: 12px;
+	--eva-chapter-list-item-time-color: rgba(255, 255, 255, 0.6);
+	--eva-chapter-list-item-title-font-size: 14px;
+	--eva-chapter-list-item-title-color: rgba(255, 255, 255, 0.95);
+	--eva-chapter-list-item-duration-font-size: 11px;
+	--eva-chapter-list-item-duration-color: rgba(255, 255, 255, 0.4);
+	--eva-chapter-list-empty-font-size: 13px;
+	--eva-chapter-list-empty-color: rgba(255, 255, 255, 0.4);
+
+	--eva-remote-playback-button-width: 50px;
+	--eva-remote-playback-connected-color: rgb(59, 130, 246);
+
+	--eva-shortcuts-overlay-background: rgba(0, 0, 0, 0.92);
+	--eva-shortcuts-overlay-border-radius: 12px;
+	--eva-shortcuts-overlay-box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+	--eva-shortcuts-overlay-width: 360px;
+	--eva-shortcuts-overlay-header-padding: 16px 20px 12px;
+	--eva-shortcuts-overlay-header-border: 1px solid rgba(255, 255, 255, 0.1);
+	--eva-shortcuts-overlay-title-font-size: 15px;
+	--eva-shortcuts-overlay-title-color: rgba(255, 255, 255, 0.95);
+	--eva-shortcuts-overlay-close-color: rgba(255, 255, 255, 0.6);
+	--eva-shortcuts-overlay-body-padding: 8px 20px 16px;
+	--eva-shortcuts-overlay-group-title-font-size: 11px;
+	--eva-shortcuts-overlay-group-title-color: rgba(255, 255, 255, 0.4);
+	--eva-shortcuts-overlay-row-padding: 6px 0;
+	--eva-shortcuts-overlay-description-font-size: 13px;
+	--eva-shortcuts-overlay-description-color: rgba(255, 255, 255, 0.8);
+	--eva-shortcuts-overlay-key-min-width: 28px;
+	--eva-shortcuts-overlay-key-height: 26px;
+	--eva-shortcuts-overlay-key-background: rgba(255, 255, 255, 0.1);
+	--eva-shortcuts-overlay-key-border: 1px solid rgba(255, 255, 255, 0.15);
+	--eva-shortcuts-overlay-key-font-size: 12px;
+	--eva-shortcuts-overlay-key-color: rgba(255, 255, 255, 0.9);
 }

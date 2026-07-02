@@ -13,7 +13,22 @@ A fullscreen toggle button rendered as a `role="button"` element. Tracks fullscr
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
 | `evaAria` | `EvaFullscreenAria` | No | See [`EvaFullscreenAria`](#aria) | ARIA labels for the enter and exit fullscreen states. |
-| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses all built-in icon classes so a custom icon can be projected instead. |
+| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead. |
+
+### Icon Registry Keys
+
+| State | Registry key |
+|---|---|
+| Normal | `fullscreen` |
+| In fullscreen | `fullscreen-exit` |
+
+Register icons before using the component:
+
+```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaFullscreenIcon, evaFullscreenExitIcon } from 'ez-vid-ang/icons';
+addEvaIcons({ evaFullscreenIcon, evaFullscreenExitIcon });
+```
 
 ### Usage
 

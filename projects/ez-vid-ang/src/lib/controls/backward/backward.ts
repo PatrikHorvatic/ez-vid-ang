@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core
 import { EvaApi } from '../../api/eva-api';
 import { transformEvaBackwardAria, validateAndTransformEvaForwardAndBackwardSeconds, EvaBackwardAria, EvaBackwardAriaTransformed } from '../../utils/aria-utilities';
 import { DEFAULT_SEEK_SECONDS } from '../../constants';
+import { EvaIcon } from '../../core/icon/icon';
 
 
 /**
@@ -10,13 +11,20 @@ import { DEFAULT_SEEK_SECONDS } from '../../constants';
  * Renders as a `role="button"` element with `tabindex="0"` that seeks the video
  * backward by a configurable number of seconds when clicked.
  *
- * Built-in icon classes are applied based on the value of `evaBackwardSeconds`:
- * - `eva-icon-replay_10` — when `evaBackwardSeconds` is `10`
- * - `eva-icon-replay_30` — when `evaBackwardSeconds` is `30`
+ * The default icon is resolved from the Eva icon registry based on `evaBackwardSeconds`:
+ * - `backward-10` — when `evaBackwardSeconds` is `10`
+ * - `backward-30` — when `evaBackwardSeconds` is `30`
  *
- * Both can be suppressed via `evaCustomIcon` to use your own icon.
+ * Register icons with `addEvaIcons` before using the component. Use `evaCustomIcon`
+ * to suppress the registry icon and project your own content instead.
  *
  * Keyboard support: `Enter` and `Space` trigger the backward seek.
+ *
+ * @example
+ * // Register icons once (e.g. in main.ts or app config)
+ * import { addEvaIcons } from 'ez-vid-ang';
+ * import { evaBackward10Icon, evaBackward30Icon } from 'ez-vid-ang/icons';
+ * addEvaIcons({ evaBackward10Icon, evaBackward30Icon });
  *
  * @example
  * // Default — seek backward 10 seconds
@@ -35,6 +43,7 @@ import { DEFAULT_SEEK_SECONDS } from '../../constants';
  */
 @Component({
   selector: 'eva-backward',
+  imports: [EvaIcon],
   templateUrl: './backward.html',
   styleUrl: './backward.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,9 +51,6 @@ import { DEFAULT_SEEK_SECONDS } from '../../constants';
     "tabindex": "0",
     "role": "button",
     "[attr.aria-label]": "evaAria().ariaLabel",
-    "[class.eva-icon]": "!evaCustomIcon()",
-    "[class.eva-icon-replay_10]": "!evaCustomIcon() && evaBackwardSeconds() === 10",
-    "[class.eva-icon-replay_30]": "!evaCustomIcon() && evaBackwardSeconds() === 30",
     "(click)": "backwardClicked()",
     "(keydown)": "backwardClickedKeyboard($event)"
   }
@@ -60,8 +66,8 @@ export class EvaBackward {
   public readonly evaAria = input<EvaBackwardAriaTransformed, EvaBackwardAria>(transformEvaBackwardAria(undefined), { transform: transformEvaBackwardAria });
 
   /**
-   * When `true`, suppresses all built-in icon classes (`eva-icon`, `eva-icon-replay_10`, `eva-icon-replay_30`)
-   * so you can provide your own icon.
+   * When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead,
+   * allowing you to project a custom backward-seek icon.
    *
    * @default false
    */
@@ -71,9 +77,9 @@ export class EvaBackward {
    * Number of seconds to seek backward on click.
    * Validated via `validateAndTransformEvaForwardAndBackwardSeconds`.
    *
-   * Affects which built-in icon class is applied:
-   * - `10` → `eva-icon-replay_10`
-   * - `30` → `eva-icon-replay_30`
+   * Determines which registry icon is shown:
+   * - `10` → `backward-10`
+   * - `30` → `backward-30`
    *
    * @default 10
    */

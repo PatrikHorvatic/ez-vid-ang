@@ -24,13 +24,12 @@
 	display: none;
 }
 
-:host(.eva-remote-playback-connecting) > svg {
+:host(.eva-remote-playback-connecting) {
 	animation: remotePlaybackPulse 1.5s ease-in-out infinite;
 }
 
-:host(.eva-remote-playback-connected) > svg {
+:host(.eva-remote-playback-connected) {
 	color: var(--eva-remote-playback-connected-color, rgb(59, 130, 246));
-	fill: var(--eva-remote-playback-connected-color, rgb(59, 130, 246));
 }
 
 @keyframes remotePlaybackPulse {
@@ -38,11 +37,3 @@
 	50% { opacity: 0.4; }
 }
 
-:host > svg {
-	pointer-events: none !important;
-	user-select: none !important;
-	-webkit-touch-callout: none;
-	-webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-}

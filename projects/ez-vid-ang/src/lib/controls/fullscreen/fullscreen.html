@@ -1,1 +1,5 @@
-<ng-content />
+@if (evaCustomIcon()) {
+  <ng-content />
+} @else {
+  <eva-icon [name]="isFullscreen() ? 'fullscreen-exit' : 'fullscreen'" />
+}

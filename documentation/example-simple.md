@@ -34,6 +34,11 @@ See also: [Full-Featured Example](example-configuration.md) for every available 
 ```
 
 ```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaPlayIcon, evaPauseIcon, evaVolumeHighIcon, evaVolumeMediumIcon, evaVolumeLowIcon, evaVolumeMuteIcon, evaFullscreenIcon, evaFullscreenExitIcon } from 'ez-vid-ang/icons';
+
+addEvaIcons({ evaPlayIcon, evaPauseIcon, evaVolumeHighIcon, evaVolumeMediumIcon, evaVolumeLowIcon, evaVolumeMuteIcon, evaFullscreenIcon, evaFullscreenExitIcon });
+
 import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
 import {
   EvaBuffering,

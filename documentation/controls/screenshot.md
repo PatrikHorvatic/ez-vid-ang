@@ -14,10 +14,20 @@ The capture logic lives in `EvaApi.captureScreenshot()`, so it can also be calle
 
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `evaCustomIcon` | `boolean` | No | `false` | When `true`, hides the built-in SVG icon and uses projected content. |
+| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead. |
 | `evaImageFormat` | `string` | No | `"image/png"` | MIME type for the captured image. Supports any format accepted by `canvas.toDataURL()`. |
 | `evaImageQuality` | `number` | No | `0.92` | Quality for lossy formats (`image/jpeg`, `image/webp`). Value between `0` and `1`. Ignored for `image/png`. |
 | `evaAria` | `EvaScreenshotAria` | No | `{ ariaLabel: "Screenshot" }` | ARIA configuration for the button. |
+
+### Icon Registry Keys
+
+The built-in icon uses the `screenshot` registry key. Register it before using the component:
+
+```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaScreenshotIcon } from 'ez-vid-ang/icons';
+addEvaIcons({ evaScreenshotIcon });
+```
 
 ### Outputs
 

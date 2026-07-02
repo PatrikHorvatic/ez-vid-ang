@@ -18,6 +18,25 @@ The panel closes on outside click, `Escape`, or when focus leaves the component.
 | `evaSettingsPanelTitle` | `string` | No | `"Settings"` | Title displayed in the panel header. |
 | `evaSettingsBackText` | `string` | No | `"Back"` | Text for the back button in sub-menus. |
 | `evaAria` | `EvaSettingsPanelAria` | No | See [`EvaSettingsPanelAria`](#evasettingspanelaria) | ARIA label for the settings button. |
+| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses the registry-sourced gear icon and renders `<ng-content>` instead. |
+
+### Icon Registry Keys
+
+The built-in gear icon uses the `settings` registry key. Register it before using the component:
+
+```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaSettingsIcon } from 'ez-vid-ang/icons';
+addEvaIcons({ evaSettingsIcon });
+```
+
+To use a custom icon instead:
+
+```html
+<eva-settings-panel [evaCustomIcon]="true" [evaSettingsMenuItems]="items()">
+  <img src="assets/my-gear-icon.svg" alt="" />
+</eva-settings-panel>
+```
 
 ### Outputs
 

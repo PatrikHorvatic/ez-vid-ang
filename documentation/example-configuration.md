@@ -23,7 +23,6 @@ This example demonstrates every available component and feature in the library: 
   <eva-overlay-play />
   <eva-error-overlay (evaRetryClicked)="onRetry()" />
   <eva-keyboard-shortcuts-overlay />
-  <eva-cinema-mode />
 
   <!-- Buffering indicator -->
   <eva-buffering />
@@ -74,6 +73,7 @@ This example demonstrates every available component and feature in the library: 
 
     <eva-time-display evaTimeProperty="remaining" evaTimeFormating="HH:mm:ss" />
 
+    <eva-cinema-mode (evaCinemaToggled)="isCinemaMode = $event" />
     <eva-remote-playback />
     <eva-download (evaDownloadClicked)="onDownload($event)" />
     <eva-screenshot (evaScreenshotCaptured)="onScreenshot($event)" />
@@ -91,6 +91,11 @@ This example demonstrates every available component and feature in the library: 
 ```
 
 ```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaAllIcons } from 'ez-vid-ang/icons';
+
+addEvaIcons(evaAllIcons);
+
 import {
   AfterViewInit,
   ChangeDetectionStrategy,

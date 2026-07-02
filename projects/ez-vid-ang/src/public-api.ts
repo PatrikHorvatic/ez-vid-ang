@@ -40,5 +40,5 @@ export * from "./lib/streaming/dash";
 export * from "./lib/streaming/hls";
 export * from "./lib/types";
 export * from "./lib/utils/aria-utilities";
-
-
+export * from "./lib/core/icon/icon";
+export * from "./lib/core/icon/icon-registry";

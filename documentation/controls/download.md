@@ -12,8 +12,18 @@ Download button component for the Eva video player. Emits an event with the curr
 
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
-| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses built-in icon classes and uses projected content instead. |
+| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead. |
 | `evaAria` | `EvaDownloadAria` | No | `{ ariaLabel: "Download" }` | ARIA configuration for the button. |
+
+### Icon Registry Keys
+
+The built-in icon uses the `download` registry key. Register it before using the component:
+
+```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaDownloadIcon } from 'ez-vid-ang/icons';
+addEvaIcons({ evaDownloadIcon });
+```
 
 ### Outputs
 

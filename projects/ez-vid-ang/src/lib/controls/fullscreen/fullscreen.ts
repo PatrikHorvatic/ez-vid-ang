@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy,
 import { Subscription } from 'rxjs';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
 import { transformEvaFullscreenAria, EvaFullscreenAria, EvaFullscreenAriaTransformed } from '../../utils/aria-utilities';
+import { EvaIcon } from '../../core/icon/icon';
 
 /**
  * Fullscreen toggle button component for the Eva video player.
@@ -13,11 +14,20 @@ import { transformEvaFullscreenAria, EvaFullscreenAria, EvaFullscreenAriaTransfo
  * updates its `aria-label` accordingly to reflect whether the player is in
  * fullscreen or windowed mode.
  *
- * When clicked, the component attempts to locate the nearest `eva-player` container
- * and toggles fullscreen on it. Built-in icon can be suppressed with `evaCustomIcon`
- * to use your own.
+ * Default icons are resolved from the Eva icon registry based on fullscreen state:
+ * - `fullscreen` — shown when not in fullscreen
+ * - `fullscreen-exit` — shown when in fullscreen
+ *
+ * Register icons with `addEvaIcons` before using the component. Use `evaCustomIcon`
+ * to suppress the registry icon and project your own content instead.
  *
  * Keyboard support: `Enter` and `Space` toggle fullscreen.
+ *
+ * @example
+ * // Register icons once (e.g. in main.ts or app config)
+ * import { addEvaIcons } from 'ez-vid-ang';
+ * import { evaFullscreenIcon, evaFullscreenExitIcon } from 'ez-vid-ang/icons';
+ * addEvaIcons({ evaFullscreenIcon, evaFullscreenExitIcon });
  *
  * @example
  * // Minimal usage
@@ -30,11 +40,12 @@ import { transformEvaFullscreenAria, EvaFullscreenAria, EvaFullscreenAriaTransfo
  * @example
  * // Custom icon
  * <eva-fullscreen [evaCustomIcon]="true">
- *    <img src="your-image" />
+ *   <img src="your-image" />
  * </eva-fullscreen>
  */
 @Component({
   selector: 'eva-fullscreen',
+  imports: [EvaIcon],
   templateUrl: './fullscreen.html',
   styleUrl: './fullscreen.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,8 +53,6 @@ import { transformEvaFullscreenAria, EvaFullscreenAria, EvaFullscreenAriaTransfo
     "tabindex": "0",
     "role": "button",
     "[attr.aria-label]": "ariaLabel()",
-    "[class.eva-icon]": "!evaCustomIcon()",
-    "[class.eva-icon-fullscreen]": "!evaCustomIcon()",
     "(click)": "fullscreenClicked()",
     "(keydown)": "fullscreenClickedKeyboard($event)"
   }
@@ -52,8 +61,8 @@ export class EvaFullscreen implements OnInit, OnDestroy {
   private readonly fullscreenService = inject(EvaFullscreenAPI);
 
   /**
-   * When `true`, suppresses all built-in icon classes (`eva-icon`, `eva-icon-fullscreen`)
-   * so you can provide your own icon.
+   * When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead,
+   * allowing you to project a custom fullscreen/exit icon.
    *
    * @default false
    */

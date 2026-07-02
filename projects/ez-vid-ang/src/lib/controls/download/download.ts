@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input, output } from '@angu
 import { EvaApi } from '../../api/eva-api';
 import { EvaDownloadEvent } from '../../types';
 import { transformEvaDownloadAria, EvaDownloadAria, EvaDownloadAriaTransformed } from '../../utils/aria-utilities';
+import { EvaIcon } from '../../core/icon/icon';
 
 /**
  * Download button component for the Eva video player.
@@ -14,7 +15,15 @@ import { transformEvaDownloadAria, EvaDownloadAria, EvaDownloadAriaTransformed }
  * is responsible for handling the emitted `EvaDownloadEvent` (e.g. triggering
  * a file download, opening a new tab, or calling a backend API).
  *
- * Supports custom icons via content projection when `evaCustomIcon` is `true`.
+ * The default `download` icon is resolved from the Eva icon registry.
+ * Register it with `addEvaIcons` before using the component. Use `evaCustomIcon`
+ * to suppress the registry icon and project your own content instead.
+ *
+ * @example
+ * // Register icon once (e.g. in main.ts or app config)
+ * import { addEvaIcons } from 'ez-vid-ang';
+ * import { evaDownloadIcon } from 'ez-vid-ang/icons';
+ * addEvaIcons({ evaDownloadIcon });
  *
  * @example
  * // Default icon
@@ -35,6 +44,7 @@ import { transformEvaDownloadAria, EvaDownloadAria, EvaDownloadAriaTransformed }
  */
 @Component({
   selector: 'eva-download',
+  imports: [EvaIcon],
   templateUrl: './download.html',
   styleUrl: './download.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,8 +60,8 @@ export class EvaDownload {
   private readonly evaAPI = inject(EvaApi);
 
   /**
-   * When `true`, hides the built-in SVG icon so you can provide
-   * your own icon via content projection.
+   * When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead,
+   * allowing you to project a custom download icon.
    *
    * @default false
    */

@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, input, NgZone, OnDestroy, OnInit, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, OnInit, output, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { transformEvaCinemaModeAria, EvaCinemaModeAria, EvaCinemaModeAriaTransformed } from '../../utils/aria-utilities';
+import { EvaIcon } from '../../core/icon/icon';
 
 /**
  * Cinema mode toggle button for the Eva video player.
@@ -9,18 +10,22 @@ import { transformEvaCinemaModeAria, EvaCinemaModeAria, EvaCinemaModeAriaTransfo
  * Renders as a `role="button"` element with `tabindex="0"`. On click or
  * keyboard activation (`Enter` / `Space`), toggles cinema mode by:
  *
- * 1. Adding/removing the `eva-cinema-mode` CSS class on the parent
- *    `<eva-player>` host element.
- * 2. Inserting/removing a full-viewport backdrop overlay (`<div>`) into
- *    `document.body` that dims the surrounding page content.
- * 3. Emitting `evaCinemaToggled` with the current state (`true`/`false`)
- *    so the consumer can react (hide sidebars, adjust layout).
+ * 1. Emitting `evaCinemaToggled` with the new state (`true`/`false`).
+ * 2. Broadcasting the state on `EvaApi.cinemaModeSubject`, so any other
+ *    control (e.g. a settings panel item) can toggle or react to it too.
  *
- * The component does **not** force any layout changes on the player.
- * The consumer's CSS decides what `eva-cinema-mode` looks like — the
- * component only provides the class and the backdrop.
+ * The component does not touch the DOM beyond its own host element.
+ * All layout changes for cinema mode are the consumer's responsibility.
  *
- * Supports custom icons via content projection when `evaCustomIcon` is `true`.
+ * The default `cinema-mode` icon is resolved from the Eva icon registry.
+ * Register it with `addEvaIcons` before using the component. Use `evaCustomIcon`
+ * to suppress the registry icon and project your own content instead.
+ *
+ * @example
+ * // Register icon once (e.g. in main.ts or app config)
+ * import { addEvaIcons } from 'ez-vid-ang';
+ * import { evaCinemaModeIcon } from 'ez-vid-ang/icons';
+ * addEvaIcons({ evaCinemaModeIcon });
  *
  * @example
  * <eva-cinema-mode (evaCinemaToggled)="isCinema.set($event)" />
@@ -30,17 +35,10 @@ import { transformEvaCinemaModeAria, EvaCinemaModeAria, EvaCinemaModeAriaTransfo
  * <eva-cinema-mode [evaCustomIcon]="true" (evaCinemaToggled)="isCinema.set($event)">
  *   <img src="theater-icon.svg" alt="" />
  * </eva-cinema-mode>
- *
- * @example
- * // Consumer CSS for cinema mode layout
- * // eva-player.eva-cinema-mode {
- * //   width: 100vw;
- * //   position: relative;
- * //   z-index: 1000;
- * // }
  */
 @Component({
   selector: 'eva-cinema-mode',
+  imports: [EvaIcon],
   templateUrl: './cinema-mode.html',
   styleUrl: './cinema-mode.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -56,21 +54,13 @@ import { transformEvaCinemaModeAria, EvaCinemaModeAria, EvaCinemaModeAriaTransfo
 })
 export class EvaCinemaMode implements OnInit, OnDestroy {
   private readonly evaAPI = inject(EvaApi);
-  private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly ngZone = inject(NgZone);
-
-  /** Cached reference to the parent `<eva-player>` element. */
-  private playerEl: HTMLElement | null = null;
-
-  /** The backdrop overlay element injected into `document.body`. */
-  private backdropEl: HTMLDivElement | null = null;
 
   /** Subscription to cinemaModeSubject for external state changes (e.g. storage restore). */
   private cinemaSub: Subscription | null = null;
 
   /**
-   * When `true`, hides the built-in SVG icon so you can provide
-   * your own icon via content projection.
+   * When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead,
+   * allowing you to project a custom cinema-mode icon.
    *
    * @default false
    */
@@ -92,35 +82,24 @@ export class EvaCinemaMode implements OnInit, OnDestroy {
   protected readonly isActive = signal(false);
 
   public ngOnInit(): void {
-    this.playerEl = this.el.nativeElement.closest('eva-player');
-    if (!this.playerEl) {
-      console.warn('EvaCinemaMode must be placed inside <eva-player>.');
-    }
-
     this.cinemaSub = this.evaAPI.cinemaModeSubject.subscribe(active => {
       if (active !== this.isActive()) {
-        if (active) {
-          this.activate();
-        } else {
-          this.deactivate();
-        }
+        this.isActive.set(active);
       }
     });
   }
 
   public ngOnDestroy(): void {
     this.cinemaSub?.unsubscribe();
-    if (this.isActive()) {
-      this.deactivate();
-    }
   }
 
   protected toggle(): void {
-    if (this.isActive()) {
-      this.deactivate();
-    } else {
-      this.activate();
+    const next = !this.isActive();
+    this.isActive.set(next);
+    if (this.evaAPI.cinemaModeSubject.getValue() !== next) {
+      this.evaAPI.cinemaModeSubject.next(next);
     }
+    this.evaCinemaToggled.emit(next);
   }
 
   protected onKeyDown(e: KeyboardEvent): void {
@@ -129,45 +108,4 @@ export class EvaCinemaMode implements OnInit, OnDestroy {
       this.toggle();
     }
   }
-
-  private activate(): void {
-    if (this.isActive()) { return; }
-    this.isActive.set(true);
-    this.playerEl?.classList.add('eva-cinema-mode');
-    this.createBackdrop();
-    this.evaAPI.cinemaModeSubject.next(true);
-    this.evaCinemaToggled.emit(true);
-  }
-
-  private deactivate(): void {
-    if (!this.isActive()) { return; }
-    this.isActive.set(false);
-    this.playerEl?.classList.remove('eva-cinema-mode');
-    this.removeBackdrop();
-    this.evaAPI.cinemaModeSubject.next(false);
-    this.evaCinemaToggled.emit(false);
-  }
-
-  private createBackdrop(): void {
-    if (this.backdropEl) { return; }
-    this.backdropEl = document.createElement('div');
-    this.backdropEl.className = 'eva-cinema-backdrop';
-    this.backdropEl.addEventListener('click', this.onBackdropClick);
-    document.body.appendChild(this.backdropEl);
-  }
-
-  private removeBackdrop(): void {
-    if (!this.backdropEl) { return; }
-    this.backdropEl.removeEventListener('click', this.onBackdropClick);
-    if (this.backdropEl.parentNode) {
-      document.body.removeChild(this.backdropEl);
-    }
-    this.backdropEl = null;
-  }
-
-  private readonly onBackdropClick = (): void => {
-    this.ngZone.run(() => {
-      this.toggle();
-    });
-  };
 }

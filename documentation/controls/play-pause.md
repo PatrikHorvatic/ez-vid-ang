@@ -13,7 +13,7 @@ A play/pause toggle button rendered as a `role="button"` element. Tracks the cur
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
 | `evaPlayPauseAria` | `EvaPlayPauseAria` | No | See [`EvaPlayPauseAria`](#) | ARIA labels and value texts for each playback state. |
-| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses all built-in icon classes so a custom icon can be projected instead. |
+| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead. |
 
 ### Usage
 
@@ -36,14 +36,22 @@ A play/pause toggle button rendered as a `role="button"` element. Tracks the cur
 </eva-play-pause>
 ```
 
-### Icon States
+### Icon Registry Keys
 
-| State | Built-in icon class |
+| State | Registry key |
 |---|---|
-| `playing` | `eva-icon-pause` |
-| `loading`, `paused`, `ended`, `error` | `eva-icon-play_arrow` |
+| `playing` | `pause` |
+| `loading`, `paused`, `ended`, `error` | `play` |
 
-Built-in icon classes are suppressed entirely when `evaCustomIcon` is `true`.
+Register icons before using the component:
+
+```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaPlayIcon, evaPauseIcon } from 'ez-vid-ang/icons';
+addEvaIcons({ evaPlayIcon, evaPauseIcon });
+```
+
+When `evaCustomIcon` is `true`, the registry icons are suppressed and `<ng-content>` is rendered instead.
 
 ### Keyboard Support
 

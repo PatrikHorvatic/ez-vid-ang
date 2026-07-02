@@ -3,6 +3,7 @@ import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { EvaState } from '../../types';
 import { transformEvaPlayPauseAria, EvaPlayPauseAria, EvaPlayPauseAriaTransformed } from '../../utils/aria-utilities';
+import { EvaIcon } from '../../core/icon/icon';
 
 /**
  * Play/pause button component for the Eva video player.
@@ -14,13 +15,19 @@ import { transformEvaPlayPauseAria, EvaPlayPauseAria, EvaPlayPauseAriaTransforme
  * the play and pause icons accordingly. Both `aria-label` and `aria-valuetext` are
  * updated to reflect the current state for screen reader support.
  *
- * Icon states:
- * - `eva-icon-pause` — shown when state is `playing`
- * - `eva-icon-play_arrow` — shown when state is `loading`, `paused`, `ended`, or `error`
+ * Default icons are resolved from the Eva icon registry at render time:
+ * - `pause` — shown when state is `playing`
+ * - `play` — shown when state is `loading`, `paused`, `ended`, or `error`
  *
- * Built-in icons can be suppressed with `evaCustomIcon` to use your own.
+ * Register icons with `addEvaIcons` before using the component. Use `evaCustomIcon`
+ * to suppress the registry icon and project your own content instead.
  *
  * Keyboard support: `Enter` and `Space` trigger play/pause.
+ *
+ * @example
+ * // Register icons once (e.g. in main.ts or app config)
+ * import { addEvaIcons, evaPlayIcon, evaPauseIcon } from 'ez-vid-ang/icons';
+ * addEvaIcons({ evaPlayIcon, evaPauseIcon });
  *
  * @example
  * // Minimal usage
@@ -39,6 +46,7 @@ import { transformEvaPlayPauseAria, EvaPlayPauseAria, EvaPlayPauseAriaTransforme
  */
 @Component({
   selector: 'eva-play-pause',
+  imports: [EvaIcon],
   templateUrl: './play-pause.html',
   styleUrl: './play-pause.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,9 +55,6 @@ import { transformEvaPlayPauseAria, EvaPlayPauseAria, EvaPlayPauseAriaTransforme
     "role": "button",
     "[attr.aria-label]": "ariaLabel()",
     "[attr.aria-valuetext]": "ariaValueText()",
-    "[class.eva-icon]": "!evaCustomIcon()",
-    "[class.eva-icon-pause]": "!evaCustomIcon() && evaIconPause()",
-    "[class.eva-icon-play_arrow]": "!evaCustomIcon() && evaIconPlay()",
     "(click)": "playPauseClicked()",
     "(keydown)": "playPauseClickedKeyboard($event)"
   }
@@ -77,8 +82,9 @@ export class EvaPlayPause implements OnInit, OnDestroy {
   );
 
   /**
-   * When `true`, suppresses all built-in icon classes (`eva-icon`, `eva-icon-pause`, `eva-icon-play_arrow`)
-   * so you can provide your own icon.
+   * When `true`, suppresses the registry-sourced icons and renders `<ng-content>` instead,
+   * allowing you to project a custom play/pause icon pair using the `evaPlay` and `evaPause`
+   * content selectors.
    *
    * @default false
    */
@@ -123,13 +129,10 @@ export class EvaPlayPause implements OnInit, OnDestroy {
 
   });
 
-  /** `true` when the video is playing. Applies `eva-icon-pause` to the host element. */
+  /** `true` when the video is playing — selects the `pause` icon from the registry. */
   protected readonly evaIconPause = computed<boolean>(() => this.playingState() === EvaState.PLAYING);
 
-  /**
-   * `true` when the video is in a non-playing state (`loading`, `paused`, `ended`, or `error`).
-   * Applies `eva-icon-play_arrow` to the host element.
-   */
+  /** `true` when the video is in a non-playing state — selects the `play` icon from the registry. */
   protected readonly evaIconPlay = computed<boolean>(() => this.playingState() === EvaState.LOADING || this.playingState() === EvaState.PAUSED || this.playingState() === EvaState.ENDED || this.playingState() === EvaState.ERROR);
 
   /** Reactive signal tracking the current video playback state. Initialized from `EvaApi`. */

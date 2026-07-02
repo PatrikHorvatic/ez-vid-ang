@@ -37,7 +37,7 @@ EzVidAng updates and develops the library for the 2 latest versions.
 
 Install the package:
 ```
-npm i @ez-vid-ang/ez-vid-ang
+npm i ez-vid-ang
 ```
 Add the required styles to your angular.json:
 ```
@@ -48,8 +48,7 @@ Add the required styles to your angular.json:
         "build": {
           "options": {
             "styles": [
-              "node_modules/ez-vid-ang/assets/eva-required-import.scss",
-              "node_modules/ez-vid-ang/assets/eva-icons-and-fonts.scss"
+              "node_modules/ez-vid-ang/assets/eva-required-import.scss"
             ]
           }
         }
@@ -58,9 +57,23 @@ Add the required styles to your angular.json:
   }
 }
 ```
-> [!NOTE]
-> *eva-icons-and-fonts.scss* is optional if you provide custom icons and fonts for all components. It includes a prepared *.woff* file and utility classes for default icon usage.
+Register the built-in icons once in your `main.ts` (or any bootstrapping code that runs before your components render):
 
+```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaAllIcons } from 'ez-vid-ang/icons';
+
+addEvaIcons(evaAllIcons);
+```
+
+To minimize bundle size, import only the icons your components use:
+
+```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaPlayIcon, evaPauseIcon, evaFullscreenIcon, evaFullscreenExitIcon } from 'ez-vid-ang/icons';
+
+addEvaIcons({ evaPlayIcon, evaPauseIcon, evaFullscreenIcon, evaFullscreenExitIcon });
+```
 
 > [!IMPORTANT]
 > **If you want to use HLS streaming directive you must install latest version of the hls.js.**
@@ -179,7 +192,7 @@ All magic numbers are centralized in `src/lib/constants.ts`. See [linting docume
 ## Components
 
 Library has four groups of components. Click on the name to go to the documentation:
-- [**EvaCore**](documentation/core) – Main player component, directives (keyboard shortcuts, configuration storage), and providers
+- [**EvaCore**](documentation/core) – Main player component, icon registry, directives (keyboard shortcuts, configuration storage), and providers
 - [**EvaControls**](documentation/controls) – Video control components (play/pause, volume, scrub bar, fullscreen, playback speed, quality selector, track selector, loop, picture-in-picture, download, screenshot, context menu, settings panel, keyboard shortcuts overlay, cinema mode, error overlay, chapter list, and more)
 - [**EvaBuffering**](documentation/buffering) – Loading and buffering indicators
 - [**EvaStreaming**](documentation/streaming) – Directives for HLS and DASH live streaming support

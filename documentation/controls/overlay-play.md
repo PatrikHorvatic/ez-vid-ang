@@ -13,7 +13,17 @@ A centered overlay play button that appears over the video when it is in a non-p
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
 | `evaOvelayPlayAria` | `EvaOverlayPlayAria` | No | See [`EvaOverlayPlayAria`](#) | ARIA label for the overlay button. |
-| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses all built-in icon classes so a custom icon can be projected instead. |
+| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead. |
+
+### Icon Registry Keys
+
+The built-in icon uses the `play` registry key. Register it before using the component:
+
+```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaPlayIcon } from 'ez-vid-ang/icons';
+addEvaIcons({ evaPlayIcon });
+```
 
 ### Usage
 

@@ -13,7 +13,7 @@ A mute/unmute toggle button rendered as a `role="button"` element. Reflects the 
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
 | `evaAria` | `EvaMuteAria` | No | See [`EvaMuteAria`](#) | ARIA label and value texts for the muted/unmuted states. |
-| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses all built-in icon classes so a custom icon can be projected instead. |
+| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead. |
 | `evaLowVolume` | `number` | No | `0.25` | Volume threshold below which the low volume icon is shown. Clamped to `[0, 1]`. |
 | `evaMiddleVolume` | `number` | No | `0.75` | Volume threshold at or above which the high volume icon is shown. Clamped to `[0, 1]`. |
 
@@ -35,16 +35,24 @@ A mute/unmute toggle button rendered as a `role="button"` element. Reflects the 
 </eva-mute>
 ```
 
-### Icon States
+### Icon Registry Keys
 
-| Condition | Built-in icon class |
+| Condition | Registry key |
 |---|---|
-| `volume >= evaMiddleVolume` | `eva-icon-volume_up` |
-| `volume >= evaLowVolume` and `< evaMiddleVolume` | `eva-icon-volume_middle` |
-| `volume > 0` and `< evaLowVolume` | `eva-icon-volume_low` |
-| `volume === 0` | `eva-icon-volume_off` |
+| `volume >= evaMiddleVolume` | `volume-high` |
+| `volume >= evaLowVolume` and `< evaMiddleVolume` | `volume-medium` |
+| `volume > 0` and `< evaLowVolume` | `volume-low` |
+| `volume === 0` | `volume-mute` |
 
-Built-in icon classes are suppressed entirely when `evaCustomIcon` is `true`.
+Register icons before using the component:
+
+```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaVolumeHighIcon, evaVolumeMediumIcon, evaVolumeLowIcon, evaVolumeMuteIcon } from 'ez-vid-ang/icons';
+addEvaIcons({ evaVolumeHighIcon, evaVolumeMediumIcon, evaVolumeLowIcon, evaVolumeMuteIcon });
+```
+
+When `evaCustomIcon` is `true`, the registry icon is suppressed and `<ng-content>` is rendered instead.
 
 ### Keyboard Support
 

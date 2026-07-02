@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core
 import { EvaApi } from '../../api/eva-api';
 import { transformEvaForwardAria, validateAndTransformEvaForwardAndBackwardSeconds, EvaForwardAria, EvaForwardAriaTransformed } from '../../utils/aria-utilities';
 import { DEFAULT_SEEK_SECONDS } from '../../constants';
+import { EvaIcon } from '../../core/icon/icon';
 
 
 /**
@@ -10,13 +11,20 @@ import { DEFAULT_SEEK_SECONDS } from '../../constants';
  * Renders as a `role="button"` element with `tabindex="0"` that seeks the video
  * forward by a configurable number of seconds when clicked.
  *
- * Built-in icon classes are applied based on the value of `evaForwardSeconds`:
- * - `eva-icon-forward_10` — when `evaForwardSeconds` is `10`
- * - `eva-icon-forward_30` — when `evaForwardSeconds` is `30`
+ * The default icon is resolved from the Eva icon registry based on `evaForwardSeconds`:
+ * - `forward-10` — when `evaForwardSeconds` is `10`
+ * - `forward-30` — when `evaForwardSeconds` is `30`
  *
- * Both can be suppressed via `evaCustomIcon` to use your own icon.
+ * Register icons with `addEvaIcons` before using the component. Use `evaCustomIcon`
+ * to suppress the registry icon and project your own content instead.
  *
  * Keyboard support: `Enter` and `Space` trigger the forward seek.
+ *
+ * @example
+ * // Register icons once (e.g. in main.ts or app config)
+ * import { addEvaIcons } from 'ez-vid-ang';
+ * import { evaForward10Icon, evaForward30Icon } from 'ez-vid-ang/icons';
+ * addEvaIcons({ evaForward10Icon, evaForward30Icon });
  *
  * @example
  * // Default — seek forward 10 seconds
@@ -35,6 +43,7 @@ import { DEFAULT_SEEK_SECONDS } from '../../constants';
  */
 @Component({
   selector: 'eva-forward',
+  imports: [EvaIcon],
   templateUrl: './forward.html',
   styleUrl: './forward.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -42,9 +51,6 @@ import { DEFAULT_SEEK_SECONDS } from '../../constants';
     "tabindex": "0",
     "role": "button",
     "[attr.aria-label]": "evaAria().ariaLabel",
-    "[class.eva-icon]": "!evaCustomIcon()",
-    "[class.eva-icon-forward_10]": "!evaCustomIcon() && evaForwardSeconds() === 10",
-    "[class.eva-icon-forward_30]": "!evaCustomIcon() && evaForwardSeconds() === 30",
     "(click)": "forwardClicked()",
     "(keydown)": "forwardClickedKeyboard($event)"
   }
@@ -60,8 +66,8 @@ export class EvaForward {
   public readonly evaAria = input<EvaForwardAriaTransformed, EvaForwardAria>(transformEvaForwardAria(undefined), { transform: transformEvaForwardAria });
 
   /**
-   * When `true`, suppresses all built-in icon classes (`eva-icon`, `eva-icon-forward_10`, `eva-icon-forward_30`)
-   * so you can provide your own icon.
+   * When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead,
+   * allowing you to project a custom forward-seek icon.
    *
    * @default false
    */
@@ -71,9 +77,9 @@ export class EvaForward {
    * Number of seconds to seek forward on click.
    * Validated via `validateAndTransformEvaForwardAndBackwardSeconds`.
    *
-   * Affects which built-in icon class is applied:
-   * - `10` → `eva-icon-forward_10`
-   * - `30` → `eva-icon-forward_30`
+   * Determines which registry icon is shown:
+   * - `10` → `forward-10`
+   * - `30` → `forward-30`
    *
    * @default 10
    */

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal, On
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { transformEvaPictureInPictureAria, EvaPictureInPictureAria, EvaPictureInPictureAriaTransformed } from '../../utils/aria-utilities';
+import { EvaIcon } from '../../core/icon/icon';
 
 /**
  * Picture-in-Picture toggle button for the Eva video player.
@@ -17,8 +18,18 @@ import { transformEvaPictureInPictureAria, EvaPictureInPictureAria, EvaPictureIn
  * PiP changes triggered externally (e.g. by the browser's native controls or another
  * player instance).
  *
+ * The default `picture-in-picture` icon is resolved from the Eva icon registry.
+ * Register it with `addEvaIcons` before using the component. Use `evaCustomIcon`
+ * to suppress the registry icon and project your own content instead.
+ *
  * Keyboard support:
- * - `Enter` (13) and `Space` (32) trigger the same action as a click.
+ * - `Enter` and `Space` trigger the same action as a click.
+ *
+ * @example
+ * // Register icon once (e.g. in main.ts or app config)
+ * import { addEvaIcons } from 'ez-vid-ang';
+ * import { evaPictureInPictureIcon } from 'ez-vid-ang/icons';
+ * addEvaIcons({ evaPictureInPictureIcon });
  *
  * @example
  * // Minimal usage
@@ -44,6 +55,7 @@ import { transformEvaPictureInPictureAria, EvaPictureInPictureAria, EvaPictureIn
  */
 @Component({
   selector: 'eva-picture-in-picture',
+  imports: [EvaIcon],
   templateUrl: './picture-in-picture.html',
   styleUrl: './picture-in-picture.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,8 +72,8 @@ export class EvaPictureInPicture implements OnInit, OnDestroy {
   private readonly evaApi = inject(EvaApi);
 
   /**
-   * When `true`, suppresses all built-in icon classes so you can project a
-   * custom icon via content projection.
+   * When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead,
+   * allowing you to project a custom picture-in-picture icon.
    *
    * @default false
    */

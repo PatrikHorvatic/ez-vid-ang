@@ -13,7 +13,17 @@ A loop toggle button rendered as a `role="button"` element. Toggles the native `
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
 | `evaAria` | `EvaLoopAria` | No | See [`EvaLoopAria`](#evaloooparia) | ARIA labels for the loop button. |
-| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses the built-in SVG icon so a custom icon can be projected instead. |
+| `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead. |
+
+### Icon Registry Keys
+
+The built-in icon uses the `loop` registry key. Register it before using the component:
+
+```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaLoopIcon } from 'ez-vid-ang/icons';
+addEvaIcons({ evaLoopIcon });
+```
 
 ### Usage
 

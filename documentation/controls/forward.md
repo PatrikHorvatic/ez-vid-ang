@@ -11,8 +11,8 @@
 | Input | Type | Default | Description |
 |---|---|---|---|
 | `evaAria` | `EvaForwardAria` | See below | ARIA label for the button. |
-| `evaCustomIcon` | `boolean` | `false` | When `true`, suppresses all built-in icon classes. |
-| `evaForwardSeconds` | `number` | `10` | Number of seconds to seek forward. Affects which icon class is applied. Validated via `validateAndTransformEvaForwardAndBackwardSeconds`. |
+| `evaCustomIcon` | `boolean` | `false` | When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead. |
+| `evaForwardSeconds` | `number` | `10` | Number of seconds to seek forward. Affects which registry icon is used. Validated via `validateAndTransformEvaForwardAndBackwardSeconds`. |
 
 ### `evaAria` defaults
 
@@ -27,20 +27,25 @@
 | `role="button"` | Identifies the element as a button for assistive technologies. |
 | `tabindex="0"` | Makes the element focusable via keyboard. |
 | `aria-label` | Bound to `evaAria().ariaLabel`. |
-| `eva-icon` | Applied when `evaCustomIcon` is `false`. Base icon class. |
-| `eva-icon-forward_10` | Applied when `evaCustomIcon` is `false` and `evaForwardSeconds` is `10`. |
-| `eva-icon-forward_30` | Applied when `evaCustomIcon` is `false` and `evaForwardSeconds` is `30`. |
 
-## Icon Classes
+## Icon Registry Keys
 
 The built-in icon is determined by the value of `evaForwardSeconds`:
 
-| `evaForwardSeconds` | Applied class |
+| `evaForwardSeconds` | Registry key |
 |---|---|
-| `10` | `eva-icon-forward_10` |
-| `30` | `eva-icon-forward_30` |
+| `10` | `forward-10` |
+| `30` | `forward-30` |
 
-For any other value, no built-in icon class is applied — use `evaCustomIcon` and provide your own.
+For any other value, no built-in icon is rendered — use `evaCustomIcon` and provide your own.
+
+Register icons before using the component:
+
+```typescript
+import { addEvaIcons } from 'ez-vid-ang';
+import { evaForward10Icon, evaForward30Icon } from 'ez-vid-ang/icons';
+addEvaIcons({ evaForward10Icon, evaForward30Icon });
+```
 
 ## Keyboard Support
 

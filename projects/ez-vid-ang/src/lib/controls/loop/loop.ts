@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal, On
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
 import { transformEvaLoopAria, EvaLoopAria, EvaLoopAriaTransformed } from '../../utils/aria-utilities';
+import { EvaIcon } from '../../core/icon/icon';
 
 /**
  * Loop toggle button for the Eva video player.
@@ -13,6 +14,16 @@ import { transformEvaLoopAria, EvaLoopAria, EvaLoopAriaTransformed } from '../..
  * Syncs with `EvaApi.loopSubject` — stays in sync when `evaVideoConfiguration.loop`
  * changes at runtime or when another component toggles loop.
  *
+ * The default `loop` icon is resolved from the Eva icon registry.
+ * Register it with `addEvaIcons` before using the component. Use `evaCustomIcon`
+ * to suppress the registry icon and project your own content instead.
+ *
+ * @example
+ * // Register icon once (e.g. in main.ts or app config)
+ * import { addEvaIcons } from 'ez-vid-ang';
+ * import { evaLoopIcon } from 'ez-vid-ang/icons';
+ * addEvaIcons({ evaLoopIcon });
+ *
  * @example
  * <eva-loop />
  *
@@ -23,6 +34,7 @@ import { transformEvaLoopAria, EvaLoopAria, EvaLoopAriaTransformed } from '../..
  */
 @Component({
   selector: 'eva-loop',
+  imports: [EvaIcon],
   templateUrl: './loop.html',
   styleUrl: './loop.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,8 +53,8 @@ export class EvaLoop implements OnInit, OnDestroy {
   private loop$: Subscription | null = null;
 
   /**
-   * When `true`, suppresses the built-in SVG icon so a custom icon
-   * can be projected via `<ng-content>`.
+   * When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead,
+   * allowing you to project a custom loop icon.
    *
    * @default false
    */

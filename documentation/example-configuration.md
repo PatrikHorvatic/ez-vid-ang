@@ -2,7 +2,7 @@
 
 ## Full-Featured Example
 
-This example demonstrates every available component and feature in the library: HLS streaming, keyboard shortcuts overlay, context menu, error overlay, cinema mode, settings panel, screenshot, download, configuration storage, chapters, subtitles, and all control bar components.
+This example demonstrates every available component and feature in the library: HLS streaming, keyboard shortcuts overlay, context menu, error overlay, ended overlay, cinema mode, settings panel, screenshot, download, configuration storage, chapters, subtitles, tooltips, and all control bar components.
 
 ```html
 <eva-player
@@ -21,6 +21,9 @@ This example demonstrates every available component and feature in the library: 
 >
   <!-- Overlays -->
   <eva-overlay-play />
+  <eva-ended-overlay>
+    <button (click)="onReplay()">↺ Replay</button>
+  </eva-ended-overlay>
   <eva-error-overlay (evaRetryClicked)="onRetry()" />
   <eva-keyboard-shortcuts-overlay />
 
@@ -56,15 +59,15 @@ This example demonstrates every available component and feature in the library: 
 
   <!-- Controls bar -->
   <eva-controls-container evaUserInteractionEvents [evaAutohide]="true">
-    <eva-play-pause />
-    <eva-backward />
-    <eva-forward />
-    <eva-loop />
-    <eva-picture-in-picture />
+    <eva-play-pause evaTooltip evaTooltipShortcutKey="playPause" />
+    <eva-backward evaTooltip evaTooltipShortcutKey="backwardsKey" />
+    <eva-forward evaTooltip evaTooltipShortcutKey="forwardKey" />
+    <eva-loop evaTooltip />
+    <eva-picture-in-picture evaTooltip />
 
-    <eva-active-chapter (evaChapterClicked)="toggleChapterList()" />
+    <eva-active-chapter (evaChapterClicked)="toggleChapterList()" evaTooltip />
 
-    <eva-mute />
+    <eva-mute evaTooltip evaTooltipShortcutKey="muteKey" />
     <eva-volume />
 
     <eva-time-display evaTimeProperty="current" evaTimeFormating="HH:mm:ss" />
@@ -73,18 +76,19 @@ This example demonstrates every available component and feature in the library: 
 
     <eva-time-display evaTimeProperty="remaining" evaTimeFormating="HH:mm:ss" />
 
-    <eva-cinema-mode (evaCinemaToggled)="isCinemaMode = $event" />
-    <eva-remote-playback />
-    <eva-download (evaDownloadClicked)="onDownload($event)" />
-    <eva-screenshot (evaScreenshotCaptured)="onScreenshot($event)" />
-    <eva-track-selector />
-    <eva-playback-speed [evaPlaybackSpeeds]="[0.25, 0.5, 1, 1.5, 2, 4]" />
-    <eva-quality-selector />
+    <eva-cinema-mode (evaCinemaToggled)="isCinemaMode = $event" evaTooltip />
+    <eva-remote-playback evaTooltip />
+    <eva-download (evaDownloadClicked)="onDownload($event)" evaTooltip />
+    <eva-screenshot (evaScreenshotCaptured)="onScreenshot($event)" evaTooltip />
+    <eva-track-selector evaTooltip />
+    <eva-playback-speed [evaPlaybackSpeeds]="[0.25, 0.5, 1, 1.5, 2, 4]" evaTooltip />
+    <eva-quality-selector evaTooltip />
     <eva-settings-panel
       [evaSettingsMenuItems]="settingsItems()"
       (evaSettingsMenuItemSelected)="onSettingChanged($event)"
+      evaTooltip
     />
-    <eva-fullscreen />
+    <eva-fullscreen evaTooltip evaTooltipShortcutKey="fullscreen" />
   </eva-controls-container>
 
 </eva-player>
@@ -121,6 +125,7 @@ import {
   EvaControlsDivider,
   EvaDownload,
   EvaDownloadEvent,
+  EvaEndedOverlay,
   EvaErrorOverlay,
   EvaForward,
   EvaFullscreen,
@@ -146,6 +151,7 @@ import {
   EvaSettingsPanel,
   EvaSubtitleDisplay,
   EvaTimeDisplay,
+  EvaTooltip,
   EvaTrack,
   EvaTrackSelector,
   EvaUserInteractionEventsDirective,
@@ -169,6 +175,7 @@ import {
     EvaControlsContainer,
     EvaControlsDivider,
     EvaDownload,
+    EvaEndedOverlay,
     EvaErrorOverlay,
     EvaForward,
     EvaFullscreen,
@@ -190,6 +197,7 @@ import {
     EvaSettingsPanel,
     EvaSubtitleDisplay,
     EvaTimeDisplay,
+    EvaTooltip,
     EvaTrackSelector,
     EvaUserInteractionEventsDirective,
     EvaVolume,
@@ -311,6 +319,11 @@ export class FullExampleComponent implements AfterViewInit, OnInit, OnDestroy {
 
   protected onRetry(): void {
     console.log('Retry clicked — video reloading');
+  }
+
+  protected onReplay(): void {
+      this.api.assignedVideoElement.currentTime = 0;
+      this.api.playOrPauseVideo();    
   }
 
   // ─── Settings panel ────────────────────────────────────────────────────────

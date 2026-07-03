@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
-import { EvaDownloadEvent } from '../../types';
-import { transformEvaDownloadAria, EvaDownloadAria, EvaDownloadAriaTransformed } from '../../utils/aria-utilities';
 import { EvaIcon } from '../../core/icon/icon';
+import { EvaDownloadEvent } from '../../types';
+import { EvaDownloadAria, EvaDownloadAriaTransformed, transformEvaDownloadAria } from '../../utils/aria-utilities';
 
 /**
  * Download button component for the Eva video player.

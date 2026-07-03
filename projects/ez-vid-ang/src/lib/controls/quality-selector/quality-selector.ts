@@ -120,10 +120,14 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
     this.qualityLevelsSub = this.evaAPI.qualityLevelsSubject.subscribe(levels => {
       this.qualities.set(levels);
 
-      // Default to Auto option when levels first arrive
-      const auto = levels.find(q => q.isAuto) ?? levels[0] ?? null;
-      this.currentQuality.set(auto);
-      this.keyboardIndex.set(0);
+      // Only reset selection if the current choice is no longer available
+      const current = this.currentQuality();
+      const stillAvailable = current !== null && levels.some(q => q.qualityIndex === current.qualityIndex);
+      if (!stillAvailable) {
+        const auto = levels.find(q => q.isAuto) ?? levels[0] ?? null;
+        this.currentQuality.set(auto);
+        this.keyboardIndex.set(0);
+      }
     });
 
     this.clickOutsideListener = this.handleClickOutside.bind(this);
@@ -150,7 +154,8 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
    * @param quality - The quality level to select.
    * @param index - Its index within `qualities`.
    */
-  protected selectQuality(quality: EvaQualityLevel, index: number): void {
+  protected selectQuality(quality: EvaQualityLevel, index: number, event?: MouseEvent): void {
+    event?.stopPropagation();
     this.currentQuality.set(quality);
     this.keyboardIndex.set(index);
     this.isOpen.set(false);

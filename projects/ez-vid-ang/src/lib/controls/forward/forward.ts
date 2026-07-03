@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
-import { transformEvaForwardAria, validateAndTransformEvaForwardAndBackwardSeconds, EvaForwardAria, EvaForwardAriaTransformed } from '../../utils/aria-utilities';
 import { DEFAULT_SEEK_SECONDS } from '../../constants';
 import { EvaIcon } from '../../core/icon/icon';
+import { EvaForwardAria, EvaForwardAriaTransformed, transformEvaForwardAria, validateAndTransformEvaForwardAndBackwardSeconds } from '../../utils/aria-utilities';
 
 
 /**

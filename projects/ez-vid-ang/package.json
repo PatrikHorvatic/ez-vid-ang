@@ -1,6 +1,6 @@
 {
   "name": "ez-vid-ang",
-  "version": "22.0.6",
+  "version": "22.0.7",
   "license": "MIT",
   "exports": {
     "./assets/styling.scss": {
@@ -27,7 +27,9 @@
   "keywords": [
     "EzVidAng",
     "eva",
+    "ez-vid-ang",
     "Easy Video Angular",
+    "angular video player",
     "video",
     "player",
     "angular",

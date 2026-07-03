@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, OnInit, output, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
-import { transformEvaCinemaModeAria, EvaCinemaModeAria, EvaCinemaModeAriaTransformed } from '../../utils/aria-utilities';
 import { EvaIcon } from '../../core/icon/icon';
+import { EvaCinemaModeAria, EvaCinemaModeAriaTransformed, transformEvaCinemaModeAria } from '../../utils/aria-utilities';
 
 /**
  * Cinema mode toggle button for the Eva video player.

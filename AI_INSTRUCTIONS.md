@@ -124,7 +124,8 @@ Selector and class must match exactly — do not invent alternate names (e.g. it
 | `eva-controls-container[evaUserInteractionEvents]` | `EvaUserInteractionEventsDirective` | — | — | Attribute directive on the container; required for autohide to react to mouse/touch/click, and drives dblclick-to-fullscreen. |
 | `eva-controls-divider` | `EvaControlsDivider` | — | — | Visual/flex divider between control groups (e.g. push right-aligned controls). |
 | `eva-play-pause` | `EvaPlayPause` | — | `playingStateChanged` | Play/pause toggle button. |
-| `eva-overlay-play` | `EvaOverlayPlay` | — | — | Large centered play button shown before first playback. |
+| `eva-overlay-play` | `EvaOverlayPlay` | — | — | Large centered play button shown before first playback and on pause/error. By default **not** shown in the `ENDED` state — set `[evaShowPlayOnVideoEnding]="true"` only when not using `<eva-ended-overlay>` (the two are mutually exclusive for the `ENDED` state). |
+| `eva-ended-overlay` | `EvaEndedOverlay` | — | — | Full-area overlay shown when video reaches `EvaState.ENDED`. All visible content is consumer-projected via `<ng-content>` — project a replay button, end card, etc. Auto-suppressed when `video.loop` is `true`. Do not combine with `[evaShowPlayOnVideoEnding]="true"` on `EvaOverlayPlay`. |
 | `eva-backward` | `EvaBackward` | — | — | Seek backward button (10s/30s icon variants). |
 | `eva-forward` | `EvaForward` | — | — | Seek forward button (10s/30s icon variants). |
 | `eva-loop` | `EvaLoop` | — | — | Toggles `video.loop`. |
@@ -140,7 +141,7 @@ Selector and class must match exactly — do not invent alternate names (e.g. it
 | `eva-cinema-mode` | `EvaCinemaMode` | — | `evaCinemaToggled` | Toggles an `eva-cinema-mode` class on the parent `<eva-player>`; pure state, no layout/backdrop of its own — consumer CSS decides what it looks like. |
 | `eva-picture-in-picture` | `EvaPictureInPicture` | — | — | PiP toggle button. |
 | `eva-remote-playback` | `EvaRemotePlayback` | — | `evaRemotePlaybackStateChanged` | Chromecast/AirPlay button; auto-hides when no devices are available. |
-| `eva-playback-speed` | `EvaPlaybackSpeed` | `evaPlaybackSpeeds` (`number[]`) | — | Playback-speed selector dropdown. |
+| `eva-playback-speed` | `EvaPlaybackSpeed` | `evaPlaybackSpeeds` (`number[]`) | — | Playback-speed selector dropdown. Optional: `evaDefaultPlaybackSpeed` (default `1`) pre-selects a speed on first render — must be a value present in `evaPlaybackSpeeds` after validation; if not found, no option is pre-selected. |
 | `eva-quality-selector` | `EvaQualitySelector` | — | — | Quality/bitrate dropdown; auto-populated by `evaHls`/`evaDash` via `EvaApi`. No manual wiring needed. |
 | `eva-track-selector` | `EvaTrackSelector` | — | — | Subtitle/caption track dropdown, built from `evaVideoTracks` on `eva-player`. |
 | `eva-subtitle-display` | `EvaSubtitleDisplay` | — | — | Renders the active subtitle cue text. |
@@ -152,6 +153,7 @@ Selector and class must match exactly — do not invent alternate names (e.g. it
 | `eva-chapter-list` | `EvaChapterList` | — | `evaChapterListClose` | Chapter list panel; controlled via `evaChapterListOpen` input. |
 | `eva-active-chapter` | `EvaActiveChapter` | — | `evaChapterClicked` | Shows the chapter title active at the current time. |
 | `eva-icon` | `EvaIcon` | `name` (registry key) | — | Renders a registered SVG icon by kebab-case key. |
+| `eva-play-pause[evaTooltip]`…(any of the 16 Eva control elements) | `EvaTooltip` | — | — | Floating tooltip directive. Add the `evaTooltip` attribute (optional label string) to any supported Eva control element inside `<eva-controls-container>`. When `evaTooltip` is empty, the label is read from the element's `aria-label`. Add `evaTooltipShortcutKey` (a `keyof EvaKeyboardShortcutsConfiguration` string, e.g. `"playPause"`, `"muteKey"`, `"fullscreen"`) to show a keyboard-shortcut badge — badge is auto-suppressed when shortcuts are disabled. Must be added to the consuming component's `imports` array. Supported elements: `eva-play-pause`, `eva-backward`, `eva-forward`, `eva-loop`, `eva-picture-in-picture`, `eva-active-chapter`, `eva-mute`, `eva-volume`, `eva-cinema-mode`, `eva-download`, `eva-screenshot`, `eva-track-selector`, `eva-playback-speed`, `eva-quality-selector`, `eva-settings-panel`, `eva-fullscreen`. |
 | `[evaVideoConfiguration]` | `EvaVideoConfigurationDirective` | `evaVideoConfig` | `videoConfigurationDone` | Internal — configured via `evaVideoConfiguration` input on `eva-player`, not applied directly by consumers. |
 | `[evaKeyboardShortcuts]` | `EvaKeyboardShortcuts` | `evaKeyboardShortcutsEnabled`, `evaKeyboardShortcutsConfiguration` | — | Internal — configured via the same-named inputs on `eva-player`. |
 | `[evaConfigurationStorage]` | `ConfigurationStorage` | `evaLocalStorageEnabled`, `evaLocalStorageConfiguration` | — | Internal — configured via the same-named inputs on `eva-player`. |
@@ -190,6 +192,8 @@ To use a custom icon instead of the registry, set `[evaCustomIcon]="true"` on th
 - `eva-scrub-bar-buffering-time` / `eva-scrub-bar-current-time` must be children of `eva-scrub-bar`, not siblings.
 - For imperative control (screenshot, playback speed, volume, PiP, quality), prefer `EvaApi` methods via a `viewChild` reference over manipulating the native `<video>` element directly.
 - HLS/DASH are peer installs, not bundled — code using `evaHls`/`evaDash` must also instruct the user to `npm i hls.js` / `npm i dashjs` and register the script in `angular.json`.
+- Do not use `<eva-ended-overlay>` together with `[evaShowPlayOnVideoEnding]="true"` on `<eva-overlay-play>` — they are mutually exclusive affordances for the `ENDED` state. Use one or the other, not both.
+- `EvaTooltip` only activates on the 16 specific Eva control elements listed in the component table. Applying `evaTooltip` to any other element (including arbitrary HTML) has no effect.
 
 ## Authoritative docs
 

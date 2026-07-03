@@ -40,7 +40,7 @@ export function validateAndTransformPlaybackSpeeds(v: number[]): number[] {
 
 /** Input transform that clamps volume to `[0, 1]`. Returns `1` if undefined. */
 export function validateAndPrepareStartingVideoVolume(v: number | undefined): number {
-	if (v === undefined) {
+	if (v === undefined || !isFinite(v)) {
 		return 1;
 	}
 	if (v < 0) {

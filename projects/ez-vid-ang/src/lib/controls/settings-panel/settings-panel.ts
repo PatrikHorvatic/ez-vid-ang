@@ -1,22 +1,22 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   computed,
   ElementRef,
   inject,
   input,
+  OnDestroy,
+  OnInit,
   output,
   signal,
   viewChild,
-  OnDestroy,
-  OnInit,
-  AfterViewInit,
 } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
-import { EvaSettingsMenuItem, EvaSettingsMenuEvent, EvaSettingsMenuOption } from '../../types';
-import { EvaSettingsPanelAria, EvaSettingsPanelAriaTransformed, transformEvaSettingsPanelAria } from '../../utils/aria-utilities';
 import { CLICK_OUTSIDE_DEBOUNCE_MS, HEIGHT_TRANSITION_FALLBACK_MS } from '../../constants';
 import { EvaIcon } from '../../core/icon/icon';
+import { EvaSettingsMenuEvent, EvaSettingsMenuItem, EvaSettingsMenuOption } from '../../types';
+import { EvaSettingsPanelAria, EvaSettingsPanelAriaTransformed, transformEvaSettingsPanelAria } from '../../utils/aria-utilities';
 
 /**
  * YouTube-style settings panel component for the Eva video player.
@@ -80,7 +80,7 @@ import { EvaIcon } from '../../core/icon/icon';
     '(click)': 'onHostClick($event)',
     '(keydown)': 'onHostKeyDown($event)',
     '(blur)': 'onBlur($event)',
-  },
+  }
 })
 export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
 

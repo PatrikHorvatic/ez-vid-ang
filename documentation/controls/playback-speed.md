@@ -13,6 +13,7 @@ A playback speed selector component that renders a dropdown of available speeds.
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
 | `evaPlaybackSpeeds` | `number[]` | ✅ Yes | — | Available playback speeds. Values outside `0.25`–`4` are removed, duplicates are stripped. Falls back to `[1]` if the result is empty. Display order follows the array order — sorting is the consumer's responsibility. |
+| `evaDefaultPlaybackSpeed` | `number` | No | `1` | Initial speed selected in the dropdown on render. Must be a value present in `evaPlaybackSpeeds` after validation; if not found, no option is pre-selected. |
 | `evaAria` | `EvaPlaybackSpeedAria` | No | See [`EvaPlaybackSpeedAria`](#) | ARIA label for the speed selector button. |
 
 ### Usage

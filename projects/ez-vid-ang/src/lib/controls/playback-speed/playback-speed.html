@@ -23,7 +23,7 @@
 			<div class="speed-options">
 				@for (speed of evaPlaybackSpeeds(); track speed) {
 				<button type="button" class="speed-option" role="option"
-					[class.active]="speed === currentSpeed()" [attr.aria-selected]="speed === currentSpeed()" (click)="selectSpeed(speed, $index)">
+					[class.active]="speed === currentSpeed()" [attr.aria-selected]="speed === currentSpeed()" (click)="selectSpeed(speed, $index, $event)">
 					<span class="speed-text">{{ formatSpeed(speed) }}</span>
 					@if (speed === currentSpeed()) {
 					<span class="checkmark">

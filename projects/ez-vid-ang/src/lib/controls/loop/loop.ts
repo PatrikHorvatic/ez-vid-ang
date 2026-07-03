@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
-import { transformEvaLoopAria, EvaLoopAria, EvaLoopAriaTransformed } from '../../utils/aria-utilities';
 import { EvaIcon } from '../../core/icon/icon';
+import { EvaLoopAria, EvaLoopAriaTransformed, transformEvaLoopAria } from '../../utils/aria-utilities';
 
 /**
  * Loop toggle button for the Eva video player.

@@ -1,0 +1,27 @@
+:host {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 500;
+
+	background: var(--eva-ended-overlay-background, rgba(0, 0, 0, 0.85));
+
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition:
+		opacity var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1),
+		visibility var(--eva-transition-duration, 0.25s) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:host(.eva-ended-overlay-visible) {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+}

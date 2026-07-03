@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
-import { transformEvaMuteAria, validateAndTransformVolumeRange, EvaMuteAria, EvaMuteAriaTransformed } from '../../utils/aria-utilities';
 import { DEFAULT_LOW_VOLUME_THRESHOLD, DEFAULT_MIDDLE_VOLUME_THRESHOLD } from '../../constants';
 import { EvaIcon } from '../../core/icon/icon';
+import { EvaMuteAria, EvaMuteAriaTransformed, transformEvaMuteAria, validateAndTransformVolumeRange } from '../../utils/aria-utilities';
 
 /**
  * Mute/unmute button component for the Eva video player.

@@ -126,6 +126,8 @@
 	--eva-context-menu-divider-margin: 4px 0;
 	--eva-context-menu-divider-color: rgba(255, 255, 255, 0.12);
 
+	--eva-ended-overlay-background: rgba(0, 0, 0, 0.85);
+
 	--eva-error-overlay-background: rgba(0, 0, 0, 0.85);
 	--eva-error-overlay-gap: 16px;
 	--eva-error-overlay-padding: 24px;
@@ -211,6 +213,20 @@
 	--eva-remote-playback-button-width: 50px;
 	--eva-remote-playback-connected-color: rgb(59, 130, 246);
 
+	--eva-tooltip-background: rgba(20, 20, 20, 0.95);
+	--eva-tooltip-color: rgba(255, 255, 255, 0.95);
+	--eva-tooltip-font-size: 12px;
+	--eva-tooltip-padding: 5px 10px;
+	--eva-tooltip-border-radius: 4px;
+	--eva-tooltip-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+	--eva-tooltip-gap: 6px;
+	--eva-tooltip-kbd-background: rgba(255, 255, 255, 0.15);
+	--eva-tooltip-kbd-border: 1px solid rgba(255, 255, 255, 0.25);
+	--eva-tooltip-kbd-border-radius: 3px;
+	--eva-tooltip-kbd-padding: 1px 5px;
+	--eva-tooltip-kbd-font-size: 11px;
+	--eva-tooltip-kbd-min-width: 18px;
+
 	--eva-shortcuts-overlay-background: rgba(0, 0, 0, 0.92);
 	--eva-shortcuts-overlay-border-radius: 12px;
 	--eva-shortcuts-overlay-box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
@@ -232,4 +248,40 @@
 	--eva-shortcuts-overlay-key-border: 1px solid rgba(255, 255, 255, 0.15);
 	--eva-shortcuts-overlay-key-font-size: 12px;
 	--eva-shortcuts-overlay-key-color: rgba(255, 255, 255, 0.9);
+}
+
+.eva-tooltip-popup {
+	position: fixed;
+	z-index: 9999;
+	background: var(--eva-tooltip-background);
+	color: var(--eva-tooltip-color);
+	font-size: var(--eva-tooltip-font-size);
+	font-family: var(--eva-font-family, Arial);
+	padding: var(--eva-tooltip-padding);
+	border-radius: var(--eva-tooltip-border-radius);
+	box-shadow: var(--eva-tooltip-box-shadow);
+	white-space: nowrap;
+	pointer-events: none;
+	display: flex;
+	align-items: center;
+	gap: var(--eva-tooltip-gap);
+	opacity: 0;
+	transition: opacity var(--eva-transition-duration, 0.15s) ease;
+
+	&.eva-tooltip-visible {
+		opacity: 1;
+	}
+}
+
+.eva-tooltip-kbd {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--eva-tooltip-kbd-background);
+	border: var(--eva-tooltip-kbd-border);
+	border-radius: var(--eva-tooltip-kbd-border-radius);
+	padding: var(--eva-tooltip-kbd-padding);
+	font-family: inherit;
+	font-size: var(--eva-tooltip-kbd-font-size);
+	min-width: var(--eva-tooltip-kbd-min-width);
 }

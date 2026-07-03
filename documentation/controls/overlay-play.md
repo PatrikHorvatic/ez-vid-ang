@@ -1,6 +1,8 @@
 ## EvaOverlayPlay
 
-A centered overlay play button that appears over the video when it is in a non-playing state (`loading`, `paused`, `ended`, or `error`). Hidden automatically during buffering. The built-in icon can be replaced via content projection.
+A centered overlay play button that appears over the video when it is in a non-playing state. Hidden automatically during buffering. The built-in icon can be replaced via content projection.
+
+By default the overlay is **not** shown in the `ended` state — use `evaShowPlayOnVideoEnding` to control this. When using `<eva-ended-overlay>`, leave `evaShowPlayOnVideoEnding` at its default (`false`) so the two components do not both render on video end.
 
 ### Selector
 
@@ -14,6 +16,7 @@ A centered overlay play button that appears over the video when it is in a non-p
 |---|---|---|---|---|
 | `evaOvelayPlayAria` | `EvaOverlayPlayAria` | No | See [`EvaOverlayPlayAria`](#) | ARIA label for the overlay button. |
 | `evaCustomIcon` | `boolean` | No | `false` | When `true`, suppresses the registry-sourced icon and renders `<ng-content>` instead. |
+| `evaShowPlayOnVideoEnding` | `boolean` | No | `false` | When `true`, the overlay is also shown when the video state is `ENDED`. Leave at `false` when using `<eva-ended-overlay>` to keep the two mutually exclusive. |
 
 ### Icon Registry Keys
 
@@ -42,7 +45,7 @@ addEvaIcons({ evaPlayIcon });
 
 ### Visibility
 
-The overlay is shown when the video state is `loading`, `paused`, `ended`, or `error`, AND the player is not buffering. It is hidden during buffering regardless of the current state.
+The overlay is shown when the video state is `loading`, `paused`, or `error`, AND the player is not buffering. It is hidden during buffering regardless of the current state. The `ended` state is only included when `evaShowPlayOnVideoEnding` is `true`.
 
 ### Keyboard Support
 

@@ -263,3 +263,130 @@ For full documentation, see [Configuration Storage](configuration-storage.md).
   [evaLocalStorageConfiguration]="{ volume: true, playbackSpeed: true }"
 />
 ```
+
+---
+
+## EvaTooltip
+
+A directive that shows a floating tooltip above a supported Eva control element on hover and focus. The tooltip displays a label and, optionally, a keyboard shortcut badge sourced from the active `EvaKeyboardShortcutsConfiguration`. Apply it directly in the template — it is not built into any component.
+
+### Selector
+
+Apply `evaTooltip` to any of the following elements:
+
+`eva-play-pause`, `eva-backward`, `eva-forward`, `eva-loop`, `eva-picture-in-picture`, `eva-active-chapter`, `eva-mute`, `eva-volume`, `eva-cinema-mode`, `eva-download`, `eva-screenshot`, `eva-track-selector`, `eva-playback-speed`, `eva-quality-selector`, `eva-settings-panel`, `eva-fullscreen`
+
+```html
+<eva-play-pause evaTooltip />
+```
+
+### Inputs
+
+| Input | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `evaTooltip` | `string` | No | `''` | Explicit tooltip label. When empty, the host element's `aria-label` attribute is used as the fallback. |
+| `evaTooltipShortcutKey` | `EvaTooltipShortcutKey \| ''` | No | `''` | Property name from `EvaKeyboardShortcutsConfiguration` whose bound key is shown as a shortcut badge. Badge is suppressed automatically when keyboard shortcuts are not enabled. |
+
+### Usage
+
+```html
+<!-- Label read from aria-label automatically, shortcut badge from keyboard config -->
+<eva-play-pause evaTooltip evaTooltipShortcutKey="playPause" />
+<eva-mute evaTooltip evaTooltipShortcutKey="muteKey" />
+<eva-fullscreen evaTooltip evaTooltipShortcutKey="fullscreen" />
+<eva-backward evaTooltip evaTooltipShortcutKey="backwardsKey" />
+<eva-forward evaTooltip evaTooltipShortcutKey="forwardKey" />
+
+<!-- Explicit label override -->
+<eva-play-pause evaTooltip="Play / Pause" evaTooltipShortcutKey="playPause" />
+
+<!-- No shortcut badge -->
+<eva-cinema-mode evaTooltip />
+```
+
+### Consumer Example
+
+```typescript
+import { Component, signal } from '@angular/core';
+import {
+  EvaPlayer, EvaControlsContainer, EvaPlayPause, EvaFullscreen,
+  EvaTooltip, EvaVideoSource
+} from 'ez-vid-ang';
+
+@Component({
+  selector: 'app-player',
+  imports: [EvaPlayer, EvaControlsContainer, EvaPlayPause, EvaFullscreen, EvaTooltip],
+  template: `
+    <eva-player
+      id="player"
+      [evaVideoSources]="sources()"
+      [evaKeyboardShortcutsEnabled]="true"
+    >
+      <eva-controls-container>
+        <eva-play-pause evaTooltip evaTooltipShortcutKey="playPause" />
+        <eva-fullscreen evaTooltip evaTooltipShortcutKey="fullscreen" />
+      </eva-controls-container>
+    </eva-player>
+  `
+})
+export class PlayerComponent {
+  protected readonly sources = signal<EvaVideoSource[]>([
+    { src: 'https://example.com/video.mp4', type: 'video/mp4' }
+  ]);
+}
+```
+
+### Label Resolution
+
+The tooltip label is resolved in this order:
+
+1. `evaTooltip` input — explicit override.
+2. Host element's `aria-label` attribute — used automatically when `evaTooltip` is empty.
+3. Nothing — no tooltip is shown.
+
+Because all Eva control components set a meaningful `aria-label` by default (e.g. `"Play"`, `"Mute"`, `"Fullscreen"`), adding `evaTooltip` without a value is sufficient in most cases.
+
+### Shortcut Badge
+
+Pass `evaTooltipShortcutKey` with a property name from `EvaKeyboardShortcutsConfiguration` to show the bound key next to the label:
+
+- If keyboard shortcuts are enabled and the key is configured, the badge renders (e.g. `Space`, `M`, `F`).
+- If keyboard shortcuts are not enabled (`evaKeyboardShortcutsEnabled="false"`), the badge is suppressed — no consumer wiring needed.
+- Arrow keys and Space are displayed as Unicode symbols (`←`, `→`, `↑`, `↓`, `Space`).
+
+### `EvaTooltipShortcutKey`
+
+```typescript
+type EvaTooltipShortcutKey = keyof Omit<
+  Required<EvaKeyboardShortcutsConfiguration>,
+  'backwardSeconds' | 'forwardSeconds'
+>;
+```
+
+Valid values: `'playPause'`, `'muteKey'`, `'fullscreen'`, `'backwardsKey'`, `'backwardsKeyTwo'`, `'forwardKey'`, `'forwardKeyTwo'`, `'cinemaMode'`, and any other string key-binding property of `EvaKeyboardShortcutsConfiguration`.
+
+### SCSS Variables
+
+All tooltip styles are defined in `eva-required-import.scss` and can be overridden at the `:root` level.
+
+| Variable | Default | Description |
+|---|---|---|
+| `--eva-tooltip-background` | `rgba(20, 20, 20, 0.95)` | Tooltip background colour. |
+| `--eva-tooltip-color` | `rgba(255, 255, 255, 0.95)` | Tooltip text colour. |
+| `--eva-tooltip-font-size` | `12px` | Tooltip label font size. |
+| `--eva-tooltip-padding` | `5px 10px` | Tooltip inner padding. |
+| `--eva-tooltip-border-radius` | `4px` | Tooltip corner radius. |
+| `--eva-tooltip-box-shadow` | `0 2px 8px rgba(0,0,0,0.4)` | Tooltip drop shadow. |
+| `--eva-tooltip-gap` | `6px` | Gap between label and shortcut badge. |
+| `--eva-tooltip-kbd-background` | `rgba(255, 255, 255, 0.15)` | Shortcut badge background. |
+| `--eva-tooltip-kbd-border` | `1px solid rgba(255, 255, 255, 0.25)` | Shortcut badge border. |
+| `--eva-tooltip-kbd-border-radius` | `3px` | Shortcut badge corner radius. |
+| `--eva-tooltip-kbd-padding` | `1px 5px` | Shortcut badge inner padding. |
+| `--eva-tooltip-kbd-font-size` | `11px` | Shortcut badge font size. |
+| `--eva-tooltip-kbd-min-width` | `18px` | Minimum width of the shortcut badge. |
+
+### Positioning
+
+The tooltip is appended to `document.body` and positioned with `position: fixed` using `getBoundingClientRect()`. It appears above the host element by default. If there is insufficient space above, it flips to appear below.
+
+The tooltip is clamped to stay within the bounds of the parent `<eva-player>` (falling back to the viewport if the control isn't inside one), both horizontally and vertically — it never spills outside the player, even for buttons near the edge of the controls bar or when the surrounding page is wider than the player itself (e.g. a sidebar layout).

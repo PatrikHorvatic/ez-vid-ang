@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { EvaApi } from '../../api/eva-api';
-import { EvaScreenshotEvent } from '../../types';
-import { transformEvaScreenshotAria, EvaScreenshotAria, EvaScreenshotAriaTransformed } from '../../utils/aria-utilities';
 import { DEFAULT_IMAGE_QUALITY } from '../../constants';
 import { EvaIcon } from '../../core/icon/icon';
+import { EvaScreenshotEvent } from '../../types';
+import { EvaScreenshotAria, EvaScreenshotAriaTransformed, transformEvaScreenshotAria } from '../../utils/aria-utilities';
 
 /**
  * Screenshot button component for the Eva video player.

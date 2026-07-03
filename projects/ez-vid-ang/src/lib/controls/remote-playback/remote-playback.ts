@@ -11,12 +11,12 @@ import {
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
+import { EvaIcon } from '../../core/icon/icon';
 import {
   EvaRemotePlaybackAria,
   EvaRemotePlaybackAriaTransformed,
   transformEvaRemotePlaybackAria,
 } from '../../utils/aria-utilities';
-import { EvaIcon } from '../../core/icon/icon';
 
 /**
  * The current state of the remote playback connection.

@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, output, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
-import { EvaState } from '../../types';
-import { transformEvaPlayPauseAria, EvaPlayPauseAria, EvaPlayPauseAriaTransformed } from '../../utils/aria-utilities';
 import { EvaIcon } from '../../core/icon/icon';
+import { EvaState } from '../../types';
+import { EvaPlayPauseAria, EvaPlayPauseAriaTransformed, transformEvaPlayPauseAria } from '../../utils/aria-utilities';
 
 /**
  * Play/pause button component for the Eva video player.
@@ -126,7 +126,6 @@ export class EvaPlayPause implements OnInit, OnDestroy {
     }
 
     return "loading";
-
   });
 
   /** `true` when the video is playing — selects the `pause` icon from the registry. */

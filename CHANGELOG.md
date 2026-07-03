@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [22.0.7, 21.2.7] - 2026-07-03
+
+### Breaking Changes
+
+- **`EvaOverlayPlay` — `ENDED` state no longer shown by default**: `EvaOverlayPlay` previously showed the play icon when the video reached `EvaState.ENDED`. It now hides in that state by default to allow `<eva-ended-overlay>` to take over without both rendering simultaneously. To restore the previous behaviour, add `[evaShowPlayOnVideoEnding]="true"` to your `<eva-overlay-play>` element.
+
+### Added
+
+- **`EvaEndedOverlay`** (`<eva-ended-overlay>`): New component that covers the full player area when the video reaches `EvaState.ENDED`. Pure content container — all UI is supplied via content projection (`<ng-content />`), giving full control over replay buttons, next-video cards, and any other end-of-video experience. Suppressed automatically when the video has `loop` enabled. Has `role="alert"` and an `evaAria` input for the accessible label. 1 `--eva-ended-overlay-background` CSS variable.
+- **`EvaOverlayPlay` — `evaShowPlayOnVideoEnding` input**: New `boolean` input (default `false`). When `false` (the default), the overlay-play icon is hidden when the video is in the `ENDED` state, making room for `<eva-ended-overlay>`. Set to `true` to preserve the original behaviour of showing the play icon on video end.
+- **`EvaTooltip` directive** (`evaTooltip`): New directive that shows a floating tooltip above a supported control element on hover and focus. Apply directly in the template to any of: `eva-play-pause`, `eva-backward`, `eva-forward`, `eva-loop`, `eva-picture-in-picture`, `eva-active-chapter`, `eva-mute`, `eva-volume`, `eva-cinema-mode`, `eva-download`, `eva-screenshot`, `eva-track-selector`, `eva-playback-speed`, `eva-quality-selector`, `eva-settings-panel`, `eva-fullscreen`. Label is resolved from the `evaTooltip` input or the host element's `aria-label` automatically — no explicit label required for most controls. Optional `evaTooltipShortcutKey` input displays the bound key from the active `EvaKeyboardShortcutsConfiguration` as a shortcut badge; badge is suppressed automatically when keyboard shortcuts are disabled. Tooltip is appended to `document.body` with `position: fixed`, appears above the host element, and flips below when near the viewport top edge. 13 `--eva-tooltip-*` CSS variables.
+
+### Fixed
+
+- **`EvaApi` — `cue.startTime` nullish coalescing**: `cue.startTime ? cue.startTime : 0` replaced with `cue.startTime ?? 0`. The previous falsy check incorrectly substituted `0` when `startTime` was legitimately `0` (cue at the very start of the video).
+- **`EvaApi` — unmute clears `muted` property**: `muteOrUnmuteVideo()` now sets `HTMLVideoElement.muted = false` on the unmute path. Previously only `volume` was restored, leaving the native `muted` flag set when a consumer had muted the element via the `muted` attribute or the `EvaVideoConfigurationDirective`.
+- **`validateAndPrepareStartingVideoVolume` — NaN guard**: Added `|| !isFinite(v)` to the existing `v === undefined` check. A `NaN` volume (e.g. from parsing an invalid localStorage string) previously passed validation and was assigned directly to `HTMLVideoElement.volume`, which the browser silently ignores.
+
+### Documentation
+
+- **`documentation/controls/ended-overlay.md`**: New file. Documents `EvaEndedOverlay` selector, inputs, visibility behaviour, content projection patterns, animation, SCSS variables, and the `EvaEndedOverlayAria` type.
+- **`documentation/core/directives.md`**: Added `EvaTooltip` section. Documents supported selectors, inputs, label resolution order, shortcut badge behaviour, `EvaTooltipShortcutKey` type, all 13 SCSS variables, and positioning logic.
+- **`documentation/controls/overlay-play.md`**: Added `evaShowPlayOnVideoEnding` to the inputs table. Updated Visibility section to reflect that `ENDED` is excluded by default.
+- **`documentation/controls/playback-speed.md`**: Added missing `evaDefaultPlaybackSpeed` input to the inputs table.
+- **`documentation/example-configuration.md`**: Added `<eva-ended-overlay>` with a replay handler, `EvaTooltip` directive on all eligible controls with matching `evaTooltipShortcutKey` bindings, `EvaEndedOverlay` and `EvaTooltip` to the component imports.
+
+---
+
 ## [22.0.6, 21.2.6] - 2026-07-01
 
 ### Breaking Changes

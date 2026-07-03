@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaFullscreenAPI } from '../../api/fullscreen';
-import { transformEvaFullscreenAria, EvaFullscreenAria, EvaFullscreenAriaTransformed } from '../../utils/aria-utilities';
 import { EvaIcon } from '../../core/icon/icon';
+import { EvaFullscreenAria, EvaFullscreenAriaTransformed, transformEvaFullscreenAria } from '../../utils/aria-utilities';
 
 /**
  * Fullscreen toggle button component for the Eva video player.

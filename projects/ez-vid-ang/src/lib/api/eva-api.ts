@@ -444,6 +444,7 @@ export class EvaApi {
 			this.assignedVideoElement!.volume = 0;
 		}
 		else {
+			this.assignedVideoElement!.muted = false;
 			this.assignedVideoElement!.volume = this.lastActiveVolume > 0 ? this.lastActiveVolume : DEFAULT_UNMUTE_VOLUME;
 		}
 	}
@@ -1088,7 +1089,7 @@ export class EvaApi {
 			const cue = cues[i];
 			if (cue instanceof VTTCue) {
 				parsed.push({
-					startTime: cue.startTime ? cue.startTime : 0,
+					startTime: cue.startTime ?? 0,
 					endTime: cue.endTime,
 					title: cue.text
 				});

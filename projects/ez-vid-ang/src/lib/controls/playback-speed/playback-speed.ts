@@ -245,7 +245,8 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
    * @param speed - The speed value to select.
    * @param index - The index of the speed within `evaPlaybackSpeeds`.
    */
-  protected selectSpeed(speed: number, index: number): void {
+  protected selectSpeed(speed: number, index: number, event?: MouseEvent): void {
+    event?.stopPropagation();
     this.currentSpeed.set(speed);
     this.selectedIndex.set(index);
     this.isOpen.set(false);

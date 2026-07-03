@@ -27,7 +27,7 @@
 				<button type="button" class="quality-option" role="option"
 					[class.active]="quality.qualityIndex === currentQuality()?.qualityIndex"
 					[attr.aria-selected]="quality.qualityIndex === currentQuality()?.qualityIndex"
-					(click)="selectQuality(quality, $index)">
+					(click)="selectQuality(quality, $index, $event)">
 					<span class="speed-text">{{ formatQuality(quality) }}</span>
 					@if (quality.qualityIndex === currentQuality()?.qualityIndex) {
 					<span class="checkmark">

@@ -1,6 +1,6 @@
 {
   "name": "ez-vid-ang",
-  "version": "22.0.6",
+  "version": "22.0.7",
   "license": "MIT",
   "description": "Highly configurable, performant and easy-to-use Angular component library for video playback and streaming.",
   "author": {
@@ -18,7 +18,9 @@
   "keywords": [
     "EzVidAng",
     "eva",
+    "ez-vid-ang",
     "Easy Video Angular",
+    "angular video player",
     "video",
     "player",
     "angular",
@@ -69,7 +71,7 @@
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "typescript": "~6.0.3",
-    "typescript-eslint": "8.62.0",
+    "typescript-eslint": "8.62.1",
     "vitest": "4.1.9"
   }
 }

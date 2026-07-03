@@ -593,3 +593,25 @@ export function transformEvaSettingsPanelAria(v: EvaSettingsPanelAria | undefine
 		ariaLabel: v.ariaLabel ?? "Settings",
 	}
 }
+
+
+export type EvaEndedOverlayAria = {
+	ariaLabel?: string,
+}
+
+export type EvaEndedOverlayAriaTransformed = {
+	ariaLabel: string,
+}
+
+
+export function transformEvaEndedOverlayAria(v: EvaEndedOverlayAria | undefined): EvaEndedOverlayAriaTransformed {
+	if (!v) {
+		return {
+			ariaLabel: "Video ended",
+		}
+	}
+
+	return {
+		ariaLabel: v.ariaLabel ?? "Video ended",
+	}
+}

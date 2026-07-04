@@ -176,6 +176,23 @@ export class PlayerComponent {
 
 See [Simple Example](documentation/example-simple.md) and [Full-Featured Example](documentation/example-configuration.md) for complete usage.
 
+## Components
+
+Library has four groups of components. Click on the name to go to the documentation:
+- [**EvaCore**](documentation/core) – Main player component, icon registry, directives (keyboard shortcuts, configuration storage), and providers
+- [**EvaControls**](documentation/controls) – Video control components (play/pause, volume, scrub bar, fullscreen, playback speed, quality selector, track selector, loop, picture-in-picture, download, screenshot, context menu, settings panel, keyboard shortcuts overlay, cinema mode, error overlay, chapter list, and more)
+- [**EvaBuffering**](documentation/buffering) – Loading and buffering indicators
+- [**EvaStreaming**](documentation/streaming) – Directives for HLS and DASH live streaming support
+
+---
+## Roadmap
+
+There are few functionalities I want to implement that are work in progress:
+- **Audio selection** - Select audio track for the video
+- **A/B loop** - Let users set loop start/end points on the scrub bar for segment replay. Useful for music/education.
+- **Double tap forward/backward** - Double-tap left/right halves of the video to seek backward/forward. Standard mobile UX (YouTube, Netflix).
+
+---
 ## Development
 
 ### Linting
@@ -188,14 +205,6 @@ npx ng lint --fix   # Auto-fix fixable errors
 ```
 
 All magic numbers are centralized in `src/lib/constants.ts`. See [linting documentation](documentation/core/linting.md) and [constants documentation](documentation/core/constants.md) for details.
-
-## Components
-
-Library has four groups of components. Click on the name to go to the documentation:
-- [**EvaCore**](documentation/core) – Main player component, icon registry, directives (keyboard shortcuts, configuration storage), and providers
-- [**EvaControls**](documentation/controls) – Video control components (play/pause, volume, scrub bar, fullscreen, playback speed, quality selector, track selector, loop, picture-in-picture, download, screenshot, context menu, settings panel, keyboard shortcuts overlay, cinema mode, error overlay, chapter list, and more)
-- [**EvaBuffering**](documentation/buffering) – Loading and buffering indicators
-- [**EvaStreaming**](documentation/streaming) – Directives for HLS and DASH live streaming support
 
 ---
 ### 💖 Support This Project

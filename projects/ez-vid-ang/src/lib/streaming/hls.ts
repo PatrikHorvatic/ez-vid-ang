@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../api/eva-api';
-import { EvaQualityLevel } from '../types';
+import { EvaAudioTrack, EvaQualityLevel, EvaStreamSubtitleTrack } from '../types';
 
 declare let Hls: {
   new(config?: EvaHlsConfig): any;
@@ -22,6 +22,9 @@ declare let Hls: {
     MANIFEST_PARSED: string;
     LEVEL_SWITCHED: string;
     LEVEL_LOADED: string;
+    AUDIO_TRACKS_UPDATED: string;
+    AUDIO_TRACK_SWITCHED: string;
+    SUBTITLE_TRACKS_UPDATED: string;
   };
 };
 
@@ -58,6 +61,17 @@ export type EvaHlsConfig = {
  * native HLS support (e.g. Safari). In that case no quality levels are registered
  * since native HLS does not expose them, and `EvaApi.isLive` is derived from
  * `duration === Infinity` in the `loadedmetadata` handler.
+ *
+ * hls.js renders subtitle/caption tracks natively and, left unchecked, would
+ * auto-display whichever track the manifest marks as `DEFAULT=YES`, independently
+ * of `EvaTrackSelector`'s own "Off"-by-default state. `subtitleDisplay` defaults to
+ * `false` in the hls.js config so no manifest subtitle track is shown until explicitly
+ * selected. After `SUBTITLE_TRACKS_UPDATED`, discovered tracks are registered with
+ * `EvaApi.registerStreamSubtitleTracks()` and `registerSubtitleTrackFn()` so they
+ * appear — and can be switched — directly from `EvaTrackSelector`, merged alongside
+ * any `evaVideoTracks`-declared tracks. Override the initial `subtitleDisplay` default
+ * via `evaHlsConfig` (e.g. `{ subtitleDisplay: true }`) to restore hls.js's native
+ * auto-display behaviour instead.
  *
  * @example
  * // Minimal usage
@@ -148,6 +162,15 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
    * - Writes `data.details.live` to `EvaApi.isLive`. The event fires each time a
    *   level playlist is fetched, so for live streams this also fires on every
    *   playlist refresh, keeping `isLive` accurate across source changes.
+   *
+   * Defaults `subtitleDisplay` to `false` so a manifest subtitle track marked
+   * `DEFAULT=YES` is not auto-shown by hls.js while `EvaTrackSelector` reports "Off".
+   * `userConfig` is spread after this default so `evaHlsConfig` can still override it.
+   *
+   * On `SUBTITLE_TRACKS_UPDATED`:
+   * - Calls `EvaApi.registerStreamSubtitleTracks()` with the parsed tracks.
+   * - Calls `EvaApi.registerSubtitleTrackFn()` with a bound reference to `setSubtitleTrack()`
+   *   so `EvaTrackSelector` can switch subtitle tracks via `EvaApi.setStreamSubtitleTrack()`.
    */
   private createPlayer(): void {
     this.destroyPlayer();
@@ -163,6 +186,7 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
       const userXhrSetup = userConfig.xhrSetup as ((xhr: XMLHttpRequest, url: string) => void) | undefined;
       const config: EvaHlsConfig = {
         autoStartLoad: true,
+        subtitleDisplay: false,
         ...userConfig,
         xhrSetup: (xhr: XMLHttpRequest, url: string) => {
           const headers = this.evaHlsHeaders();
@@ -212,6 +236,18 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
         this.evaAPI.isLive.set(data.details.live);
       });
 
+      this.hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_event: any, data: { audioTracks: { id: number; name: string; lang: string; }[] }) => {
+        this.registerHlsAudioTracks(data.audioTracks);
+      });
+
+      this.hls.on(Hls.Events.AUDIO_TRACK_SWITCHED, (_event: any, data: { id: number }) => {
+        this.evaAPI.currentAudioTrackId.set(data.id);
+      });
+
+      this.hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, (_event: any, data: { subtitleTracks: { id: number; name: string; lang: string; }[] }) => {
+        this.registerHlsSubtitleTracks(data.subtitleTracks);
+      });
+
       this.hls.attachMedia(video);
       this.hls.loadSource(src);
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
@@ -221,10 +257,43 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
     }
   }
 
+  /**
+   * Maps hls.js `audioTracks` entries to `EvaAudioTrack[]` and registers them with
+   * `EvaApi`. Extracted from `createPlayer()`'s `AUDIO_TRACKS_UPDATED` handler to keep
+   * that method within the project's line-count limit.
+   */
+  private registerHlsAudioTracks(audioTracks: { id: number; name: string; lang: string; }[]): void {
+    const tracks: EvaAudioTrack[] = audioTracks.map(t => ({
+      id: t.id,
+      label: t.name || t.lang || `Track ${t.id}`,
+      ...(t.lang ? { language: t.lang } : {}),
+    }));
+    this.evaAPI.registerAudioTracks(tracks);
+    this.evaAPI.registerAudioTrackFn(this.setAudioTrack.bind(this));
+    this.evaAPI.currentAudioTrackId.set((this.hls?.audioTrack as number | undefined) ?? 0);
+  }
+
+  /**
+   * Maps hls.js `subtitleTracks` entries to `EvaStreamSubtitleTrack[]` and registers
+   * them with `EvaApi`. Extracted from `createPlayer()`'s `SUBTITLE_TRACKS_UPDATED`
+   * handler to keep that method within the project's line-count limit.
+   */
+  private registerHlsSubtitleTracks(subtitleTracks: { id: number; name: string; lang: string; }[]): void {
+    const tracks: EvaStreamSubtitleTrack[] = subtitleTracks.map(t => ({
+      id: t.id,
+      label: t.name || t.lang || `Track ${t.id}`,
+      ...(t.lang ? { language: t.lang } : {}),
+    }));
+    this.evaAPI.registerStreamSubtitleTracks(tracks);
+    this.evaAPI.registerSubtitleTrackFn(this.setSubtitleTrack.bind(this));
+  }
+
   private destroyPlayer(): void {
     if (this.hls) {
       this.hls.destroy();
       this.hls = null;
+      this.evaAPI.registerAudioTracks([]);
+      this.evaAPI.registerStreamSubtitleTracks([]);
     }
   }
 
@@ -238,6 +307,32 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
   public setQualityLevel(level: number): void {
     if (!this.hls) { return; }
     this.hls.nextLevel = level;
+  }
+
+  /**
+   * Switches to the audio track with the given `id`.
+   * Called internally by `EvaApi.setAudioTrack()` via the registered audio track function.
+   *
+   * @param id - The `id` from an `EvaAudioTrack` object (maps to the hls.js audio track index).
+   */
+  public setAudioTrack(id: number): void {
+    if (!this.hls) { return; }
+    (this.hls as { audioTrack: number }).audioTrack = id;
+  }
+
+  /**
+   * Switches to the subtitle track with the given `id`, or turns subtitles off.
+   * Called internally by `EvaApi.setStreamSubtitleTrack()` via the registered
+   * subtitle track function.
+   *
+   * @param id - The `id` from an `EvaStreamSubtitleTrack` object (maps to the hls.js
+   *   subtitle track index), or `-1` to turn subtitles off.
+   */
+  public setSubtitleTrack(id: number): void {
+    if (!this.hls) { return; }
+    const hls = this.hls as { subtitleTrack: number; subtitleDisplay: boolean };
+    hls.subtitleTrack = id;
+    hls.subtitleDisplay = id !== -1;
   }
 
   /**

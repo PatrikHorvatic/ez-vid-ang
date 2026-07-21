@@ -10,7 +10,7 @@
       "es2022",
       "dom"
     ],
-    "types": []
+    "types": []   
   },
   "include": [
     "src/**/*.ts"

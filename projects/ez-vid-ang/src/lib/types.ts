@@ -147,15 +147,24 @@ export const validateAndTransformStorageKey = (v: string | undefined): string =>
 
 /**
  * Internal representation of a text track option within the dropdown.
- * Derived from `EvaTrack` with a simplified structure for local state management.
+ * Derived from `EvaTrack` (declarative `evaVideoTracks`) or `EvaStreamSubtitleTrack`
+ * (manifest-native HLS/DASH tracks) with a simplified structure for local state management.
  */
 export type EvaTrackInternal = {
-	/** Language code or `"off"` for the disabled option. */
+	/** Language code, `stream:{id}` for manifest-native tracks, or `"off"` for the disabled option. */
 	id: string;
 	/** Display label shown in the dropdown. */
 	label: string;
 	/** Whether this track is currently active. Only one track can be selected at a time. */
 	selected: boolean;
+	/**
+	 * Where this track option came from. `"declared"` for `evaVideoTracks`-configured tracks
+	 * and the synthetic `"off"` option, `"stream"` for manifest-native HLS/DASH tracks.
+	 * @default "declared"
+	 */
+	source?: 'declared' | 'stream';
+	/** Present when `source` is `"stream"` — the raw id passed back to `EvaApi.setStreamSubtitleTrack()`. */
+	streamId?: number;
 }
 
 /**
@@ -449,4 +458,47 @@ export type EvaQualityLevel = {
 	codec?: string;
 	/** Optional frame rate (e.g. `29.97`). */
 	frameRate?: number;
+}
+
+/**
+ * Represents a single audio track available in an HLS or DASH stream.
+ *
+ * Populated by the active streaming directive (`EvaHlsDirective` or `EvaDashDirective`)
+ * via `EvaApi.registerAudioTracks()` after the manifest is parsed. The `id` field is
+ * the opaque handle passed back to `EvaApi.setAudioTrack()` to perform the switch.
+ *
+ * - HLS — `id` maps to `hls.js` audio track index; `language` is the track `lang` field.
+ * - DASH — `id` is the zero-based index into `getTracksFor('audio')`; `language` is the
+ *   track `lang` field.
+ */
+export type EvaAudioTrack = {
+	/** Opaque identifier used by the streaming library to switch to this track. */
+	id: number;
+	/** Human-readable label shown in the audio track selector UI (e.g. `"English"`, `"Français"`). */
+	label: string;
+	/** BCP 47 language tag (e.g. `"en"`, `"fr"`, `"hr"`). `undefined` when not supplied by the stream. */
+	language?: string;
+}
+
+/**
+ * Represents a subtitle/text track embedded in an HLS or DASH manifest, as opposed to
+ * one declared via `EvaTrack`/`evaVideoTracks`.
+ *
+ * Populated by the active streaming directive (`EvaHlsDirective` or `EvaDashDirective`)
+ * via `EvaApi.registerStreamSubtitleTracks()` after the manifest is parsed. The `id` field
+ * is the opaque handle passed back to `EvaApi.setStreamSubtitleTrack()` to perform the switch.
+ * Never auto-selected — `eva-track-selector` always starts on "Off" regardless of any
+ * `DEFAULT=YES` flag in the manifest; the consumer must explicitly pick a track.
+ *
+ * - HLS — `id` maps to the `hls.js` subtitle track index; `language` is the track `lang` field.
+ * - DASH — `id` is the zero-based index into `getTracksFor('text')`; `language` is the
+ *   track `lang` field.
+ */
+export type EvaStreamSubtitleTrack = {
+	/** Opaque identifier used by the streaming library to switch to this track. */
+	id: number;
+	/** Human-readable label shown in the track selector UI (e.g. `"English"`, `"Français"`). */
+	label: string;
+	/** BCP 47 language tag (e.g. `"en"`, `"fr"`, `"hr"`). `undefined` when not supplied by the stream. */
+	language?: string;
 }

@@ -364,6 +364,10 @@ export type EvaQualityAria = {
 	ariaLabel?: string
 }
 
+export type EvaAudioTrackSelectorAria = {
+	ariaLabel?: string;
+}
+
 export type EvaOverlayPlayAria = {
 	ariaLabel?: string;
 }

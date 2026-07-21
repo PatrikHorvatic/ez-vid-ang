@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [22.0.8, 21.2.8] - 2026-07-10
+
+### Added
+
+- **`EvaTrackSelector` — manifest-native HLS/DASH subtitle tracks are now selectable**: Previously, `eva-track-selector` only listed tracks declared via `evaVideoTracks`; subtitle tracks embedded in an HLS/DASH manifest could only be globally suppressed or restored (`[22.0.8, 21.2.8]`), not switched from the dropdown. `EvaHlsDirective` (`SUBTITLE_TRACKS_UPDATED`) and `EvaDashDirective` (`getTracksFor('text')` after `STREAM_INITIALIZED`) now register discovered tracks via two new `EvaApi` members, `registerStreamSubtitleTracks()` and `registerSubtitleTrackFn()`, mirroring the existing audio-track pattern. `eva-track-selector` merges these with any `evaVideoTracks`-declared tracks into a single dropdown with one "Off" state; the two sources are mutually exclusive. Manifest tracks are never auto-selected — even one marked `DEFAULT=YES` — so subtitles stay off until explicitly picked. New public members: `EvaStreamSubtitleTrack` type, `EvaApi.streamSubtitleTracksSubject`, `EvaApi.currentStreamSubtitleTrackId`, `EvaApi.setStreamSubtitleTrack()`. `EvaTrackInternal` gains optional `source`/`streamId` fields (backward compatible).
+
+### Fixed
+
+- **`EvaHlsDirective` — manifest subtitle tracks no longer auto-display**: hls.js renders manifest-embedded subtitle tracks natively and, by default, auto-shows whichever track is marked `DEFAULT=YES`, regardless of `EvaTrackSelector`'s own "Off"-by-default state. `subtitleDisplay: false` is now set by default in the hls.js config so subtitles stay hidden until explicitly enabled. Override via `[evaHlsConfig]="{ subtitleDisplay: true }"` to restore hls.js's native auto-display behaviour.
+- **`EvaDashDirective` — manifest text tracks no longer auto-display**: Same class of bug on the dash.js side — `streaming.text.defaultEnabled` defaults to `true` in dash.js. Now set to `false` by default; override via `[evaDashConfig]="{ streaming: { text: { defaultEnabled: true } } }"`.
+- **`EvaFullscreenAPI` not exported from the package entry point**: The service was documented and injectable within the library, but `public-api.ts` only re-exported `./lib/api/eva-api`, not `./lib/api/fullscreen`, so `import { EvaFullscreenAPI } from 'ez-vid-ang'` failed for consumers building custom fullscreen controls. Added `export * from "./lib/api/fullscreen";` to `public-api.ts`.
+
 ## [22.0.7, 21.2.7] - 2026-07-03
 
 ### Breaking Changes

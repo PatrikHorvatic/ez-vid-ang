@@ -91,11 +91,30 @@ Accessible via a template reference variable using `exportAs: 'evaHls'`.
 | Property | Type | Description |
 |---|---|---|
 | `autoStartLoad` | `boolean` | When `false`, hls.js will not load segments until `hls.startLoad()` is called. |
+| `subtitleDisplay` | `boolean` | Whether hls.js auto-displays the manifest's default subtitle track. Defaults to `false` — see [Subtitle Behaviour](#subtitle-behaviour) below. |
 | `xhrSetup` | `(xhr: XMLHttpRequest, url: string) => void` | Custom XHR setup. Note: `evaHlsHeaders` is the preferred way to add request headers. |
 | `maxBufferLength` | `number` | Maximum buffer length in seconds. |
 | `maxBufferSize` | `number` | Maximum buffer size in bytes. |
 
 For a full list of options refer to the [hls.js API documentation](https://github.com/video-dev/hls.js/blob/master/docs/API.md#fine-tuning).
+
+### Subtitle Behaviour
+
+hls.js renders subtitle/caption tracks it discovers in the manifest natively, and by default auto-displays whichever track is marked `DEFAULT=YES` — independently of `EvaTrackSelector`'s own "Off"-by-default state. Left unchecked, this makes subtitles appear even when no track has been selected through the player's UI.
+
+`EvaHlsDirective` sets `subtitleDisplay: false` in its hls.js config by default so no manifest subtitle track is auto-shown. To restore hls.js's native auto-display behaviour, override it explicitly:
+
+```html
+<eva-player
+  evaHls
+  id="my-player"
+  [evaVideoSources]="[]"
+  evaHlsSrc="https://example.com/stream.m3u8"
+  [evaHlsConfig]="{ subtitleDisplay: true }"
+/>
+```
+
+After `SUBTITLE_TRACKS_UPDATED`, the manifest's subtitle tracks are also registered with `EvaApi.registerStreamSubtitleTracks()`, so `<eva-track-selector>` lists and can switch them directly — merged alongside any `evaVideoTracks`-declared tracks, with no extra wiring needed. See [`EvaTrackSelector` → HLS Integration](../controls/track-selector.md#hls-integration) for the field mapping and switching behaviour.
 
 ### Fallback Behaviour
 

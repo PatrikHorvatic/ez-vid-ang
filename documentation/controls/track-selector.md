@@ -1,6 +1,11 @@
 ## EvaTrackSelector
 
-A subtitle/text track selector component that renders a dropdown listing all available subtitle tracks plus an "Off" option. Selecting a track sets its `mode` to `"showing"` on the native `HTMLVideoElement` and hides all others. The track list is sourced from `EvaApi.videoTracksSubject`, filtered to `kind === "subtitles"`.
+A subtitle/text track selector component that renders a dropdown listing all available subtitle tracks plus an "Off" option. The track list merges two sources:
+
+- `EvaApi.videoTracksSubject`, filtered to `kind === "subtitles"` — tracks declared via `evaVideoTracks` and rendered as native `<track>` elements.
+- `EvaApi.streamSubtitleTracksSubject` — manifest-native tracks discovered by `EvaHlsDirective`/`EvaDashDirective` from an HLS/DASH stream, if active (see [HLS Integration](#hls-integration) / [DASH Integration](#dash-integration) below).
+
+Selecting a declared track sets its `mode` to `"showing"` on the native `HTMLVideoElement` and hides all others. Selecting a manifest-native track instead routes through `EvaApi.setStreamSubtitleTrack()`. The two sources are mutually exclusive — selecting one always turns the other off — and share a single "Off" option. Manifest-native tracks are never auto-selected, even if the stream marks one `DEFAULT=YES`; a track only becomes active once explicitly picked.
 
 The dropdown closes on track selection, outside click, blur, or `Escape`.
 
@@ -75,6 +80,34 @@ Track selection changes are announced to screen readers by temporarily injecting
 
 ---
 
+### HLS Integration
+
+The `EvaHlsDirective` listens to `SUBTITLE_TRACKS_UPDATED` and registers tracks automatically. Each hls.js subtitle track object (`{ id, name, lang }`) maps to an `EvaStreamSubtitleTrack`:
+
+| hls.js field | `EvaStreamSubtitleTrack` field |
+|---|---|
+| `id` | `id` |
+| `name` (fallback: `lang`, then `"Track {id}"`) | `label` |
+| `lang` (omitted when empty) | `language` |
+
+Selecting a stream track from `eva-track-selector` sets `hls.subtitleTrack` to its `id` and `hls.subtitleDisplay` to `true`; selecting "Off" (or a declared track) sets `hls.subtitleTrack = -1` and `hls.subtitleDisplay = false`. See [HLS streaming directive docs](../streaming/hls.md) for the `subtitleDisplay` default.
+
+---
+
+### DASH Integration
+
+The `EvaDashDirective` reads `getTracksFor('text')` after `STREAM_INITIALIZED`. Unlike audio tracks, text tracks are registered even when only one (or zero) is available — "Off" is still a meaningful second option for subtitles. Each DASH `MediaInfo` object maps to an `EvaStreamSubtitleTrack`:
+
+| DASH field | `EvaStreamSubtitleTrack` field |
+|---|---|
+| Array index | `id` |
+| `labels[0].text` (fallback: `lang`, then `"Track {n}"`) | `label` |
+| `lang` (omitted when empty) | `language` |
+
+Selecting a stream track from `eva-track-selector` calls `dash.setTextTrack()` with its index and `dash.enableText(true)`; selecting "Off" (or a declared track) calls `dash.enableText(false)`. See [DASH streaming directive docs](../streaming/dash.md) for the `streaming.text.defaultEnabled` default.
+
+---
+
 ### SCSS Variables
 
 | Variable | Default | Description |
@@ -96,6 +129,18 @@ Track selection changes are announced to screen readers by temporarily injecting
 | `--eva-track-selector-dropdown-content-speed-option-font-color` | `rgba(255, 255, 255, 0.95)` | Color of track option labels. |
 | `--eva-track-selector-dropdown-content-speed-option-checkmark-size` | `16px` | Size of the checkmark icon on the active track. |
 | `--eva-track-selector-dropdown-content-speed-option-checkmark-color` | `rgb(59, 130, 246)` | Color of the checkmark icon on the active track. |
+
+### `EvaStreamSubtitleTrack`
+
+The type representing a single manifest-native HLS/DASH subtitle track. Consumed by `EvaTrackSelector`; also accessible via the `EvaApi.streamSubtitleTracksSubject` observable for custom UI.
+
+| Property | Type | Description |
+|---|---|---|
+| `id` | `number` | Opaque identifier used internally to switch the track. |
+| `label` | `string` | Human-readable label (e.g. `"English"`, `"Français"`). |
+| `language` | `string` (optional) | BCP 47 language tag (e.g. `"en"`, `"fr"`, `"hr"`). |
+
+---
 
 ### Settings Panel Integration
 

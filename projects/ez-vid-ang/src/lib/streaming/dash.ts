@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { EvaApi } from '../api/eva-api';
-import { EvaQualityLevel } from '../types';
+import { EvaAudioTrack, EvaQualityLevel, EvaStreamSubtitleTrack } from '../types';
 
 declare let dashjs: {
   MediaPlayer: {
@@ -83,6 +83,15 @@ export type EvaDRMLicenseServer = Record<string, {
  * DASH streaming is fully optional. If this directive is absent, `EvaPlayer`
  * falls back to sources provided via `evaVideoSources`.
  *
+ * dash.js renders manifest text/caption tracks natively and, left unchecked, would
+ * auto-display the default track (`streaming.text.defaultEnabled` is `true` in dash.js),
+ * independently of `EvaTrackSelector`'s own "Off"-by-default state. `defaultEnabled` is
+ * set to `false` unless overridden via `evaDashConfig` (e.g.
+ * `{ streaming: { text: { defaultEnabled: true } } }`). After `STREAM_INITIALIZED`,
+ * discovered text tracks are registered with `EvaApi.registerStreamSubtitleTracks()`
+ * and `registerSubtitleTrackFn()` so they appear — and can be switched — directly from
+ * `EvaTrackSelector`, merged alongside any `evaVideoTracks`-declared tracks.
+ *
  * > **Prerequisite:** dash.js must be available globally. Install via
  * > `npm install dashjs` and include it in your build, or load from a CDN.
  *
@@ -149,6 +158,12 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
   /** The active dash.js player instance. `null` when not initialized or after destruction. */
   private dash: any = null;
 
+  /** Raw DASH audio track objects stored so `setAudioTrack()` can call `setCurrentTrack()`. */
+  private dashAudioTracks: any[] = [];
+
+  /** Raw DASH text track objects stored so `setSubtitleTrack()` can call `setTextTrack()`. */
+  private dashSubtitleTracks: any[] = [];
+
   /** Subscription to `EvaApi.playerReadyEvent`. Used to defer setup until the player is ready. */
   private playerReady$: Subscription | null = null;
 
@@ -192,6 +207,13 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
    * If `evaDashDRMLicenseServer` is provided, DRM protection data is applied
    * before the source is attached. If `evaDashDRMToken` is also provided, it is
    * injected into the `Authorization` header of each DRM request.
+   *
+   * Defaults `streaming.text.defaultEnabled` to `false` so a manifest text track
+   * is not auto-shown by dash.js while `EvaTrackSelector` reports "Off".
+   * `evaDashConfig` is spread after this default so it can still override it.
+   *
+   * Also calls `registerDashSubtitleTracks()` from the `STREAM_INITIALIZED` handler,
+   * registering discovered text tracks with `EvaApi.registerStreamSubtitleTracks()`.
    */
   private createPlayer(): void {
     this.destroyPlayer();
@@ -205,6 +227,7 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
     this.dash = dashjs.MediaPlayer().create();
     this.dash.updateSettings({
       debug: { logLevel: dashjs.Debug.LOG_LEVEL_NONE },
+      streaming: { text: { defaultEnabled: false } },
       ...this.evaDashConfig(),
     });
     this.dash.initialize(video);
@@ -242,6 +265,9 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
         this.evaAPI.registerQualityLevels(levels);
         this.evaAPI.registerQualityFn(this.setQualityLevel.bind(this));
       }
+
+      this.registerDashAudioTracks();
+      this.registerDashSubtitleTracks();
     });
 
     // Apply DRM if configured
@@ -268,10 +294,73 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
     this.dash.attachSource(src);
   }
 
+  /**
+   * Reads audio tracks from the dash.js instance after stream initialization.
+   * Registers them with `EvaApi` when more than one language option is available.
+   * Called from the `STREAM_INITIALIZED` event handler to keep `createPlayer()` concise.
+   */
+  private registerDashAudioTracks(): void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const rawAudioTracks: any[] = this.dash?.getTracksFor('audio') ?? [];
+    this.dashAudioTracks = rawAudioTracks;
+
+    if (rawAudioTracks.length <= 1) { return; }
+
+    const evaAudioTracks: EvaAudioTrack[] = rawAudioTracks.map((t: any, index: number) => {
+      const lang = t.lang as string | undefined;
+      const labelText = (t.labels?.[0]?.text as string | undefined) || lang || `Audio ${index + 1}`;
+      return {
+        id: index,
+        label: labelText,
+        ...(lang ? { language: lang } : {}),
+      };
+    });
+
+    this.evaAPI.registerAudioTracks(evaAudioTracks);
+    this.evaAPI.registerAudioTrackFn(this.setAudioTrack.bind(this));
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const currentDashTrack: any = this.dash?.getCurrentTrackFor('audio');
+    const currentIndex = currentDashTrack
+      ? rawAudioTracks.findIndex((t: any) => (t.id as unknown) === (currentDashTrack.id as unknown))
+      : 0;
+    this.evaAPI.currentAudioTrackId.set(currentIndex >= 0 ? currentIndex : 0);
+  }
+
+  /**
+   * Reads text/subtitle tracks from the dash.js instance after stream initialization.
+   * Registers them with `EvaApi`, unlike `registerDashAudioTracks()` this is not gated on
+   * having more than one track — "Off" is still a meaningful second option for subtitles
+   * even when the manifest exposes only one text track.
+   * Called from the `STREAM_INITIALIZED` event handler to keep `createPlayer()` concise.
+   */
+  private registerDashSubtitleTracks(): void {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const rawSubtitleTracks: any[] = this.dash?.getTracksFor('text') ?? [];
+    this.dashSubtitleTracks = rawSubtitleTracks;
+
+    const evaSubtitleTracks: EvaStreamSubtitleTrack[] = rawSubtitleTracks.map((t: any, index: number) => {
+      const lang = t.lang as string | undefined;
+      const labelText = (t.labels?.[0]?.text as string | undefined) || lang || `Track ${index + 1}`;
+      return {
+        id: index,
+        label: labelText,
+        ...(lang ? { language: lang } : {}),
+      };
+    });
+
+    this.evaAPI.registerStreamSubtitleTracks(evaSubtitleTracks);
+    this.evaAPI.registerSubtitleTrackFn(this.setSubtitleTrack.bind(this));
+  }
+
   private destroyPlayer(): void {
     if (this.dash) {
       this.dash.reset();
       this.dash = null;
+      this.dashAudioTracks = [];
+      this.dashSubtitleTracks = [];
+      this.evaAPI.registerAudioTracks([]);
+      this.evaAPI.registerStreamSubtitleTracks([]);
     }
   }
 
@@ -297,6 +386,38 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
       });
       this.dash.setRepresentationForTypeByIndex('video', qualityIndex);
     }
+  }
+
+  /**
+   * Switches to the audio track at the given index.
+   * Called internally by `EvaApi.setAudioTrack()` via the registered audio track function.
+   * Uses `setCurrentTrack()` with the stored raw DASH track object.
+   *
+   * @param index - The `id` from an `EvaAudioTrack` object (zero-based index into `getTracksFor('audio')`).
+   */
+  public setAudioTrack(index: number): void {
+    if (!this.dash || !this.dashAudioTracks[index]) { return; }
+    this.dash.setCurrentTrack(this.dashAudioTracks[index]);
+    this.evaAPI.currentAudioTrackId.set(index);
+  }
+
+  /**
+   * Switches to the text/subtitle track at the given index, or turns subtitles off.
+   * Called internally by `EvaApi.setStreamSubtitleTrack()` via the registered
+   * subtitle track function.
+   *
+   * @param index - The `id` from an `EvaStreamSubtitleTrack` object (zero-based index
+   *   into `getTracksFor('text')`), or `-1` to turn subtitles off.
+   */
+  public setSubtitleTrack(index: number): void {
+    if (!this.dash) { return; }
+    if (index === -1) {
+      this.dash.enableText(false);
+      return;
+    }
+    if (!this.dashSubtitleTracks[index]) { return; }
+    this.dash.setTextTrack(index);
+    this.dash.enableText(true);
   }
 
   /**

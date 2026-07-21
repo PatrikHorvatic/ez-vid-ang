@@ -63,7 +63,7 @@ eva-player[evaDash]
 | `evaDashSrc` | `string` | ✅ Yes | — | URL of the DASH stream manifest (`.mpd`). Changing this at runtime destroys the current instance and creates a new one. |
 | `evaDashDRMToken` | `string` | No | `undefined` | Authorization token injected into DRM license request headers. Only used when `evaDashDRMLicenseServer` is also provided. |
 | `evaDashDRMLicenseServer` | `EvaDRMLicenseServer` | No | `undefined` | DRM license server configuration. Keys are DRM system strings (e.g. `"com.widevine.alpha"`). The input object is deep-copied before modification — the consumer's original object is never mutated. See `EvaDRMLicenseServer` below. |
-| `evaDashConfig` | `EvaDashConfig` | No | `{}` | Dash.js settings overrides applied via `updateSettings()` after initialization. Merged on top of the directive's defaults (debug level). |
+| `evaDashConfig` | `EvaDashConfig` | No | `{}` | Dash.js settings overrides applied via `updateSettings()` after initialization. Merged on top of the directive's defaults (debug level, `streaming.text.defaultEnabled: false` — see [Subtitle Behaviour](#subtitle-behaviour) below). |
 
 ### EvaApi Integration
 
@@ -87,6 +87,24 @@ Accessible via a template reference variable using `exportAs: 'evaDash'`.
 | `setQualityLevel` | `(qualityIndex: number) => void` | Switches to the given quality level. Pass `-1` to restore Auto (ABR) mode. Called internally by `EvaApi.setQuality()`. |
 | `getDashInstance` | `() => any \| null` | Returns the raw dash.js instance for advanced use. Returns `null` if not initialized. |
 
+
+### Subtitle Behaviour
+
+dash.js renders manifest text/caption tracks natively and, by default, auto-displays the default track (`streaming.text.defaultEnabled` is `true` in dash.js) — independently of `EvaTrackSelector`'s own "Off"-by-default state. Left unchecked, this makes captions appear even when no track has been selected through the player's UI.
+
+`EvaDashDirective` sets `streaming.text.defaultEnabled: false` by default so no manifest text track is auto-shown. To restore dash.js's native auto-display behaviour, override it explicitly:
+
+```html
+<eva-player
+  evaDash
+  id="my-player"
+  [evaVideoSources]="[]"
+  evaDashSrc="https://example.com/stream.mpd"
+  [evaDashConfig]="{ streaming: { text: { defaultEnabled: true } } }"
+/>
+```
+
+After `STREAM_INITIALIZED`, the manifest's text tracks are also registered with `EvaApi.registerStreamSubtitleTracks()`, so `<eva-track-selector>` lists and can switch them directly — merged alongside any `evaVideoTracks`-declared tracks, with no extra wiring needed. See [`EvaTrackSelector` → DASH Integration](../controls/track-selector.md#dash-integration) for the field mapping and switching behaviour.
 
 ### Quality Switching Behaviour
 

@@ -1,6 +1,6 @@
 import { EventEmitter, Injectable, signal } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { EvaState, EvaChapterMarker, EvaKeyboardShortcutsConfiguration, EvaQualityLevel, EvaScreenshotEvent, EvaTrack, EvaTrackInternal } from '../types';
+import { EvaState, EvaChapterMarker, EvaKeyboardShortcutsConfiguration, EvaQualityLevel, EvaAudioTrack, EvaScreenshotEvent, EvaTrack, EvaTrackInternal, EvaStreamSubtitleTrack } from '../types';
 import { MAX_DIGIT_KEY, DIGIT_DIVISOR, READY_STATE_HAVE_FUTURE_DATA, BUFFERING_DETECTION_DELAY_MS, CHAPTER_UPDATE_DEBOUNCE_MS, DEFAULT_ARROW_SEEK_SECONDS, DEFAULT_UNMUTE_VOLUME, DEFAULT_IMAGE_QUALITY } from '../constants';
 
 /**
@@ -118,6 +118,14 @@ export class EvaApi {
 	public videoSubtitlesSubject = new BehaviorSubject<EvaTrackInternal | null>(null);
 
 	/**
+	 * The list of manifest-native subtitle/text tracks for the current stream.
+	 * Populated by `registerStreamSubtitleTracks()` after the HLS/DASH manifest is parsed.
+	 * Subscribed to by `EvaTrackSelector`, merged alongside `videoTracksSubject`-declared tracks.
+	 * Empty when no streaming directive is active or the manifest has no subtitle tracks.
+	 */
+	public streamSubtitleTracksSubject = new BehaviorSubject<EvaStreamSubtitleTrack[]>([]);
+
+	/**
 	 * Broadcasts the video element's `TimeRanges` buffer object on each `progress` event.
 	 * Subscribed to by `EvaScrubBarBufferingTimeComponent`.
 	 */
@@ -136,6 +144,29 @@ export class EvaApi {
 	  * Subscribed to by `EvaQualitySelector` to populate its dropdown.
 	  */
 	public qualityLevelsSubject = new BehaviorSubject<EvaQualityLevel[]>([]);
+
+	/**
+	 * The list of available audio tracks for the current stream.
+	 * Populated by `registerAudioTracks()` after the streaming manifest is parsed.
+	 * Subscribed to by `EvaAudioTrackSelector` to populate its dropdown.
+	 * Empty when the stream has no alternate audio tracks (or no streaming directive is active).
+	 */
+	public audioTracksSubject = new BehaviorSubject<EvaAudioTrack[]>([]);
+
+	/**
+	 * The `id` of the currently selected audio track.
+	 * `-1` when no track has been selected yet (initial state before streaming starts).
+	 * Updated by the streaming directive on `AUDIO_TRACK_SWITCHED` (HLS) or directly
+	 * in `setAudioTrack()` (DASH).
+	 */
+	public readonly currentAudioTrackId = signal<number>(-1);
+
+	/**
+	 * The `id` of the currently selected manifest-native subtitle track.
+	 * `-1` when subtitles are off or no track has been selected yet.
+	 * Updated by `setStreamSubtitleTrack()`, called from `EvaTrackSelector`.
+	 */
+	public readonly currentStreamSubtitleTrackId = signal<number>(-1);
 
 
 	/**
@@ -278,6 +309,13 @@ export class EvaApi {
 	private qualityFn: ((qualityIndex: number) => void) | null = null;
 
 	/**
+	 * Internal reference to the streaming library's audio track setter function.
+	 * Registered by `EvaHlsDirective` or `EvaDashDirective` via `registerAudioTrackFn()`.
+	 * `null` when no streaming directive is active or the stream has no alternate audio tracks.
+	 */
+	private audioTrackFn: ((id: number) => void) | null = null;
+
+	/**
 	  * Registers the streaming library's quality setter function with the API.
 	  * Called by `EvaHlsDirective` or `EvaDashDirective` after the player is created.
 	  *
@@ -314,6 +352,88 @@ export class EvaApi {
 		}
 		this.currentQualityIndex.set(qualityIndex);
 		this.qualityFn(qualityIndex);
+	}
+
+	/**
+	 * Registers the streaming library's audio track setter function.
+	 * Called by `EvaHlsDirective` or `EvaDashDirective` when alternate audio tracks are available.
+	 *
+	 * @param fn - A function that accepts a track `id` and switches the active audio track.
+	 */
+	public registerAudioTrackFn(fn: (id: number) => void): void {
+		this.audioTrackFn = fn;
+	}
+
+	/**
+	 * Registers the available audio tracks parsed from the stream manifest.
+	 * Called by `EvaHlsDirective` or `EvaDashDirective` after the manifest is parsed.
+	 * Broadcasts the tracks to `audioTracksSubject`.
+	 *
+	 * @param tracks - The parsed audio tracks. Pass `[]` to clear (e.g. on player destroy).
+	 */
+	public registerAudioTracks(tracks: EvaAudioTrack[]): void {
+		this.audioTracksSubject.next(tracks);
+	}
+
+	/**
+	 * Switches to the given audio track by delegating to the registered `audioTrackFn`.
+	 * Updates `currentAudioTrackId` to reflect the active selection.
+	 * No-ops if no streaming directive has registered an audio track function.
+	 *
+	 * @param id - The `id` from an `EvaAudioTrack` object.
+	 */
+	public setAudioTrack(id: number): void {
+		if (!this.audioTrackFn) {
+			console.warn('[EvaApi] No audio track function registered. Is a streaming directive active?');
+			return;
+		}
+		this.currentAudioTrackId.set(id);
+		this.audioTrackFn(id);
+	}
+
+	/**
+	 * Internal reference to the streaming library's subtitle track setter function.
+	 * Registered by `EvaHlsDirective` or `EvaDashDirective` when the manifest exposes
+	 * subtitle/text tracks. `null` when no streaming directive is active or the stream
+	 * has no manifest-native subtitle tracks.
+	 */
+	private subtitleTrackFn: ((id: number) => void) | null = null;
+
+	/**
+	 * Registers the streaming library's subtitle track setter function.
+	 * Called by `EvaHlsDirective` or `EvaDashDirective` when manifest subtitle tracks are available.
+	 *
+	 * @param fn - A function that accepts a track `id` and switches the active subtitle track.
+	 *   Pass `-1` to turn subtitles off.
+	 */
+	public registerSubtitleTrackFn(fn: (id: number) => void): void {
+		this.subtitleTrackFn = fn;
+	}
+
+	/**
+	 * Registers the manifest-native subtitle tracks parsed from the stream manifest.
+	 * Called by `EvaHlsDirective` or `EvaDashDirective` after the manifest is parsed.
+	 * Broadcasts the tracks to `streamSubtitleTracksSubject`, merged by `EvaTrackSelector`
+	 * alongside any `evaVideoTracks`-declared tracks.
+	 *
+	 * @param tracks - The parsed subtitle tracks. Pass `[]` to clear (e.g. on player destroy).
+	 */
+	public registerStreamSubtitleTracks(tracks: EvaStreamSubtitleTrack[]): void {
+		this.streamSubtitleTracksSubject.next(tracks);
+	}
+
+	/**
+	 * Switches to the given manifest-native subtitle track by delegating to the registered
+	 * `subtitleTrackFn`. Updates `currentStreamSubtitleTrackId` to reflect the active selection.
+	 * Silently no-ops if no streaming directive has registered a subtitle track function —
+	 * unlike `setAudioTrack()`/`setQuality()`, this does not warn, since `EvaTrackSelector`
+	 * calls it on every "Off"/declared-track selection regardless of whether HLS/DASH is active.
+	 *
+	 * @param id - The `id` from an `EvaStreamSubtitleTrack` object, or `-1` to turn subtitles off.
+	 */
+	public setStreamSubtitleTrack(id: number): void {
+		this.currentStreamSubtitleTrackId.set(id);
+		this.subtitleTrackFn?.(id);
 	}
 
 	// ─── Playback Commands ────────────────────────────────────────────────────
@@ -1028,8 +1148,10 @@ export class EvaApi {
 			this.pipWindow = null;
 		}
 
-		// Clear the registered streaming quality function
+		// Clear the registered streaming quality, audio track, and subtitle track functions
 		this.qualityFn = null;
+		this.audioTrackFn = null;
+		this.subtitleTrackFn = null;
 
 		// Complete all subjects — notifies subscribers and prevents further emissions
 		this.pictureInPictureSubject.complete();
@@ -1040,9 +1162,11 @@ export class EvaApi {
 		this.playbackRateSubject.complete();
 		this.videoTracksSubject.complete();
 		this.videoSubtitlesSubject.complete();
+		this.streamSubtitleTracksSubject.complete();
 		this.videoBufferSubject.complete();
 		this.videoTimeChangeSubject.complete();
 		this.qualityLevelsSubject.complete();
+		this.audioTracksSubject.complete();
 		this.activeChapterSubject.complete();
 		this.chapterMarkerChangesSubject.complete();
 		this.componentsContainerVisibilityStateSubject.complete();

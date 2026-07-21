@@ -35,9 +35,13 @@ interface FullscreenPolyfill {
  * for components to subscribe to. The state is updated on native fullscreen change events
  * and manually after programmatic enter/exit calls.
  *
+ * Injected automatically into `EvaPlayer` and `EvaFullscreen`, but also exported from the
+ * package entry point for consumers building custom fullscreen controls.
+ *
  * @example
- * // Injected automatically into EvaPlayer — not intended for direct consumer use.
- * // To toggle fullscreen from a component:
+ * import { EvaFullscreenAPI } from 'ez-vid-ang';
+ *
+ * private fullscreenService = inject(EvaFullscreenAPI);
  * await this.fullscreenService.toggleFullscreen();
  */
 @Injectable()

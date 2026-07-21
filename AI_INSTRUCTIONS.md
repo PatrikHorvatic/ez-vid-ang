@@ -143,7 +143,8 @@ Selector and class must match exactly — do not invent alternate names (e.g. it
 | `eva-remote-playback` | `EvaRemotePlayback` | — | `evaRemotePlaybackStateChanged` | Chromecast/AirPlay button; auto-hides when no devices are available. |
 | `eva-playback-speed` | `EvaPlaybackSpeed` | `evaPlaybackSpeeds` (`number[]`) | — | Playback-speed selector dropdown. Optional: `evaDefaultPlaybackSpeed` (default `1`) pre-selects a speed on first render — must be a value present in `evaPlaybackSpeeds` after validation; if not found, no option is pre-selected. |
 | `eva-quality-selector` | `EvaQualitySelector` | — | — | Quality/bitrate dropdown; auto-populated by `evaHls`/`evaDash` via `EvaApi`. No manual wiring needed. |
-| `eva-track-selector` | `EvaTrackSelector` | — | — | Subtitle/caption track dropdown, built from `evaVideoTracks` on `eva-player`. |
+| `eva-audio-track-selector` | `EvaAudioTrackSelector` | — | — | Audio language/track dropdown; auto-populated by `evaHls`/`evaDash` via `EvaApi`. Auto-hides (`display: none`) when the stream has zero or one audio track — safe to include in every template. No manual wiring needed. |
+| `eva-track-selector` | `EvaTrackSelector` | — | — | Subtitle/caption track dropdown. Merges tracks from `evaVideoTracks` on `eva-player` with manifest-native HLS/DASH subtitle tracks (auto-populated when `evaHls`/`evaDash` is active, no manual wiring needed) into one "Off"-by-default list — see subtitle rule below. |
 | `eva-subtitle-display` | `EvaSubtitleDisplay` | — | — | Renders the active subtitle cue text. |
 | `eva-download` | `EvaDownload` | — | `evaDownloadClicked` | Download button; caller handles the actual download in the output handler. |
 | `eva-screenshot` | `EvaScreenshot` | — | `evaScreenshotCaptured` | Captures current frame; also callable directly via `EvaApi.captureScreenshot()`. |
@@ -189,11 +190,14 @@ To use a custom icon instead of the registry, set `[evaCustomIcon]="true"` on th
 - `eva-player` always needs both `id` and `evaVideoSources`, even when using `evaHls`/`evaDash` (pass `[evaVideoSources]="[]"` when streaming exclusively).
 - Do not call `addEvaIcons` per-component or per-render — it's a one-time global registration, call it once at bootstrap.
 - Quality switching (`eva-quality-selector`) needs no manual wiring when `evaHls`/`evaDash` is present — it is populated automatically through `EvaApi`. Do not wire it manually.
+- Audio track switching (`eva-audio-track-selector`) follows the same pattern — auto-populated by the streaming directive, auto-hides when there is only one audio track. Do not wire it manually.
 - `eva-scrub-bar-buffering-time` / `eva-scrub-bar-current-time` must be children of `eva-scrub-bar`, not siblings.
 - For imperative control (screenshot, playback speed, volume, PiP, quality), prefer `EvaApi` methods via a `viewChild` reference over manipulating the native `<video>` element directly.
 - HLS/DASH are peer installs, not bundled — code using `evaHls`/`evaDash` must also instruct the user to `npm i hls.js` / `npm i dashjs` and register the script in `angular.json`.
 - Do not use `<eva-ended-overlay>` together with `[evaShowPlayOnVideoEnding]="true"` on `<eva-overlay-play>` — they are mutually exclusive affordances for the `ENDED` state. Use one or the other, not both.
 - `EvaTooltip` only activates on the 16 specific Eva control elements listed in the component table. Applying `evaTooltip` to any other element (including arbitrary HTML) has no effect.
+- `evaHls`/`evaDash` suppress manifest-embedded subtitle/text tracks by default (`subtitleDisplay: false` for hls.js, `streaming.text.defaultEnabled: false` for dash.js) — this is intentional, not a bug, so subtitles stay off until the consumer explicitly picks one from `eva-track-selector`. To let the raw stream auto-show its default subtitle track instead, pass `[evaHlsConfig]="{ subtitleDisplay: true }"` or `[evaDashConfig]="{ streaming: { text: { defaultEnabled: true } } }"`.
+- `eva-track-selector` auto-populates manifest-native HLS/DASH subtitle tracks with no manual wiring — do not tell consumers to read `EvaApi.streamSubtitleTracksSubject` themselves just to show tracks in the built-in dropdown; that subject is for custom UI only. It IS still correct to combine it with `evaVideoTracks` — both sources merge into the same dropdown, mutually exclusive, sharing one "Off" state. Manifest tracks are never auto-selected even when the stream marks one `DEFAULT=YES`.
 
 ## Authoritative docs
 

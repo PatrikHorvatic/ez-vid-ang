@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal, AfterViewInit, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { combineLatest, Subscription } from 'rxjs';
 import { EvaApi } from '../../api/eva-api';
-import { EvaTrack, EvaTrackInternal } from '../../types';
+import { EvaTrack, EvaTrackInternal, EvaStreamSubtitleTrack } from '../../types';
 import { SCREEN_READER_ANNOUNCEMENT_DURATION_MS } from '../../constants';
 
 
@@ -9,15 +9,25 @@ import { SCREEN_READER_ANNOUNCEMENT_DURATION_MS } from '../../constants';
 /**
  * Subtitle/text track selector component for the Eva video player.
  *
- * Renders a dropdown button that lists all available subtitle tracks extracted from
- * the video element's text tracks, plus an "Off" option to disable subtitles.
- * Selecting a track sets its `mode` to `"showing"` on the native `HTMLVideoElement`
- * and hides all others.
+ * Renders a dropdown button that lists all available subtitle tracks, plus an
+ * "Off" option to disable subtitles.
  *
- * Track list sources:
- * - Populated from `EvaApi.videoTracksSubject`, filtered to `kind === "subtitles"`.
- * - If no tracks are available, only the "Off" option is shown.
- * - The "Off" option is auto-selected when no track has `default === true`.
+ * Track list sources, merged into one dropdown:
+ * - `EvaApi.videoTracksSubject`, filtered to `kind === "subtitles"` — tracks declared
+ *   via `evaVideoTracks` and rendered as native `<track>` elements.
+ * - `EvaApi.streamSubtitleTracksSubject` — manifest-native tracks discovered by
+ *   `EvaHlsDirective`/`EvaDashDirective` from an HLS/DASH stream, if active.
+ * - If neither source has tracks, only the "Off" option is shown.
+ * - The "Off" option is auto-selected whenever no track is selected — manifest-native
+ *   tracks are never auto-selected regardless of any `DEFAULT=YES` flag, so a track
+ *   only becomes active once the user explicitly picks it.
+ *
+ * Selecting a declared track hides all native `<track>` elements except the chosen one
+ * (via `mode = "showing"`, driven by `EvaCueChangeDirective`) and turns off any active
+ * stream-native track via `EvaApi.setStreamSubtitleTrack(-1)`. Selecting a stream-native
+ * track does the reverse — it hides all native `<track>` elements and calls
+ * `EvaApi.setStreamSubtitleTrack()` with the track's id. The two sources are mutually
+ * exclusive; there is a single "Off" state covering both.
  *
  * The dropdown closes when:
  * - A track is selected
@@ -105,8 +115,8 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
   /** Bound reference to the click-outside handler, stored for removal in `ngOnDestroy`. */
   private clickOutsideListener?: (event: MouseEvent) => void;
 
-  /** Subscription to track list changes from `EvaApi`. Cleaned up in `ngOnDestroy`. */
-  private videoTracksSub: Subscription | null = null;
+  /** Subscription to declared + stream-native track list changes from `EvaApi`. Cleaned up in `ngOnDestroy`. */
+  private tracksSub: Subscription | null = null;
 
   /**
    * Tracks the index of the currently focused option during keyboard navigation.
@@ -116,19 +126,17 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
   private announceTimeout?: number;
 
   /**
-   * Initializes `localTracks` from the current value of `EvaApi.videoTracksSubject`,
-   * subscribes to future track changes, and attaches a document-level click listener
-   * to close the dropdown when clicking outside.
+   * Subscribes to `EvaApi.videoTracksSubject` and `EvaApi.streamSubtitleTracksSubject`
+   * (both `BehaviorSubject`s, so this also synchronously initializes `localTracks` with
+   * their current values), and attaches a document-level click listener to close the
+   * dropdown when clicking outside.
    */
   public ngOnInit(): void {
-    this.localTracks.set(
-      this.extractTracksFromAssignedVideoElement(
-        this.evaAPI.videoTracksSubject.getValue()
-      )
-    );
-
-    this.videoTracksSub = this.evaAPI.videoTracksSubject.subscribe(t => {
-      this.localTracks.set(this.extractTracksFromAssignedVideoElement(t));
+    this.tracksSub = combineLatest([
+      this.evaAPI.videoTracksSubject,
+      this.evaAPI.streamSubtitleTracksSubject,
+    ]).subscribe(([declared, stream]) => {
+      this.localTracks.set(this.buildTrackList(declared, stream));
       this.changeSubtitles();
     });
 
@@ -144,8 +152,8 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
 
   /** Unsubscribes from track changes and removes the document-level click listener. */
   public ngOnDestroy(): void {
-    if (this.videoTracksSub) {
-      this.videoTracksSub.unsubscribe();
+    if (this.tracksSub) {
+      this.tracksSub.unsubscribe();
     }
     if (this.announceTimeout) {
       clearTimeout(this.announceTimeout);
@@ -157,8 +165,10 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
 
   /**
    * Selects a track, updates `localTracks` so only the chosen track is marked as selected,
-   * sets the corresponding `HTMLTextTrack.mode` to `"showing"` (and all others to `"hidden"`),
-   * announces the change to screen readers, and closes the dropdown.
+   * hides all native `<track>` elements (declared tracks are re-shown via `mode = "showing"`
+   * by `EvaCueChangeDirective`, driven by `EvaApi.videoSubtitlesSubject`), routes stream-native
+   * selections through `EvaApi.setStreamSubtitleTrack()`, announces the change to screen
+   * readers, and closes the dropdown.
    *
    * @param tr - The track to select.
    * @param i - The index of the track within `localTracks`.
@@ -177,6 +187,14 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
     if (this.evaAPI.assignedVideoElement) {
       Array.from(this.evaAPI.assignedVideoElement.textTracks)
         .forEach(textTrack => { textTrack.mode = "hidden"; });
+    }
+
+    // Mutual exclusivity: selecting a stream-native track switches to it directly.
+    // Selecting anything else (a declared track, or "Off") turns any active stream track off.
+    if (tr.source === 'stream' && tr.streamId !== undefined) {
+      this.evaAPI.setStreamSubtitleTrack(tr.streamId);
+    } else {
+      this.evaAPI.setStreamSubtitleTrack(-1);
     }
 
     this.evaAPI.subtitlesChanged(tr);
@@ -328,38 +346,46 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Converts an array of `EvaTrack` objects into the internal `EvaTrackInternal` format
-   * used by the dropdown, filtered to `kind === "subtitles"`.
+   * Merges `evaVideoTracks`-declared tracks and manifest-native HLS/DASH tracks into
+   * the internal `EvaTrackInternal` format used by the dropdown, plus a trailing "Off" option.
    *
-   * - If no tracks are provided, returns a single "Off" option marked as selected.
-   * - Appends an "Off" option at the end, selected when no track has `default === true`.
+   * - Declared tracks are filtered to `kind === "subtitles"` and selected when `default === true`.
+   * - Stream tracks are never auto-selected, regardless of any manifest `DEFAULT=YES` flag —
+   *   see the class-level doc comment.
+   * - The "Off" option is selected whenever neither source has a selected track (including
+   *   when both are empty).
    *
-   * @param v - The raw track list from `EvaApi.videoTracksSubject`.
+   * @param declaredTracks - The raw track list from `EvaApi.videoTracksSubject`.
+   * @param streamTracks - The raw track list from `EvaApi.streamSubtitleTracksSubject`.
    */
-  private extractTracksFromAssignedVideoElement(v: EvaTrack[] | null): EvaTrackInternal[] {
-    if (!v || v.length === 0) {
-      return [{
-        id: "off",
-        label: this.evaTrackOffText(),
-        selected: true
-      }];
-    }
-
-    const a = v.filter(t => t.kind === "subtitles")
+  private buildTrackList(declaredTracks: EvaTrack[] | null, streamTracks: EvaStreamSubtitleTrack[]): EvaTrackInternal[] {
+    const declared: EvaTrackInternal[] = (declaredTracks ?? [])
+      .filter(t => t.kind === "subtitles")
       .map(b => ({
         id: b.srclang,
         label: b.label || "",
-        selected: b.default === true
+        selected: b.default === true,
+        source: 'declared' as const
       }));
 
-    const hasSelected = a.some(i => i.selected);
+    const stream: EvaTrackInternal[] = streamTracks.map(t => ({
+      id: `stream:${t.id}`,
+      label: t.label,
+      selected: false,
+      source: 'stream' as const,
+      streamId: t.id
+    }));
+
+    const combined = [...declared, ...stream];
+    const hasSelected = combined.some(i => i.selected);
 
     return [
-      ...a,
+      ...combined,
       {
         id: "off",
         label: this.evaTrackOffText(),
-        selected: !hasSelected
+        selected: !hasSelected,
+        source: 'declared' as const
       }
     ];
   }

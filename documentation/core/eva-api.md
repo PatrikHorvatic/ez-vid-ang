@@ -16,6 +16,7 @@ All player components and directives communicate through `EvaApi` rather than di
 | `lastActiveVolume` | `number` | The last non-zero volume before muting. Used by `muteOrUnmuteVideo()` to restore volume on unmute. Set directly by `EvaVideoConfigurationDirective` during initial configuration (before `isPlayerReady`). |
 | `currentQualityIndex` | `WritableSignal<number>` | Currently selected quality level index. `-1` represents Auto (ABR). |
 | `currentSubtitleCue` | `WritableSignal<string \| null>` | The currently active subtitle cue text. `null` when no cue is active. Updated by `EvaCueChangeDirective`. |
+| `currentStreamSubtitleTrackId` | `WritableSignal<number>` | The `id` of the currently selected manifest-native subtitle track. `-1` when subtitles are off or no track has been selected. Updated by `setStreamSubtitleTrack()`. |
 
 ### Subjects
 
@@ -26,6 +27,7 @@ All player components and directives communicate through `EvaApi` rather than di
 | `playbackRateSubject` | `BehaviorSubject<number \| null>` | Broadcasts the current playback rate. `null` until the first rate change. |
 | `videoTracksSubject` | `BehaviorSubject<EvaTrack[] \| null>` | Broadcasts the current list of available text tracks. |
 | `videoSubtitlesSubject` | `BehaviorSubject<EvaTrackInternal \| null>` | Broadcasts the currently selected subtitle track. |
+| `streamSubtitleTracksSubject` | `BehaviorSubject<EvaStreamSubtitleTrack[]>` | Broadcasts manifest-native subtitle tracks discovered by `EvaHlsDirective`/`EvaDashDirective`. Merged by `EvaTrackSelector` alongside `videoTracksSubject`-declared tracks. Empty when no streaming directive is active or the manifest has no subtitle tracks. |
 | `videoBufferSubject` | `BehaviorSubject<TimeRanges \| null>` | Broadcasts the video element's `TimeRanges` buffer object on each `progress` event. |
 | `videoTimeChangeSubject` | `BehaviorSubject<number>` | Increments on every `timeupdate` event. Subscribed to by components that need to react to time changes with throttling. |
 | `qualityLevelsSubject` | `BehaviorSubject<EvaQualityLevel[]>` | Broadcasts available quality levels after the streaming manifest is parsed. |
@@ -82,6 +84,9 @@ Can be called directly for programmatic use (e.g. from a context menu action) wi
 |---|---|---|
 | `onCueChange` | `(track: TextTrack \| null) => void` | Called by `EvaCueChangeDirective` on `cuechange`. Updates `currentSubtitleCue` with the first active VTT cue, or `null`. |
 | `subtitlesChanged` | `(label: EvaTrackInternal \| null) => void` | Broadcasts the newly selected subtitle track to `videoSubtitlesSubject`. |
+| `registerSubtitleTrackFn` | `(fn: (id: number) => void) => void` | Registers the streaming library's subtitle track setter. Called by `EvaHlsDirective` or `EvaDashDirective` when the manifest exposes subtitle/text tracks. |
+| `registerStreamSubtitleTracks` | `(tracks: EvaStreamSubtitleTrack[]) => void` | Broadcasts manifest-native subtitle tracks to `streamSubtitleTracksSubject`. Called after the manifest is parsed; pass `[]` to clear (e.g. on player destroy). |
+| `setStreamSubtitleTrack` | `(id: number) => void` | Switches to the given manifest-native subtitle track by delegating to the registered subtitle track function, and updates `currentStreamSubtitleTrackId`. Pass `-1` to turn subtitles off. Silently no-ops (no console warning) if no streaming directive has registered a subtitle track function, since `EvaTrackSelector` calls this on every "Off"/declared-track selection regardless of whether HLS/DASH is active. |
 
 ### Chapters
 

@@ -69,6 +69,7 @@ This example demonstrates every available component and feature in the library: 
 
     <eva-mute evaTooltip evaTooltipShortcutKey="muteKey" />
     <eva-volume />
+    <eva-audio-track-selector />
 
     <eva-time-display evaTimeProperty="current" evaTimeFormating="HH:mm:ss" />
 
@@ -80,6 +81,7 @@ This example demonstrates every available component and feature in the library: 
     <eva-remote-playback evaTooltip />
     <eva-download (evaDownloadClicked)="onDownload($event)" evaTooltip />
     <eva-screenshot (evaScreenshotCaptured)="onScreenshot($event)" evaTooltip />
+    <!-- Lists videoTracks() below AND any manifest-native subtitle tracks from evaHlsSrc's stream, merged into one dropdown -->
     <eva-track-selector evaTooltip />
     <eva-playback-speed [evaPlaybackSpeeds]="[0.25, 0.5, 1, 1.5, 2, 4]" evaTooltip />
     <eva-quality-selector evaTooltip />
@@ -113,6 +115,7 @@ import { Subscription } from 'rxjs';
 import {
   EvaActiveChapter,
   EvaApi,
+  EvaAudioTrackSelector,
   EvaBackward,
   EvaBuffering,
   EvaChapterList,
@@ -167,6 +170,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     EvaActiveChapter,
+    EvaAudioTrackSelector,
     EvaBackward,
     EvaBuffering,
     EvaChapterList,

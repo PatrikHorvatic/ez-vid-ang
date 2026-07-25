@@ -1,9 +1,9 @@
-import { Directive, inject, input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-import { EvaConfigurationStorage } from '../../api/configuration-storage';
-import { EvaStorageConfiguration, validateAndTransformStorageKey } from '../../types';
-import { DEFAULT_STORAGE_KEY } from '../../constants';
-import { EvaApi } from '../../api/eva-api';
-import { Subscription } from 'rxjs';
+import { Directive, inject, input, OnChanges, OnDestroy, SimpleChanges } from "@angular/core";
+import { EvaConfigurationStorage } from "../../api/configuration-storage";
+import { EvaStorageConfiguration, validateAndTransformStorageKey } from "../../types";
+import { DEFAULT_STORAGE_KEY } from "../../constants";
+import { EvaApi } from "../../api/eva-api";
+import { Subscription } from "rxjs";
 
 /**
  * Directive that persists user preferences (volume, playback speed) to
@@ -32,7 +32,7 @@ import { Subscription } from 'rxjs';
  * a muted state the user did not intend to keep.
  */
 @Directive({
-  selector: '[evaConfigurationStorage]',
+  selector: "[evaConfigurationStorage]",
 })
 export class ConfigurationStorage implements OnChanges, OnDestroy {
   private readonly storage: EvaConfigurationStorage = inject(EvaConfigurationStorage);
@@ -88,8 +88,8 @@ export class ConfigurationStorage implements OnChanges, OnDestroy {
    * - `evaLocalStorageConfiguration` changed while enabled → syncs subscriptions to match the new flags.
    */
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['evaLocalStorageEnabled']) {
-      if (changes['evaLocalStorageEnabled'].currentValue) {
+    if (changes["evaLocalStorageEnabled"]) {
+      if (changes["evaLocalStorageEnabled"].currentValue) {
         this.enable();
       } else {
         this.disable();
@@ -97,7 +97,7 @@ export class ConfigurationStorage implements OnChanges, OnDestroy {
       return;
     }
 
-    if (changes['evaLocalStorageConfiguration'] && this.evaLocalStorageEnabled()) {
+    if (changes["evaLocalStorageConfiguration"] && this.evaLocalStorageEnabled()) {
       this.syncSubscriptions();
     }
   }

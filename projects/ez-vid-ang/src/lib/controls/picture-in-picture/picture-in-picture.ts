@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { EvaIcon } from '../../core/icon/icon';
-import { EvaPictureInPictureAria, EvaPictureInPictureAriaTransformed, transformEvaPictureInPictureAria } from '../../utils/aria-utilities';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { EvaIcon } from "../../core/icon/icon";
+import { EvaPictureInPictureAria, EvaPictureInPictureAriaTransformed, transformEvaPictureInPictureAria } from "../../utils/aria-utilities";
 
 /**
  * Picture-in-Picture toggle button for the Eva video player.
@@ -54,19 +54,19 @@ import { EvaPictureInPictureAria, EvaPictureInPictureAriaTransformed, transformE
  * </eva-picture-in-picture>
  */
 @Component({
-  selector: 'eva-picture-in-picture',
+  selector: "eva-picture-in-picture",
   imports: [EvaIcon],
-  templateUrl: './picture-in-picture.html',
-  styleUrl: './picture-in-picture.scss',
+  templateUrl: "./picture-in-picture.html",
+  styleUrl: "./picture-in-picture.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "button",
+    tabindex: "0",
+    role: "button",
     "[attr.aria-label]": "ariaLabel()",
     "[attr.aria-valuetext]": "ariaValueText()",
     "(click)": "pipClicked()",
-    "(keydown)": "pipClickedKeyboard($event)"
-  }
+    "(keydown)": "pipClickedKeyboard($event)",
+  },
 })
 export class EvaPictureInPicture implements OnInit, OnDestroy {
   private readonly evaApi = inject(EvaApi);
@@ -87,10 +87,7 @@ export class EvaPictureInPicture implements OnInit, OnDestroy {
    * - `ariaValueText.ariaLabelActivated` — `aria-valuetext` when PiP is active.
    * - `ariaValueText.ariaLabelDeactivated` — `aria-valuetext` when PiP is inactive.
    */
-  public readonly evaAria = input<EvaPictureInPictureAriaTransformed, EvaPictureInPictureAria>(
-    transformEvaPictureInPictureAria(undefined),
-    { transform: transformEvaPictureInPictureAria }
-  );
+  public readonly evaAria = input<EvaPictureInPictureAriaTransformed, EvaPictureInPictureAria>(transformEvaPictureInPictureAria(undefined), { transform: transformEvaPictureInPictureAria });
 
   /**
    * Whether this player's video element is currently in Picture-in-Picture mode.
@@ -110,9 +107,7 @@ export class EvaPictureInPicture implements OnInit, OnDestroy {
    * `ariaValueText.ariaLabelDeactivated` based on the current PiP state,
    * giving screen readers a meaningful description of the current button action.
    */
-  protected readonly ariaValueText = computed(() => this.isPictureInPictureActive()
-    ? this.evaAria().ariaValueText.ariaLabelActivated
-    : this.evaAria().ariaValueText.ariaLabelDeactivated);
+  protected readonly ariaValueText = computed(() => (this.isPictureInPictureActive() ? this.evaAria().ariaValueText.ariaLabelActivated : this.evaAria().ariaValueText.ariaLabelDeactivated));
 
   /** Subscription to `EvaApi.pictureInPictureSubject`. Cleaned up in `ngOnDestroy`. */
   private pip$: Subscription | null = null;
@@ -147,7 +142,7 @@ export class EvaPictureInPicture implements OnInit, OnDestroy {
    * @param k - The native `KeyboardEvent` from the host element.
    */
   protected pipClickedKeyboard(k: KeyboardEvent): void {
-    if (k.key === 'Enter' || k.key === ' ') {
+    if (k.key === "Enter" || k.key === " ") {
       k.preventDefault();
       this.pipClicked();
     }

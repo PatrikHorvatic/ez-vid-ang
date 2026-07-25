@@ -1,0 +1,7 @@
+dist
+node_modules
+android
+.angular
+coverage
+package-lock.json
+lint-results.json

@@ -8,11 +8,11 @@ const registry = new Map<string, string>();
  */
 function toRegistryKey(exportName: string): string {
   return exportName
-    .replace(/^eva/u, '')
-    .replace(/Icon$/u, '')
-    .replace(/(?<lower>[a-z])(?<upper>[A-Z])/gu, '$<lower>-$<upper>')
-    .replace(/(?<letter>[a-zA-Z])(?<digit>\d)/gu, '$<letter>-$<digit>')
-    .replace(/(?<digit>\d)(?<letter>[a-zA-Z])/gu, '$<digit>-$<letter>')
+    .replace(/^eva/u, "")
+    .replace(/Icon$/u, "")
+    .replace(/(?<lower>[a-z])(?<upper>[A-Z])/gu, "$<lower>-$<upper>")
+    .replace(/(?<letter>[a-zA-Z])(?<digit>\d)/gu, "$<letter>-$<digit>")
+    .replace(/(?<digit>\d)(?<letter>[a-zA-Z])/gu, "$<digit>-$<letter>")
     .toLowerCase();
 }
 

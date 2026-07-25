@@ -3,6 +3,7 @@ const eslint = require("@eslint/js");
 const { defineConfig } = require("eslint/config");
 const tseslint = require("typescript-eslint");
 const angular = require("angular-eslint");
+const eslintConfigPrettier = require("eslint-config-prettier");
 
 module.exports = defineConfig([
   {
@@ -11,6 +12,7 @@ module.exports = defineConfig([
       eslint.configs.all,
       tseslint.configs.all,
       angular.configs.tsAll,
+      eslintConfigPrettier,
     ],
     languageOptions: {
       parserOptions: {

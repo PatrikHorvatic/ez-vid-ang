@@ -1,18 +1,8 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  ElementRef,
-  inject,
-  input,
-  signal,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { EvaKeyboardShortcutsConfiguration } from '../../types';
-import { CLICK_OUTSIDE_DEBOUNCE_MS } from '../../constants';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, input, signal, OnDestroy, OnInit } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { EvaKeyboardShortcutsConfiguration } from "../../types";
+import { CLICK_OUTSIDE_DEBOUNCE_MS } from "../../constants";
 
 /**
  * Represents a single shortcut entry displayed in the overlay.
@@ -31,11 +21,11 @@ type ShortcutGroup = {
 };
 
 const KEY_DISPLAY_MAP: Record<string, string> = {
-  'ARROWLEFT': '←',
-  'ARROWRIGHT': '→',
-  'ARROWUP': '↑',
-  'ARROWDOWN': '↓',
-  'SPACE': 'Space',
+  ARROWLEFT: "←",
+  ARROWRIGHT: "→",
+  ARROWUP: "↑",
+  ARROWDOWN: "↓",
+  SPACE: "Space",
 };
 
 function formatKeyLabel(key: string): string {
@@ -68,20 +58,19 @@ function formatKeyLabel(key: string): string {
  * </eva-player>
  */
 @Component({
-  selector: 'eva-keyboard-shortcuts-overlay',
-  templateUrl: './keyboard-shortcuts-overlay.html',
-  styleUrl: './keyboard-shortcuts-overlay.scss',
+  selector: "eva-keyboard-shortcuts-overlay",
+  templateUrl: "./keyboard-shortcuts-overlay.html",
+  styleUrl: "./keyboard-shortcuts-overlay.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    'role': 'dialog',
-    '[attr.aria-label]': 'evaShortcutsOverlayTitle()',
-    '[class.eva-shortcuts-overlay-open]': 'isOpen()',
-    '(document:keydown.escape)': 'onEscape()',
-    '(document:click)': 'onDocumentClick($event)',
+    role: "dialog",
+    "[attr.aria-label]": "evaShortcutsOverlayTitle()",
+    "[class.eva-shortcuts-overlay-open]": "isOpen()",
+    "(document:keydown.escape)": "onEscape()",
+    "(document:click)": "onDocumentClick($event)",
   },
 })
 export class EvaKeyboardShortcutsOverlay implements OnInit, OnDestroy {
-
   private readonly evaAPI = inject(EvaApi);
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
 
@@ -90,7 +79,7 @@ export class EvaKeyboardShortcutsOverlay implements OnInit, OnDestroy {
    *
    * @default "Keyboard shortcuts"
    */
-  public readonly evaShortcutsOverlayTitle = input<string>('Keyboard shortcuts');
+  public readonly evaShortcutsOverlayTitle = input<string>("Keyboard shortcuts");
 
   /** Whether the overlay is currently visible. Driven by `EvaApi.keyboardShortcutsOverlaySubject`. */
   protected readonly isOpen = signal(false);
@@ -107,18 +96,20 @@ export class EvaKeyboardShortcutsOverlay implements OnInit, OnDestroy {
   /** Grouped shortcut entries derived from the configuration. */
   protected readonly shortcutGroups = computed<ShortcutGroup[]>(() => {
     const cfg = this.config();
-    if (!cfg) { return []; }
+    if (!cfg) {
+      return [];
+    }
     return this.buildGroups(cfg);
   });
 
   public ngOnInit(): void {
-    this.overlaySub = this.evaAPI.keyboardShortcutsOverlaySubject.subscribe(open => {
+    this.overlaySub = this.evaAPI.keyboardShortcutsOverlaySubject.subscribe((open) => {
       this.isOpen.set(open);
       if (open) {
         this.openedAt = Date.now();
       }
     });
-    this.configSub = this.evaAPI.keyboardShortcutsConfigSubject.subscribe(cfg => {
+    this.configSub = this.evaAPI.keyboardShortcutsConfigSubject.subscribe((cfg) => {
       this.config.set(cfg);
     });
   }
@@ -140,8 +131,12 @@ export class EvaKeyboardShortcutsOverlay implements OnInit, OnDestroy {
   }
 
   protected onDocumentClick(event: MouseEvent): void {
-    if (!this.isOpen()) { return; }
-    if (Date.now() - this.openedAt < CLICK_OUTSIDE_DEBOUNCE_MS) { return; }
+    if (!this.isOpen()) {
+      return;
+    }
+    if (Date.now() - this.openedAt < CLICK_OUTSIDE_DEBOUNCE_MS) {
+      return;
+    }
 
     if (!(event.target instanceof Node) || !this.el.nativeElement.contains(event.target)) {
       this.closeOverlay();
@@ -149,50 +144,56 @@ export class EvaKeyboardShortcutsOverlay implements OnInit, OnDestroy {
   }
 
   private buildGroups(cfg: Required<EvaKeyboardShortcutsConfiguration>): ShortcutGroup[] {
-    const playback: ShortcutEntry[] = [
-      { keys: [formatKeyLabel(cfg.playPause)], description: 'Play / Pause' },
-    ];
+    const playback: ShortcutEntry[] = [{ keys: [formatKeyLabel(cfg.playPause)], description: "Play / Pause" }];
 
     const seeking: ShortcutEntry[] = [];
 
     if (cfg.backwardsKeyOne || cfg.backwardsKeyTwo) {
       const keys: string[] = [];
-      if (cfg.backwardsKeyOne) { keys.push(formatKeyLabel(cfg.backwardsKeyOne)); }
-      if (cfg.backwardsKeyTwo) { keys.push(formatKeyLabel(cfg.backwardsKeyTwo)); }
+      if (cfg.backwardsKeyOne) {
+        keys.push(formatKeyLabel(cfg.backwardsKeyOne));
+      }
+      if (cfg.backwardsKeyTwo) {
+        keys.push(formatKeyLabel(cfg.backwardsKeyTwo));
+      }
       seeking.push({ keys, description: `Seek backward ${cfg.backwardSeconds}s` });
     }
 
     if (cfg.forwardKeyOne || cfg.forwardKeyTwo) {
       const keys: string[] = [];
-      if (cfg.forwardKeyOne) { keys.push(formatKeyLabel(cfg.forwardKeyOne)); }
-      if (cfg.forwardKeyTwo) { keys.push(formatKeyLabel(cfg.forwardKeyTwo)); }
+      if (cfg.forwardKeyOne) {
+        keys.push(formatKeyLabel(cfg.forwardKeyOne));
+      }
+      if (cfg.forwardKeyTwo) {
+        keys.push(formatKeyLabel(cfg.forwardKeyTwo));
+      }
       seeking.push({ keys, description: `Seek forward ${cfg.forwardSeconds}s` });
     }
 
     if (cfg.oneFrameBackward) {
-      seeking.push({ keys: [formatKeyLabel(cfg.oneFrameBackward)], description: 'Previous frame' });
+      seeking.push({ keys: [formatKeyLabel(cfg.oneFrameBackward)], description: "Previous frame" });
     }
     if (cfg.oneFrameForward) {
-      seeking.push({ keys: [formatKeyLabel(cfg.oneFrameForward)], description: 'Next frame' });
+      seeking.push({ keys: [formatKeyLabel(cfg.oneFrameForward)], description: "Next frame" });
     }
 
-    seeking.push({ keys: ['0', '–', '9'], description: 'Jump to 0%–90%' });
+    seeking.push({ keys: ["0", "–", "9"], description: "Jump to 0%–90%" });
 
     const media: ShortcutEntry[] = [];
 
     if (cfg.muteKey) {
-      media.push({ keys: [formatKeyLabel(cfg.muteKey)], description: 'Mute / Unmute' });
+      media.push({ keys: [formatKeyLabel(cfg.muteKey)], description: "Mute / Unmute" });
     }
     if (cfg.fullscreen) {
-      media.push({ keys: [formatKeyLabel(cfg.fullscreen)], description: 'Toggle fullscreen' });
+      media.push({ keys: [formatKeyLabel(cfg.fullscreen)], description: "Toggle fullscreen" });
     }
 
-    media.push({ keys: ['?'], description: 'Show / hide shortcuts' });
+    media.push({ keys: ["?"], description: "Show / hide shortcuts" });
 
     return [
-      { title: 'Playback', shortcuts: playback },
-      { title: 'Seeking', shortcuts: seeking },
-      { title: 'Media', shortcuts: media },
+      { title: "Playback", shortcuts: playback },
+      { title: "Seeking", shortcuts: seeking },
+      { title: "Media", shortcuts: media },
     ];
   }
 }

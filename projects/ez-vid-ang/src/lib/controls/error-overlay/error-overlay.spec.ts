@@ -1,16 +1,16 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { EvaErrorOverlay } from './error-overlay';
-import { EvaApi } from '../../api/eva-api';
-import { EvaFullscreenAPI } from '../../api/fullscreen';
+import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { EvaErrorOverlay } from "./error-overlay";
+import { EvaApi } from "../../api/eva-api";
+import { EvaFullscreenAPI } from "../../api/fullscreen";
 
-describe('EvaErrorOverlay', () => {
+describe("EvaErrorOverlay", () => {
   let component: EvaErrorOverlay;
   let fixture: ComponentFixture<EvaErrorOverlay>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [EvaErrorOverlay],
-      providers: [EvaApi, EvaFullscreenAPI]
+      providers: [EvaApi, EvaFullscreenAPI],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EvaErrorOverlay);
@@ -18,7 +18,7 @@ describe('EvaErrorOverlay', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it("should create", () => {
     expect(component).toBeTruthy();
   });
 });

@@ -2,21 +2,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import {
-  Directive,
-  inject,
-  input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  SimpleChanges
-} from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../api/eva-api';
-import { EvaAudioTrack, EvaQualityLevel, EvaStreamSubtitleTrack } from '../types';
+import { Directive, inject, input, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../api/eva-api";
+import { EvaAudioTrack, EvaQualityLevel, EvaStreamSubtitleTrack } from "../types";
 
 declare let Hls: {
-  new(config?: EvaHlsConfig): any;
+  new (config?: EvaHlsConfig): any;
   isSupported: () => boolean;
   Events: {
     MANIFEST_PARSED: string;
@@ -39,7 +31,7 @@ export type EvaHlsConfig = {
   maxBufferLength?: number;
   maxBufferSize?: number;
   [key: string]: any;
-}
+};
 
 /**
  * HLS streaming directive for the Eva video player.
@@ -94,8 +86,8 @@ export type EvaHlsConfig = {
  * />
  */
 @Directive({
-  selector: 'eva-player[evaHls]',
-  exportAs: 'evaHls'
+  selector: "eva-player[evaHls]",
+  exportAs: "evaHls",
 })
 export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
   private readonly evaAPI = inject(EvaApi);
@@ -129,7 +121,7 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
   private playerReady$: Subscription | null = null;
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['evaHlsSrc'] && !changes['evaHlsSrc'].firstChange) {
+    if (changes["evaHlsSrc"] && !changes["evaHlsSrc"].firstChange) {
       this.createPlayer();
     }
   }
@@ -176,12 +168,16 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
     this.destroyPlayer();
 
     const src = this.evaHlsSrc();
-    if (!src) { return; }
+    if (!src) {
+      return;
+    }
 
     const video = this.evaAPI.assignedVideoElement;
-    if (!video) { return; }
+    if (!video) {
+      return;
+    }
 
-    if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+    if (typeof Hls !== "undefined" && Hls.isSupported()) {
       const userConfig = this.evaHlsConfig();
       const userXhrSetup = userConfig.xhrSetup as ((xhr: XMLHttpRequest, url: string) => void) | undefined;
       const config: EvaHlsConfig = {
@@ -203,11 +199,11 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
         const levels: EvaQualityLevel[] = [
           {
             qualityIndex: -1,
-            label: 'Auto',
+            label: "Auto",
             width: 0,
             height: 0,
             bitrate: 0,
-            mediaType: 'video',
+            mediaType: "video",
             isAuto: true,
             selected: true,
           },
@@ -217,7 +213,7 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
             width: level.width ?? 0,
             height: level.height ?? 0,
             bitrate: level.bitrate ?? 0,
-            mediaType: 'video' as const,
+            mediaType: "video" as const,
             codec: level.videoCodec,
             frameRate: level.frameRate,
           })),
@@ -236,7 +232,7 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
         this.evaAPI.isLive.set(data.details.live);
       });
 
-      this.hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_event: any, data: { audioTracks: { id: number; name: string; lang: string; }[] }) => {
+      this.hls.on(Hls.Events.AUDIO_TRACKS_UPDATED, (_event: any, data: { audioTracks: { id: number; name: string; lang: string }[] }) => {
         this.registerHlsAudioTracks(data.audioTracks);
       });
 
@@ -244,16 +240,16 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
         this.evaAPI.currentAudioTrackId.set(data.id);
       });
 
-      this.hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, (_event: any, data: { subtitleTracks: { id: number; name: string; lang: string; }[] }) => {
+      this.hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, (_event: any, data: { subtitleTracks: { id: number; name: string; lang: string }[] }) => {
         this.registerHlsSubtitleTracks(data.subtitleTracks);
       });
 
       this.hls.attachMedia(video);
       this.hls.loadSource(src);
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = src;
     } else {
-      console.warn('[EvaHls] HLS is not supported in this browser.');
+      console.warn("[EvaHls] HLS is not supported in this browser.");
     }
   }
 
@@ -262,8 +258,8 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
    * `EvaApi`. Extracted from `createPlayer()`'s `AUDIO_TRACKS_UPDATED` handler to keep
    * that method within the project's line-count limit.
    */
-  private registerHlsAudioTracks(audioTracks: { id: number; name: string; lang: string; }[]): void {
-    const tracks: EvaAudioTrack[] = audioTracks.map(t => ({
+  private registerHlsAudioTracks(audioTracks: { id: number; name: string; lang: string }[]): void {
+    const tracks: EvaAudioTrack[] = audioTracks.map((t) => ({
       id: t.id,
       label: t.name || t.lang || `Track ${t.id}`,
       ...(t.lang ? { language: t.lang } : {}),
@@ -278,8 +274,8 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
    * them with `EvaApi`. Extracted from `createPlayer()`'s `SUBTITLE_TRACKS_UPDATED`
    * handler to keep that method within the project's line-count limit.
    */
-  private registerHlsSubtitleTracks(subtitleTracks: { id: number; name: string; lang: string; }[]): void {
-    const tracks: EvaStreamSubtitleTrack[] = subtitleTracks.map(t => ({
+  private registerHlsSubtitleTracks(subtitleTracks: { id: number; name: string; lang: string }[]): void {
+    const tracks: EvaStreamSubtitleTrack[] = subtitleTracks.map((t) => ({
       id: t.id,
       label: t.name || t.lang || `Track ${t.id}`,
       ...(t.lang ? { language: t.lang } : {}),
@@ -305,7 +301,9 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
    * @param level - The `qualityIndex` from an `EvaQualityLevel` object.
    */
   public setQualityLevel(level: number): void {
-    if (!this.hls) { return; }
+    if (!this.hls) {
+      return;
+    }
     this.hls.nextLevel = level;
   }
 
@@ -316,7 +314,9 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
    * @param id - The `id` from an `EvaAudioTrack` object (maps to the hls.js audio track index).
    */
   public setAudioTrack(id: number): void {
-    if (!this.hls) { return; }
+    if (!this.hls) {
+      return;
+    }
     (this.hls as { audioTrack: number }).audioTrack = id;
   }
 
@@ -329,7 +329,9 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
    *   subtitle track index), or `-1` to turn subtitles off.
    */
   public setSubtitleTrack(id: number): void {
-    if (!this.hls) { return; }
+    if (!this.hls) {
+      return;
+    }
     const hls = this.hls as { subtitleTrack: number; subtitleDisplay: boolean };
     hls.subtitleTrack = id;
     hls.subtitleDisplay = id !== -1;

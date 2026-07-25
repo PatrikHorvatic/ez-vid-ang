@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { DEFAULT_LOW_VOLUME_THRESHOLD, DEFAULT_MIDDLE_VOLUME_THRESHOLD } from '../../constants';
-import { EvaIcon } from '../../core/icon/icon';
-import { EvaMuteAria, EvaMuteAriaTransformed, transformEvaMuteAria, validateAndTransformVolumeRange } from '../../utils/aria-utilities';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { DEFAULT_LOW_VOLUME_THRESHOLD, DEFAULT_MIDDLE_VOLUME_THRESHOLD } from "../../constants";
+import { EvaIcon } from "../../core/icon/icon";
+import { EvaMuteAria, EvaMuteAriaTransformed, transformEvaMuteAria, validateAndTransformVolumeRange } from "../../utils/aria-utilities";
 
 /**
  * Mute/unmute button component for the Eva video player.
@@ -47,19 +47,19 @@ import { EvaMuteAria, EvaMuteAriaTransformed, transformEvaMuteAria, validateAndT
  * </eva-mute>
  */
 @Component({
-  selector: 'eva-mute',
+  selector: "eva-mute",
   imports: [EvaIcon],
-  templateUrl: './mute.html',
-  styleUrl: './mute.scss',
+  templateUrl: "./mute.html",
+  styleUrl: "./mute.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "button",
+    tabindex: "0",
+    role: "button",
     "[attr.aria-label]": "muteAriaLabel()",
     "[attr.aria-valuetext]": "muteAriaValueText()",
     "(click)": "muteClicked()",
-    "(keydown)": "muteClickKeyboard($event)"
-  }
+    "(keydown)": "muteClickKeyboard($event)",
+  },
 })
 export class EvaMute implements OnInit, OnDestroy {
   private readonly evaAPI = inject(EvaApi);
@@ -103,9 +103,7 @@ export class EvaMute implements OnInit, OnDestroy {
   protected readonly muteAriaLabel = computed<string>(() => this.evaAria().ariaLabel);
 
   /** Resolves the `aria-valuetext` based on the current volume — muted or unmuted. */
-  protected readonly muteAriaValueText = computed<string>(() => this.videoVolume() > 0
-    ? this.evaAria().ariaValueTextUnmuted
-    : this.evaAria().ariaValueTextMuted);
+  protected readonly muteAriaValueText = computed<string>(() => (this.videoVolume() > 0 ? this.evaAria().ariaValueTextUnmuted : this.evaAria().ariaValueTextMuted));
 
   /** `true` when volume is >= `evaMiddleVolume` — selects the `volume-high` registry icon. */
   protected readonly evaIconVolumeUp = computed<boolean>(() => this.videoVolume() >= this.evaMiddleVolume());
@@ -131,11 +129,11 @@ export class EvaMute implements OnInit, OnDestroy {
    */
   public ngOnInit(): void {
     this.videoVolume.set(this.evaAPI.getVideoVolume());
-    this.videoVolumeSub = this.evaAPI.videoVolumeSubject.subscribe(volume => {
+    this.videoVolumeSub = this.evaAPI.videoVolumeSubject.subscribe((volume) => {
       if (volume !== null) {
         this.videoVolume.set(volume);
       }
-    })
+    });
   }
 
   /** Unsubscribes from the volume subscription to prevent memory leaks. */
@@ -145,7 +143,7 @@ export class EvaMute implements OnInit, OnDestroy {
 
   /** Delegates mute/unmute toggling to `EvaApi`. */
   protected muteClicked(): void {
-    this.evaAPI.muteOrUnmuteVideo()
+    this.evaAPI.muteOrUnmuteVideo();
   }
 
   /**
@@ -153,7 +151,7 @@ export class EvaMute implements OnInit, OnDestroy {
    * Triggers mute/unmute on `Enter` or `Space` keypress.
    */
   protected muteClickKeyboard(k: KeyboardEvent): void {
-    if (k.key === 'Enter' || k.key === ' ') {
+    if (k.key === "Enter" || k.key === " ") {
       k.preventDefault();
       this.muteClicked();
     }

@@ -1,6 +1,5 @@
-@if(evaAPI.isLive()){
-<span>{{evaLiveText()}}</span>
-}
-@else {
-<span>{{evaAPI.time()[evaTimeProperty()] | evaTimeDisplay: evaTimeFormating(): evaTimeProperty()}}</span>
+@if (evaAPI.isLive()) {
+  <span>{{ evaLiveText() }}</span>
+} @else {
+  <span>{{ evaAPI.time()[evaTimeProperty()] | evaTimeDisplay: evaTimeFormating() : evaTimeProperty() }}</span>
 }

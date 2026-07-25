@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, output, signal } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { EvaIcon } from '../../core/icon/icon';
-import { EvaState } from '../../types';
-import { EvaPlayPauseAria, EvaPlayPauseAriaTransformed, transformEvaPlayPauseAria } from '../../utils/aria-utilities';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, output, signal } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { EvaIcon } from "../../core/icon/icon";
+import { EvaState } from "../../types";
+import { EvaPlayPauseAria, EvaPlayPauseAriaTransformed, transformEvaPlayPauseAria } from "../../utils/aria-utilities";
 
 /**
  * Play/pause button component for the Eva video player.
@@ -45,19 +45,19 @@ import { EvaPlayPauseAria, EvaPlayPauseAriaTransformed, transformEvaPlayPauseAri
  * </eva-play-pause>
  */
 @Component({
-  selector: 'eva-play-pause',
+  selector: "eva-play-pause",
   imports: [EvaIcon],
-  templateUrl: './play-pause.html',
-  styleUrl: './play-pause.scss',
+  templateUrl: "./play-pause.html",
+  styleUrl: "./play-pause.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "button",
+    tabindex: "0",
+    role: "button",
     "[attr.aria-label]": "ariaLabel()",
     "[attr.aria-valuetext]": "ariaValueText()",
     "(click)": "playPauseClicked()",
-    "(keydown)": "playPauseClickedKeyboard($event)"
-  }
+    "(keydown)": "playPauseClickedKeyboard($event)",
+  },
 })
 export class EvaPlayPause implements OnInit, OnDestroy {
   private readonly evaAPI = inject(EvaApi);
@@ -76,10 +76,7 @@ export class EvaPlayPause implements OnInit, OnDestroy {
    *
    * @todo Improve type inference to avoid the need for explicit transform function handling.
    */
-  public readonly evaPlayPauseAria = input<EvaPlayPauseAriaTransformed, EvaPlayPauseAria>(
-    transformEvaPlayPauseAria(undefined),
-    { transform: transformEvaPlayPauseAria }
-  );
+  public readonly evaPlayPauseAria = input<EvaPlayPauseAriaTransformed, EvaPlayPauseAria>(transformEvaPlayPauseAria(undefined), { transform: transformEvaPlayPauseAria });
 
   /**
    * When `true`, suppresses the registry-sourced icons and renders `<ng-content>` instead,
@@ -96,7 +93,7 @@ export class EvaPlayPause implements OnInit, OnDestroy {
    * Resolves the `aria-label` based on the current playback state.
    * Returns `ariaLabel.pause` when playing, `ariaLabel.play` otherwise.
    */
-  protected readonly ariaLabel = computed<string>(() => this.playingState() === EvaState.PLAYING ? this.evaPlayPauseAria().ariaLabel.pause : this.evaPlayPauseAria().ariaLabel.play);
+  protected readonly ariaLabel = computed<string>(() => (this.playingState() === EvaState.PLAYING ? this.evaPlayPauseAria().ariaLabel.pause : this.evaPlayPauseAria().ariaLabel.play));
 
   /**
    * Resolves the `aria-valuetext` based on the current playback state.
@@ -111,17 +108,13 @@ export class EvaPlayPause implements OnInit, OnDestroy {
   protected readonly ariaValueText = computed<string>(() => {
     if (this.playingState() === EvaState.LOADING) {
       return this.evaPlayPauseAria().ariaValueText.loading;
-    }
-    else if (this.playingState() === EvaState.PLAYING) {
+    } else if (this.playingState() === EvaState.PLAYING) {
       return this.evaPlayPauseAria().ariaValueText.playing;
-    }
-    else if (this.playingState() === EvaState.PAUSED) {
+    } else if (this.playingState() === EvaState.PAUSED) {
       return this.evaPlayPauseAria().ariaValueText.paused;
-    }
-    else if (this.playingState() === EvaState.ENDED) {
+    } else if (this.playingState() === EvaState.ENDED) {
       return this.evaPlayPauseAria().ariaValueText.ended;
-    }
-    else if (this.playingState() === EvaState.ERROR) {
+    } else if (this.playingState() === EvaState.ERROR) {
       return this.evaPlayPauseAria().ariaValueText.errored;
     }
 
@@ -145,10 +138,10 @@ export class EvaPlayPause implements OnInit, OnDestroy {
    * in sync with the current video playback state.
    */
   public ngOnInit(): void {
-    this.playingStateSub = this.evaAPI.videoStateSubject.subscribe(state => {
+    this.playingStateSub = this.evaAPI.videoStateSubject.subscribe((state) => {
       this.playingState.set(state);
       this.playingStateChanged.emit(state);
-    })
+    });
   }
 
   /** Unsubscribes from the video state subscription to prevent memory leaks. */
@@ -166,7 +159,7 @@ export class EvaPlayPause implements OnInit, OnDestroy {
    * Triggers play/pause on `Enter` or `Space` keypress.
    */
   protected playPauseClickedKeyboard(k: KeyboardEvent): void {
-    if (k.key === 'Enter' || k.key === ' ') {
+    if (k.key === "Enter" || k.key === " ") {
       k.preventDefault();
       this.playPauseClicked();
     }

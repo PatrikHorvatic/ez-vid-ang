@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, input, output, signal, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { EvaChapterMarker } from '../../types';
-import { transformEvaActiveChapterAria, EvaActiveChapterAria, EvaActiveChapterAriaTransformed } from '../../utils/aria-utilities';
+import { ChangeDetectionStrategy, Component, inject, input, output, signal, OnDestroy, OnInit } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { EvaChapterMarker } from "../../types";
+import { transformEvaActiveChapterAria, EvaActiveChapterAria, EvaActiveChapterAriaTransformed } from "../../utils/aria-utilities";
 
 /**
  * Displays the currently active chapter and emits it when the user interacts with it.
@@ -33,17 +33,17 @@ import { transformEvaActiveChapterAria, EvaActiveChapterAria, EvaActiveChapterAr
  * </eva-active-chapter>
  */
 @Component({
-  selector: 'eva-active-chapter',
-  templateUrl: './active-chapter.html',
-  styleUrl: './active-chapter.scss',
+  selector: "eva-active-chapter",
+  templateUrl: "./active-chapter.html",
+  styleUrl: "./active-chapter.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "button",
+    tabindex: "0",
+    role: "button",
     "[attr.aria-label]": "evaAria().ariaLabel",
     "(click)": "activeChapterClicked()",
-    "(keydown)": "activeChapterClickedKeyboard($event)"
-  }
+    "(keydown)": "activeChapterClickedKeyboard($event)",
+  },
 })
 export class EvaActiveChapter implements OnInit, OnDestroy {
   private readonly evaAPI = inject(EvaApi);
@@ -53,10 +53,7 @@ export class EvaActiveChapter implements OnInit, OnDestroy {
    *
    * All properties are optional — defaults are applied via `transformEvaActiveChaptedAria`.
    */
-  public readonly evaAria = input<EvaActiveChapterAriaTransformed, EvaActiveChapterAria>(
-    transformEvaActiveChapterAria(undefined),
-    { transform: transformEvaActiveChapterAria }
-  );
+  public readonly evaAria = input<EvaActiveChapterAriaTransformed, EvaActiveChapterAria>(transformEvaActiveChapterAria(undefined), { transform: transformEvaActiveChapterAria });
 
   /**
    * When `true`, suppresses the default icon and allows the consumer to project
@@ -89,7 +86,7 @@ export class EvaActiveChapter implements OnInit, OnDestroy {
    */
   public ngOnInit(): void {
     this.evaAPI.isActiveChapterPresent = true;
-    this.chapterSub = this.evaAPI.activeChapterSubject.subscribe(a => {
+    this.chapterSub = this.evaAPI.activeChapterSubject.subscribe((a) => {
       this.activeChapter.set(a);
     });
   }
@@ -118,7 +115,7 @@ export class EvaActiveChapter implements OnInit, OnDestroy {
    * @param k - The native `KeyboardEvent` from the host element.
    */
   protected activeChapterClickedKeyboard(k: KeyboardEvent): void {
-    if (k.key === 'Enter' || k.key === ' ') {
+    if (k.key === "Enter" || k.key === " ") {
       k.preventDefault();
       this.activeChapterClicked();
     }

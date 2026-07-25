@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, input, output, signal, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { EvaState } from '../../types';
-import { transformEvaErrorOverlayAria, EvaErrorOverlayAria, EvaErrorOverlayAriaTransformed } from '../../utils/aria-utilities';
+import { ChangeDetectionStrategy, Component, inject, input, output, signal, OnDestroy, OnInit } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { EvaState } from "../../types";
+import { transformEvaErrorOverlayAria, EvaErrorOverlayAria, EvaErrorOverlayAriaTransformed } from "../../utils/aria-utilities";
 
 /**
  * Error overlay component for the Eva video player.
@@ -50,15 +50,15 @@ import { transformEvaErrorOverlayAria, EvaErrorOverlayAria, EvaErrorOverlayAriaT
  * <eva-error-overlay (evaRetryClicked)="onRetry()" />
  */
 @Component({
-  selector: 'eva-error-overlay',
-  templateUrl: './error-overlay.html',
-  styleUrl: './error-overlay.scss',
+  selector: "eva-error-overlay",
+  templateUrl: "./error-overlay.html",
+  styleUrl: "./error-overlay.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "role": "alert",
+    role: "alert",
     "[attr.aria-label]": "evaAria().ariaLabel",
     "[class.eva-error-overlay-visible]": "isVisible()",
-  }
+  },
 })
 export class EvaErrorOverlay implements OnInit, OnDestroy {
   protected readonly evaAPI = inject(EvaApi);
@@ -68,14 +68,14 @@ export class EvaErrorOverlay implements OnInit, OnDestroy {
    *
    * @default "An error occurred during video playback."
    */
-  public readonly evaErrorText = input<string>('An error occurred during video playback.');
+  public readonly evaErrorText = input<string>("An error occurred during video playback.");
 
   /**
    * Label on the retry button.
    *
    * @default "Retry"
    */
-  public readonly evaRetryText = input<string>('Retry');
+  public readonly evaRetryText = input<string>("Retry");
 
   /**
    * When `true`, hides the built-in error message and retry button,
@@ -105,7 +105,7 @@ export class EvaErrorOverlay implements OnInit, OnDestroy {
   private stateSub: Subscription | null = null;
 
   public ngOnInit(): void {
-    this.stateSub = this.evaAPI.videoStateSubject.subscribe(state => {
+    this.stateSub = this.evaAPI.videoStateSubject.subscribe((state) => {
       this.isVisible.set(state === EvaState.ERROR);
     });
   }

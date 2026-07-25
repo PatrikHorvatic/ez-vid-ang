@@ -1,16 +1,16 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { EvaDownload } from './download';
-import { EvaApi } from '../../api/eva-api';
-import { EvaFullscreenAPI } from '../../api/fullscreen';
+import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { EvaDownload } from "./download";
+import { EvaApi } from "../../api/eva-api";
+import { EvaFullscreenAPI } from "../../api/fullscreen";
 
-describe('EvaDownload', () => {
+describe("EvaDownload", () => {
   let component: EvaDownload;
   let fixture: ComponentFixture<EvaDownload>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [EvaDownload],
-      providers: [EvaApi, EvaFullscreenAPI]
+      providers: [EvaApi, EvaFullscreenAPI],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EvaDownload);
@@ -18,7 +18,7 @@ describe('EvaDownload', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it("should create", () => {
     expect(component).toBeTruthy();
   });
 });

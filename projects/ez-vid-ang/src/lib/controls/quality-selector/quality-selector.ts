@@ -1,17 +1,8 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  signal,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { EvaQualityLevel } from '../../types';
-import { EvaQualityAria } from '../../utils/aria-utilities';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, OnDestroy, OnInit } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { EvaQualityLevel } from "../../types";
+import { EvaQualityAria } from "../../utils/aria-utilities";
 
 /**
  * Quality/bitrate selector component for the Eva video player.
@@ -49,19 +40,19 @@ import { EvaQualityAria } from '../../utils/aria-utilities';
  * />
  */
 @Component({
-  selector: 'eva-quality-selector',
-  templateUrl: './quality-selector.html',
-  styleUrl: './quality-selector.scss',
+  selector: "eva-quality-selector",
+  templateUrl: "./quality-selector.html",
+  styleUrl: "./quality-selector.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    'tabindex': '0',
-    'role': 'button',
-    '[attr.aria-label]': 'ariaLabel()',
-    '[attr.aria-valuetext]': 'currentQuality()?.label ?? evaQualityAutoText()',
-    '[class.open]': 'isOpen()',
-    '(click)': 'onClicked()',
-    '(keydown)': 'onKeyDown($event)',
-    '(blur)': 'onBlur($event)',
+    tabindex: "0",
+    role: "button",
+    "[attr.aria-label]": "ariaLabel()",
+    "[attr.aria-valuetext]": "currentQuality()?.label ?? evaQualityAutoText()",
+    "[class.open]": "isOpen()",
+    "(click)": "onClicked()",
+    "(keydown)": "onKeyDown($event)",
+    "(blur)": "onBlur($event)",
   },
 })
 export class EvaQualitySelector implements OnInit, OnDestroy {
@@ -72,22 +63,22 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
    *
    * @default "Quality selector"
    */
-  public readonly evaQualitySelectorText = input<string>('Quality selector');
+  public readonly evaQualitySelectorText = input<string>("Quality selector");
 
   /**
    * Label used for the Auto (ABR) quality option.
    *
    * @default "Auto"
    */
-  public readonly evaQualityAutoText = input<string>('Auto');
+  public readonly evaQualityAutoText = input<string>("Auto");
 
   /**
    * ARIA label for the quality selector button.
    */
-  public readonly evaAria = input<EvaQualityAria>({ ariaLabel: 'Quality selector' });
+  public readonly evaAria = input<EvaQualityAria>({ ariaLabel: "Quality selector" });
 
   /** Resolves the `aria-label` from the aria input. */
-  protected readonly ariaLabel = computed<string>(() => this.evaAria().ariaLabel ?? 'Quality selector');
+  protected readonly ariaLabel = computed<string>(() => this.evaAria().ariaLabel ?? "Quality selector");
 
   /** Whether the dropdown is currently open. */
   protected readonly isOpen = signal(false);
@@ -117,28 +108,28 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
    * Attaches a document-level click listener to close on outside clicks.
    */
   public ngOnInit(): void {
-    this.qualityLevelsSub = this.evaAPI.qualityLevelsSubject.subscribe(levels => {
+    this.qualityLevelsSub = this.evaAPI.qualityLevelsSubject.subscribe((levels) => {
       this.qualities.set(levels);
 
       // Only reset selection if the current choice is no longer available
       const current = this.currentQuality();
-      const stillAvailable = current !== null && levels.some(q => q.qualityIndex === current.qualityIndex);
+      const stillAvailable = current !== null && levels.some((q) => q.qualityIndex === current.qualityIndex);
       if (!stillAvailable) {
-        const auto = levels.find(q => q.isAuto) ?? levels[0] ?? null;
+        const auto = levels.find((q) => q.isAuto) ?? levels[0] ?? null;
         this.currentQuality.set(auto);
         this.keyboardIndex.set(0);
       }
     });
 
     this.clickOutsideListener = this.handleClickOutside.bind(this);
-    document.addEventListener('click', this.clickOutsideListener, true);
+    document.addEventListener("click", this.clickOutsideListener, true);
   }
 
   /** Unsubscribes and removes the document-level click listener. */
   public ngOnDestroy(): void {
     this.qualityLevelsSub?.unsubscribe();
     if (this.clickOutsideListener) {
-      document.removeEventListener('click', this.clickOutsideListener, true);
+      document.removeEventListener("click", this.clickOutsideListener, true);
     }
   }
 
@@ -183,18 +174,20 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
    */
   protected onKeyDown(e: KeyboardEvent): void {
     const qualities = this.qualities();
-    if (!qualities.length) { return; }
+    if (!qualities.length) {
+      return;
+    }
     const isOpen = this.isOpen();
     const currentIndex = this.keyboardIndex();
 
     switch (e.key) {
-      case 'Enter':
-      case ' ':
+      case "Enter":
+      case " ":
         e.preventDefault();
         this.toggleDropdown();
         break;
 
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
         if (!isOpen) {
           this.isOpen.set(true);
@@ -205,7 +198,7 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
         }
         break;
 
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
         if (!isOpen) {
           this.isOpen.set(true);
@@ -216,14 +209,14 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
         }
         break;
 
-      case 'Home':
+      case "Home":
         if (isOpen) {
           e.preventDefault();
           this.selectQuality(qualities[0], 0);
         }
         break;
 
-      case 'End':
+      case "End":
         if (isOpen) {
           e.preventDefault();
           const last = qualities.length - 1;
@@ -231,7 +224,7 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
         }
         break;
 
-      case 'Escape':
+      case "Escape":
         e.preventDefault();
         this.isOpen.set(false);
         this.evaAPI.controlsSelectorComponentActive.next(false);
@@ -244,23 +237,23 @@ export class EvaQualitySelector implements OnInit, OnDestroy {
 
   /** Closes the dropdown when focus moves outside the `eva-quality-selector` element. */
   protected onBlur(event: FocusEvent): void {
-
     const related = event.relatedTarget;
-    if (!(related instanceof HTMLElement) || !related.closest('eva-quality-selector')) {
+    if (!(related instanceof HTMLElement) || !related.closest("eva-quality-selector")) {
       this.isOpen.set(false);
       this.evaAPI.controlsSelectorComponentActive.next(false);
     }
   }
 
   private toggleDropdown(): void {
-    this.isOpen.update(open => !open);
+    this.isOpen.update((open) => !open);
     this.evaAPI.controlsSelectorComponentActive.next(this.isOpen());
   }
 
   private handleClickOutside(event: MouseEvent): void {
-
-    if (!(event.target instanceof HTMLElement)) { return; }
-    if (!event.target.closest('eva-quality-selector')) {
+    if (!(event.target instanceof HTMLElement)) {
+      return;
+    }
+    if (!event.target.closest("eva-quality-selector")) {
       this.isOpen.set(false);
       this.evaAPI.controlsSelectorComponentActive.next(false);
     }

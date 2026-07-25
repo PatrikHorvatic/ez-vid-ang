@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal, OnDestroy, OnInit, WritableSignal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, OnDestroy, OnInit, WritableSignal } from "@angular/core";
 import { EvaApi } from "../../api/eva-api";
 import { Subscription } from "rxjs";
 
@@ -38,8 +38,8 @@ import { Subscription } from "rxjs";
   host: {
     // Suppressed during PiP — the browser renders subtitles natively inside the PiP window
     "[class.eva-subtitle-display--visible]": "cue() !== null && !pipWindowActive()",
-    "[style.padding-bottom]": "controlsCointainerNotVisible() ? '8px' : 'calc(var(--eva-control-element-height) + var(--eva-scrub-bar-heights) + 12px)'"
-  }
+    "[style.padding-bottom]": "controlsCointainerNotVisible() ? '8px' : 'calc(var(--eva-control-element-height) + var(--eva-scrub-bar-heights) + 12px)'",
+  },
 })
 export class EvaSubtitleDisplay implements OnInit, OnDestroy {
   private readonly evaAPI = inject(EvaApi);

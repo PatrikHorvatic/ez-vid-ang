@@ -1,43 +1,43 @@
 :host {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
-	height: 100%;
-	position: absolute;
-	top: 0;
-	left: 0;
-	transition:
-		visibility var(--eva-transition-duration) linear,
-		opacity var(--eva-transition-duration) linear;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition:
+    visibility var(--eva-transition-duration) linear,
+    opacity var(--eva-transition-duration) linear;
 
-	background-color: var(--eva-buffering-background-color);
-	z-index: 302;
-	visibility: hidden;
-	opacity: 0;
+  background-color: var(--eva-buffering-background-color);
+  z-index: 302;
+  visibility: hidden;
+  opacity: 0;
 }
 
 :host(.eva-display-buffering) {
-	visibility: visible !important;
-	opacity: 1 !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .eva-loader-meteor {
-	width: var(--eva-buffering-default-spinner-size);
-	height: var(--eva-buffering-default-spinner-size);
-	border-radius: 50%;
-	display: inline-block;
-	border-top: 3px solid #fff;
-	border-right: 3px solid transparent;
-	box-sizing: border-box;
-	animation: eva-loader-meteor-rotation var(--eva-buffering-spinner-animation-speed) linear infinite;
+  width: var(--eva-buffering-default-spinner-size);
+  height: var(--eva-buffering-default-spinner-size);
+  border-radius: 50%;
+  display: inline-block;
+  border-top: 3px solid #fff;
+  border-right: 3px solid transparent;
+  box-sizing: border-box;
+  animation: eva-loader-meteor-rotation var(--eva-buffering-spinner-animation-speed) linear infinite;
 }
 
 @keyframes eva-loader-meteor-rotation {
-	0% {
-		transform: rotate(0deg);
-	}
-	100% {
-		transform: rotate(360deg);
-	}
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

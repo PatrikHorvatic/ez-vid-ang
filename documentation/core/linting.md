@@ -25,6 +25,8 @@ npm run lint        # Check for errors
 npx ng lint --fix   # Auto-fix what can be fixed
 ```
 
+Formatting (whitespace, quotes, line breaks) is handled separately by Prettier — see [formatting documentation](formatting.md). `eslint-config-prettier` disables the stylistic rules below that would otherwise conflict with it.
+
 ## Presets
 
 The configuration starts from the strictest available presets:

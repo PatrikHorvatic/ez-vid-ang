@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject, signal, OnDestroy, OnInit, WritableSignal } from '@angular/core';
-import { throttleTime, Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { BUFFER_UPDATE_THROTTLE_MS, PERCENTAGE } from '../../constants';
+import { ChangeDetectionStrategy, Component, inject, signal, OnDestroy, OnInit, WritableSignal } from "@angular/core";
+import { throttleTime, Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { BUFFER_UPDATE_THROTTLE_MS, PERCENTAGE } from "../../constants";
 
 /**
  * Buffered time indicator component for the Eva scrub bar.
@@ -28,10 +28,10 @@ import { BUFFER_UPDATE_THROTTLE_MS, PERCENTAGE } from '../../constants';
  * <eva-scrub-bar-buffering-time />
  */
 @Component({
-  selector: 'eva-scrub-bar-buffering-time',
-  templateUrl: './scrub-bar-buffering-time.html',
-  styleUrl: './scrub-bar-buffering-time.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  selector: "eva-scrub-bar-buffering-time",
+  templateUrl: "./scrub-bar-buffering-time.html",
+  styleUrl: "./scrub-bar-buffering-time.scss",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EvaScrubBarBufferingTime implements OnInit, OnDestroy {
   private readonly evaAPI = inject(EvaApi);
@@ -67,7 +67,7 @@ export class EvaScrubBarBufferingTime implements OnInit, OnDestroy {
         return;
       }
       this.updateBufferPercentage(this.evaAPI.assignedVideoElement!.buffered);
-    })
+    });
   }
 
   /** Unsubscribes from all active subscriptions to prevent memory leaks. */

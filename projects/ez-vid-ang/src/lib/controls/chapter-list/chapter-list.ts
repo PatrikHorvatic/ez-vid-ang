@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, input, output, signal, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { EvaChapterMarker } from '../../types';
-import { CLICK_OUTSIDE_DEBOUNCE_MS, SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_DISPLAY_PAD_WIDTH } from '../../constants';
+import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, input, output, signal, OnDestroy, OnInit } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { EvaChapterMarker } from "../../types";
+import { CLICK_OUTSIDE_DEBOUNCE_MS, SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_DISPLAY_PAD_WIDTH } from "../../constants";
 
 /**
  * Floating panel that displays all available chapters in a scrollable list.
@@ -32,19 +32,19 @@ import { CLICK_OUTSIDE_DEBOUNCE_MS, SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_D
  * />
  */
 @Component({
-  selector: 'eva-chapter-list',
-  templateUrl: './chapter-list.html',
-  styleUrl: './chapter-list.scss',
+  selector: "eva-chapter-list",
+  templateUrl: "./chapter-list.html",
+  styleUrl: "./chapter-list.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "role": "navigation",
+    role: "navigation",
     "[attr.aria-label]": "evaChapterListTitle()",
     "[class.eva-chapter-list-open]": "evaChapterListOpen()",
     "[class.eva-chapter-list-left]": "evaChapterListPosition() === 'left'",
     "[class.eva-chapter-list-right]": "evaChapterListPosition() === 'right'",
     "(document:keydown.escape)": "onEscape()",
     "(document:click)": "onDocumentClick($event)",
-  }
+  },
 })
 export class EvaChapterList implements OnInit, OnDestroy {
   protected evaApi = inject(EvaApi);
@@ -76,21 +76,21 @@ export class EvaChapterList implements OnInit, OnDestroy {
    *
    * @default "Chapters"
    */
-  public readonly evaChapterListTitle = input<string>('Chapters');
+  public readonly evaChapterListTitle = input<string>("Chapters");
 
   /**
    * Which top corner of the player the panel appears in.
    *
    * @default "right"
    */
-  public readonly evaChapterListPosition = input<'left' | 'right'>('right');
+  public readonly evaChapterListPosition = input<"left" | "right">("right");
 
   /**
    * Text displayed when no chapters are available.
    *
    * @default "No chapters available"
    */
-  public readonly evaChapterListEmptyText = input<string>('No chapters available');
+  public readonly evaChapterListEmptyText = input<string>("No chapters available");
 
   /** Emitted when the panel should close (close button, Escape key, or click outside). The consumer should set `evaChapterListOpen` to `false`. */
   public readonly evaChapterListClose = output();
@@ -105,7 +105,7 @@ export class EvaChapterList implements OnInit, OnDestroy {
 
   protected readonly formattedChapters = computed(() => {
     const activeStart = this.activeChapterStartTime();
-    return this.chapters().map(c => ({
+    return this.chapters().map((c) => ({
       ...c,
       formattedStart: this.formatTime(c.startTime),
       formattedDuration: this.formatDuration(c.startTime, c.endTime),
@@ -117,10 +117,10 @@ export class EvaChapterList implements OnInit, OnDestroy {
   private activeSub: Subscription | null = null;
 
   public ngOnInit(): void {
-    this.chaptersSub = this.evaApi.chapterMarkerChangesSubject.subscribe(chapters => {
+    this.chaptersSub = this.evaApi.chapterMarkerChangesSubject.subscribe((chapters) => {
       this.chapters.set(chapters ?? []);
     });
-    this.activeSub = this.evaApi.activeChapterSubject.subscribe(chapter => {
+    this.activeSub = this.evaApi.activeChapterSubject.subscribe((chapter) => {
       this.activeChapterStartTime.set(chapter?.startTime ?? null);
     });
   }
@@ -143,8 +143,12 @@ export class EvaChapterList implements OnInit, OnDestroy {
 
   /** Closes the panel when the user clicks outside of it. Ignores the click that opened the panel. */
   protected onDocumentClick(e: MouseEvent): void {
-    if (!this.evaChapterListOpen()) { return; }
-    if (Date.now() - this.openedAt < CLICK_OUTSIDE_DEBOUNCE_MS) { return; }
+    if (!this.evaChapterListOpen()) {
+      return;
+    }
+    if (Date.now() - this.openedAt < CLICK_OUTSIDE_DEBOUNCE_MS) {
+      return;
+    }
 
     if (!(e.target instanceof Node) || !this.el.nativeElement.contains(e.target)) {
       this.closePanel();
@@ -153,16 +157,20 @@ export class EvaChapterList implements OnInit, OnDestroy {
 
   /** Seeks the video to the chapter's start time with proper seek coordination. */
   protected seekToChapter(chapter: EvaChapterMarker): void {
-    if (!this.evaApi.validateVideoAndPlayerBeforeAction()) { return; }
-    if (chapter.startTime < 0 || !isFinite(chapter.startTime)) { return; }
+    if (!this.evaApi.validateVideoAndPlayerBeforeAction()) {
+      return;
+    }
+    if (chapter.startTime < 0 || !isFinite(chapter.startTime)) {
+      return;
+    }
 
     const wasPlaying = !this.evaApi.assignedVideoElement!.paused;
     this.evaApi.isSeeking.set(true);
     this.evaApi.assignedVideoElement!.currentTime = chapter.startTime;
-    this.evaApi.time.update(a => ({
+    this.evaApi.time.update((a) => ({
       ...a,
       current: chapter.startTime,
-      remaining: a.total - chapter.startTime
+      remaining: a.total - chapter.startTime,
     }));
     this.evaApi.activeChapterSubject.next(chapter);
     if (wasPlaying) {
@@ -171,27 +179,35 @@ export class EvaChapterList implements OnInit, OnDestroy {
   }
 
   protected onKeydown(e: KeyboardEvent, chapter: EvaChapterMarker): void {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       this.seekToChapter(chapter);
     }
   }
 
   private formatTime(seconds: number): string {
-    if (!isFinite(seconds) || seconds < 0) { return '00:00'; }
+    if (!isFinite(seconds) || seconds < 0) {
+      return "00:00";
+    }
     const total = Math.floor(seconds);
     const hh = Math.floor(total / SECONDS_PER_HOUR);
     const mm = Math.floor((total % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
     const ss = total % SECONDS_PER_MINUTE;
-    const pad = (n: number): string => String(n).padStart(TIME_DISPLAY_PAD_WIDTH, '0');
-    if (hh > 0) { return `${pad(hh)}:${pad(mm)}:${pad(ss)}`; }
+    const pad = (n: number): string => String(n).padStart(TIME_DISPLAY_PAD_WIDTH, "0");
+    if (hh > 0) {
+      return `${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+    }
     return `${pad(mm)}:${pad(ss)}`;
   }
 
   private formatDuration(startTime: number, endTime: number): string {
-    if (!isFinite(startTime) || !isFinite(endTime)) { return ''; }
+    if (!isFinite(startTime) || !isFinite(endTime)) {
+      return "";
+    }
     const duration = endTime - startTime;
-    if (duration <= 0) { return ''; }
+    if (duration <= 0) {
+      return "";
+    }
     return this.formatTime(duration);
   }
 }

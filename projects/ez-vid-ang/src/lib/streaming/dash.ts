@@ -1,17 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
-import {
-  Directive,
-  inject,
-  input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  SimpleChanges,
-} from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../api/eva-api';
-import { EvaAudioTrack, EvaQualityLevel, EvaStreamSubtitleTrack } from '../types';
+import { Directive, inject, input, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../api/eva-api";
+import { EvaAudioTrack, EvaQualityLevel, EvaStreamSubtitleTrack } from "../types";
 
 declare let dashjs: {
   MediaPlayer: {
@@ -23,7 +15,7 @@ declare let dashjs: {
         updateSettings: (settings: Record<string, unknown>) => void;
         setAutoPlay: (value: boolean) => void;
         setProtectionData: (value: unknown) => void;
-        getRepresentationsByType: (type: 'video' | 'audio') => {
+        getRepresentationsByType: (type: "video" | "audio") => {
           index: number;
           bandwidth: number;
           width: number;
@@ -31,7 +23,7 @@ declare let dashjs: {
           frameRate: number;
           codecs: string | null;
         }[];
-        setRepresentationForTypeByIndex: (type: 'video' | 'audio', index: number, forceReplace?: boolean) => void;
+        setRepresentationForTypeByIndex: (type: "video" | "audio", index: number, forceReplace?: boolean) => void;
         reset: () => void;
       };
     };
@@ -55,15 +47,18 @@ type DashRepresentation = {
   height: number;
   frameRate: number;
   codecs: string | null;
-}
+};
 
 /**
  * DRM license server configuration for protected DASH streams.
  */
-export type EvaDRMLicenseServer = Record<string, {
-  serverURL: string;
-  httpRequestHeaders?: Record<string, string>;
-}>
+export type EvaDRMLicenseServer = Record<
+  string,
+  {
+    serverURL: string;
+    httpRequestHeaders?: Record<string, string>;
+  }
+>;
 
 /**
  * DASH streaming directive for the Eva video player.
@@ -116,8 +111,8 @@ export type EvaDRMLicenseServer = Record<string, {
  * />
  */
 @Directive({
-  selector: 'eva-player[evaDash]',
-  exportAs: 'evaDash'
+  selector: "eva-player[evaDash]",
+  exportAs: "evaDash",
 })
 export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
   private readonly evaAPI = inject(EvaApi);
@@ -168,14 +163,14 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
   private playerReady$: Subscription | null = null;
 
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['evaDashSrc'] && !changes['evaDashSrc'].firstChange) {
-      if (changes['evaDashSrc'].currentValue) {
+    if (changes["evaDashSrc"] && !changes["evaDashSrc"].firstChange) {
+      if (changes["evaDashSrc"].currentValue) {
         this.createPlayer();
       } else {
         this.destroyPlayer();
       }
     }
-    if (changes['evaDashConfig'] && !changes['evaDashConfig'].firstChange && this.dash) {
+    if (changes["evaDashConfig"] && !changes["evaDashConfig"].firstChange && this.dash) {
       this.dash.updateSettings(this.evaDashConfig());
     }
   }
@@ -219,10 +214,14 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
     this.destroyPlayer();
 
     const src = this.evaDashSrc();
-    if (!src) { return; }
+    if (!src) {
+      return;
+    }
 
     const video = this.evaAPI.assignedVideoElement;
-    if (!video) { return; }
+    if (!video) {
+      return;
+    }
 
     this.dash = dashjs.MediaPlayer().create();
     this.dash.updateSettings({
@@ -234,29 +233,31 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
     this.dash.setAutoPlay(false);
 
     this.dash.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
-      if (!this.dash) { return; }
+      if (!this.dash) {
+        return;
+      }
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      const representations: DashRepresentation[] = this.dash.getRepresentationsByType('video');
+      const representations: DashRepresentation[] = this.dash.getRepresentationsByType("video");
 
       if (representations.length > 0) {
         const levels: EvaQualityLevel[] = [
           {
             qualityIndex: -1,
-            label: 'Auto',
+            label: "Auto",
             width: 0,
             height: 0,
             bitrate: 0,
-            mediaType: 'video',
+            mediaType: "video",
             isAuto: true,
             selected: true,
           },
-          ...representations.map(rep => ({
+          ...representations.map((rep) => ({
             qualityIndex: rep.index,
             label: rep.height ? `${rep.height}p` : `Level ${rep.index}`,
             width: rep.width ?? 0,
             height: rep.height ?? 0,
             bitrate: rep.bandwidth ?? 0,
-            mediaType: 'video' as const,
+            mediaType: "video" as const,
             frameRate: rep.frameRate,
             ...(rep.codecs ? { codec: rep.codecs } : {}),
           })),
@@ -301,10 +302,12 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
    */
   private registerDashAudioTracks(): void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const rawAudioTracks: any[] = this.dash?.getTracksFor('audio') ?? [];
+    const rawAudioTracks: any[] = this.dash?.getTracksFor("audio") ?? [];
     this.dashAudioTracks = rawAudioTracks;
 
-    if (rawAudioTracks.length <= 1) { return; }
+    if (rawAudioTracks.length <= 1) {
+      return;
+    }
 
     const evaAudioTracks: EvaAudioTrack[] = rawAudioTracks.map((t: any, index: number) => {
       const lang = t.lang as string | undefined;
@@ -320,10 +323,8 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
     this.evaAPI.registerAudioTrackFn(this.setAudioTrack.bind(this));
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const currentDashTrack: any = this.dash?.getCurrentTrackFor('audio');
-    const currentIndex = currentDashTrack
-      ? rawAudioTracks.findIndex((t: any) => (t.id as unknown) === (currentDashTrack.id as unknown))
-      : 0;
+    const currentDashTrack: any = this.dash?.getCurrentTrackFor("audio");
+    const currentIndex = currentDashTrack ? rawAudioTracks.findIndex((t: any) => (t.id as unknown) === (currentDashTrack.id as unknown)) : 0;
     this.evaAPI.currentAudioTrackId.set(currentIndex >= 0 ? currentIndex : 0);
   }
 
@@ -336,7 +337,7 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
    */
   private registerDashSubtitleTracks(): void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const rawSubtitleTracks: any[] = this.dash?.getTracksFor('text') ?? [];
+    const rawSubtitleTracks: any[] = this.dash?.getTracksFor("text") ?? [];
     this.dashSubtitleTracks = rawSubtitleTracks;
 
     const evaSubtitleTracks: EvaStreamSubtitleTrack[] = rawSubtitleTracks.map((t: any, index: number) => {
@@ -374,7 +375,9 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
    * @param qualityIndex - The `qualityIndex` from an `EvaQualityLevel` object.
    */
   public setQualityLevel(qualityIndex: number): void {
-    if (!this.dash) { return; }
+    if (!this.dash) {
+      return;
+    }
 
     if (qualityIndex === -1) {
       this.dash.updateSettings({
@@ -384,7 +387,7 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
       this.dash.updateSettings({
         streaming: { abr: { autoSwitchBitrate: { video: false } } },
       });
-      this.dash.setRepresentationForTypeByIndex('video', qualityIndex);
+      this.dash.setRepresentationForTypeByIndex("video", qualityIndex);
     }
   }
 
@@ -396,7 +399,9 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
    * @param index - The `id` from an `EvaAudioTrack` object (zero-based index into `getTracksFor('audio')`).
    */
   public setAudioTrack(index: number): void {
-    if (!this.dash || !this.dashAudioTracks[index]) { return; }
+    if (!this.dash || !this.dashAudioTracks[index]) {
+      return;
+    }
     this.dash.setCurrentTrack(this.dashAudioTracks[index]);
     this.evaAPI.currentAudioTrackId.set(index);
   }
@@ -410,12 +415,16 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
    *   into `getTracksFor('text')`), or `-1` to turn subtitles off.
    */
   public setSubtitleTrack(index: number): void {
-    if (!this.dash) { return; }
+    if (!this.dash) {
+      return;
+    }
     if (index === -1) {
       this.dash.enableText(false);
       return;
     }
-    if (!this.dashSubtitleTracks[index]) { return; }
+    if (!this.dashSubtitleTracks[index]) {
+      return;
+    }
     this.dash.setTextTrack(index);
     this.dash.enableText(true);
   }

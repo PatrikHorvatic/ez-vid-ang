@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
-import { EvaTimeFormating, EvaTimeProperty } from '../../types';
-import { transformEvaTimeDisplayAria, EvaTimeDisplayAria, EvaTimeDisplayAriaTransformed } from '../../utils/aria-utilities';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from "@angular/core";
+import { EvaApi } from "../../api/eva-api";
+import { EvaTimeFormating, EvaTimeProperty } from "../../types";
+import { transformEvaTimeDisplayAria, EvaTimeDisplayAria, EvaTimeDisplayAriaTransformed } from "../../utils/aria-utilities";
 import { EvaTimeDisplayPipe } from "../pipes/time-display-pipe";
-import { SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_DISPLAY_PAD_WIDTH } from '../../constants';
+import { SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_DISPLAY_PAD_WIDTH } from "../../constants";
 
 /**
  * Time display component for the Eva video player.
@@ -39,19 +39,19 @@ import { SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_DISPLAY_PAD_WIDTH } from '..
  * />
  */
 @Component({
-  selector: 'eva-time-display',
+  selector: "eva-time-display",
   imports: [EvaTimeDisplayPipe],
-  templateUrl: './time-display.html',
-  styleUrl: './time-display.scss',
+  templateUrl: "./time-display.html",
+  styleUrl: "./time-display.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "timer",
+    tabindex: "0",
+    role: "timer",
     "[attr.aria-label]": "ariaLabel()",
     "[attr.aria-live]": "'off'",
     "[attr.aria-atomic]": "'true'",
     "[attr.aria-valuetext]": "displayText()",
-  }
+  },
 })
 export class EvaTimeDisplay {
   protected evaAPI = inject(EvaApi);
@@ -105,13 +105,11 @@ export class EvaTimeDisplay {
     const property = this.evaTimeProperty();
     if (property === "current") {
       return this.evaAria().ariaLabelCurrent;
-    }
-    else if (property === "total") {
+    } else if (property === "total") {
       return this.evaAria().ariaLabelTotal;
     }
 
     return this.evaAria().ariaLabelRemaining;
-
   });
 
   /**
@@ -138,19 +136,19 @@ export class EvaTimeDisplay {
     const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
     const minutes = Math.floor((totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
     const secs = totalSeconds % SECONDS_PER_MINUTE;
-    const pad = (n: number): string => n.toString().padStart(TIME_DISPLAY_PAD_WIDTH, '0');
+    const pad = (n: number): string => n.toString().padStart(TIME_DISPLAY_PAD_WIDTH, "0");
 
     switch (format) {
-      case 'HH:mm:ss':
+      case "HH:mm:ss":
         return `${pad(hours)}:${pad(minutes)}:${pad(secs)}`;
-      case 'mm:ss': {
+      case "mm:ss": {
         const totalMinutes = hours * SECONDS_PER_MINUTE + minutes;
         return `${pad(totalMinutes)}:${pad(secs)}`;
       }
-      case 'ss':
+      case "ss":
         return `${totalSeconds}`;
       default:
-        return '00:00';
+        return "00:00";
     }
   }
 }

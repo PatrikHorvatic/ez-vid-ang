@@ -1,7 +1,7 @@
-import { Directive, inject, OnDestroy, OnInit } from '@angular/core';
-import { fromEvent, merge, Subject, takeUntil, throttleTime, Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { MOUSEMOVE_THROTTLE_MS } from '../../constants';
+import { Directive, inject, OnDestroy, OnInit } from "@angular/core";
+import { fromEvent, merge, Subject, takeUntil, throttleTime, Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { MOUSEMOVE_THROTTLE_MS } from "../../constants";
 
 /**
  * Directive that listens for user interaction events on the assigned video element
@@ -29,7 +29,7 @@ import { MOUSEMOVE_THROTTLE_MS } from '../../constants';
  * <eva-controls-container evaUserInteractionEvents />
  */
 @Directive({
-  selector: 'eva-controls-container[evaUserInteractionEvents]'
+  selector: "eva-controls-container[evaUserInteractionEvents]",
 })
 export class EvaUserInteractionEventsDirective implements OnInit, OnDestroy {
   private readonly evaAPI = inject(EvaApi);
@@ -53,8 +53,7 @@ export class EvaUserInteractionEventsDirective implements OnInit, OnDestroy {
   public ngOnInit(): void {
     if (this.evaAPI.isPlayerReady) {
       this.prepareListeners();
-    }
-    else {
+    } else {
       this.playerReady$ = this.evaAPI.playerReadyEvent.subscribe(() => {
         this.prepareListeners();
       });
@@ -84,12 +83,14 @@ export class EvaUserInteractionEventsDirective implements OnInit, OnDestroy {
   private prepareListeners(): void {
     const videoEl = this.evaAPI.assignedVideoElement!;
 
-    const mousemove$ = fromEvent<MouseEvent>(videoEl, 'mousemove').pipe(throttleTime(MOUSEMOVE_THROTTLE_MS));
-    const touchstart$ = fromEvent<TouchEvent>(videoEl, 'touchstart');
-    const click$ = fromEvent<PointerEvent>(videoEl, 'click');
+    const mousemove$ = fromEvent<MouseEvent>(videoEl, "mousemove").pipe(throttleTime(MOUSEMOVE_THROTTLE_MS));
+    const touchstart$ = fromEvent<TouchEvent>(videoEl, "touchstart");
+    const click$ = fromEvent<PointerEvent>(videoEl, "click");
 
     merge(mousemove$, touchstart$, click$)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((t) => { this.evaAPI.triggerUserInteraction.next(t); });
+      .subscribe((t) => {
+        this.evaAPI.triggerUserInteraction.next(t);
+      });
   }
 }

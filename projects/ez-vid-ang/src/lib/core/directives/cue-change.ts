@@ -1,5 +1,5 @@
-import { Directive, effect, ElementRef, inject, input, OnDestroy } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
+import { Directive, effect, ElementRef, inject, input, OnDestroy } from "@angular/core";
+import { EvaApi } from "../../api/eva-api";
 
 /**
  * Directive that attaches a `cuechange` event listener to a `<track>` element
@@ -27,10 +27,9 @@ import { EvaApi } from '../../api/eva-api';
  * />
  */
 @Directive({
-  selector: 'track[evaCueChange]'
+  selector: "track[evaCueChange]",
 })
 export class EvaCueChangeDirective implements OnDestroy {
-
   /** Reference to the native `<track>` element this directive is applied to. */
   private readonly el = inject<ElementRef<HTMLTrackElement>>(ElementRef);
 
@@ -70,11 +69,15 @@ export class EvaCueChangeDirective implements OnDestroy {
   public constructor() {
     effect(() => {
       const { track } = this.el.nativeElement;
-      if (!track) { return; }
+      if (!track) {
+        return;
+      }
       if (this.evaCueChangeActive()) {
         this.detach();
-        this.handler = (): void => { this.evaAPI.onCueChange(track); };
-        track.addEventListener('cuechange', this.handler);
+        this.handler = (): void => {
+          this.evaAPI.onCueChange(track);
+        };
+        track.addEventListener("cuechange", this.handler);
       } else {
         this.detach();
       }
@@ -92,7 +95,7 @@ export class EvaCueChangeDirective implements OnDestroy {
    */
   private detach(): void {
     if (this.handler) {
-      this.el.nativeElement.track?.removeEventListener('cuechange', this.handler);
+      this.el.nativeElement.track?.removeEventListener("cuechange", this.handler);
       this.handler = null;
       this.evaAPI.onCueChange(null);
     }

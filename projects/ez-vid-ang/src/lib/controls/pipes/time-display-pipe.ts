@@ -1,6 +1,6 @@
-import { Pipe, PipeTransform } from '@angular/core';
-import { EvaTimeFormating, EvaTimeProperty } from '../../types';
-import { SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_DISPLAY_PAD_WIDTH } from '../../constants';
+import { Pipe, PipeTransform } from "@angular/core";
+import { EvaTimeFormating, EvaTimeProperty } from "../../types";
+import { SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_DISPLAY_PAD_WIDTH } from "../../constants";
 
 /**
  * Pure pipe that formats a time value in seconds into a display string
@@ -26,11 +26,10 @@ import { SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_DISPLAY_PAD_WIDTH } from '..
  * {{ time.remaining | evaTimeDisplay:'HH:mm:ss':'remaining' }}
  */
 @Pipe({
-  name: 'evaTimeDisplay',
-  pure: true
+  name: "evaTimeDisplay",
+  pure: true,
 })
 export class EvaTimeDisplayPipe implements PipeTransform {
-
   /**
    * Formats a time value in seconds into a display string.
    *
@@ -51,12 +50,11 @@ export class EvaTimeDisplayPipe implements PipeTransform {
       case "HH:mm:ss":
         return `${this.pad(hours)}:${this.pad(minutes)}:${this.pad(seconds)}`;
 
-      case "mm:ss":
+      case "mm:ss": {
         // Include hours in total minutes if present
-        {
-          const totalMinutes = hours * SECONDS_PER_MINUTE + minutes;
-          return `${this.pad(totalMinutes)}:${this.pad(seconds)}`;
-        }
+        const totalMinutes = hours * SECONDS_PER_MINUTE + minutes;
+        return `${this.pad(totalMinutes)}:${this.pad(seconds)}`;
+      }
 
       case "ss":
         return `${totalSeconds}`;
@@ -73,6 +71,6 @@ export class EvaTimeDisplayPipe implements PipeTransform {
    * @returns A string of at least 2 characters (e.g. `7` → `"07"`, `123` → `"123"`).
    */
   private pad(num: number): string {
-    return num.toString().padStart(TIME_DISPLAY_PAD_WIDTH, '0');
+    return num.toString().padStart(TIME_DISPLAY_PAD_WIDTH, "0");
   }
 }

@@ -1,18 +1,13 @@
-import { DOCUMENT } from '@angular/common';
-import { DestroyRef, Directive, effect, inject, input } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
-import { EvaKeyboardShortcutsConfiguration } from '../../types';
-import { EvaFullscreenAPI } from '../../api/fullscreen';
-import { SEEK_ICON_THRESHOLD_30 } from '../../constants';
+import { DOCUMENT } from "@angular/common";
+import { DestroyRef, Directive, effect, inject, input } from "@angular/core";
+import { EvaApi } from "../../api/eva-api";
+import { EvaKeyboardShortcutsConfiguration } from "../../types";
+import { EvaFullscreenAPI } from "../../api/fullscreen";
+import { SEEK_ICON_THRESHOLD_30 } from "../../constants";
 
 const FRAME_DURATION_SECONDS = 1 / SEEK_ICON_THRESHOLD_30;
 
-
-
-const INTERACTIVE_ROLES = new Set([
-  'listbox', 'combobox', 'menu', 'menuitem', 'slider',
-  'spinbutton', 'textbox', 'searchbox', 'gridcell',
-]);
+const INTERACTIVE_ROLES = new Set(["listbox", "combobox", "menu", "menuitem", "slider", "spinbutton", "textbox", "searchbox", "gridcell"]);
 
 /** Tracks which player was last interacted with for multi-player scoping. */
 let lastActiveApi: EvaApi | null = null;
@@ -40,35 +35,39 @@ let lastActiveApi: EvaApi | null = null;
  * />
  */
 @Directive({
-  selector: '[evaKeyboardShortcuts]',
+  selector: "[evaKeyboardShortcuts]",
 })
 export class EvaKeyboardShortcuts {
+  private readonly api = inject(EvaApi);
+  private readonly fullscreenService = inject(EvaFullscreenAPI);
+  private readonly document = inject(DOCUMENT);
+  private readonly destroyRef = inject(DestroyRef);
+
   /** Whether keyboard shortcuts are active. Dynamically adds/removes the document listener. */
   public readonly evaKeyboardShortcutsEnabled = input.required<boolean>();
 
   /** Key binding configuration. All keys are pre-normalized to uppercase via the transform on `EvaPlayer`. */
   public readonly evaKeyboardShortcutsConfiguration = input.required<Required<EvaKeyboardShortcutsConfiguration>>();
 
-  private readonly api = inject(EvaApi);
-  private readonly fullscreenService = inject(EvaFullscreenAPI);
-  private readonly document = inject(DOCUMENT);
-  private readonly destroyRef = inject(DestroyRef);
-
   public constructor() {
     effect(() => {
       if (this.evaKeyboardShortcutsEnabled()) {
-        if (!lastActiveApi) { lastActiveApi = this.api; }
+        if (!lastActiveApi) {
+          lastActiveApi = this.api;
+        }
         this.api.keyboardShortcutsConfigSubject.next(this.evaKeyboardShortcutsConfiguration());
-        this.document.removeEventListener('keydown', this.onKeydown);
-        this.document.addEventListener('keydown', this.onKeydown);
+        this.document.removeEventListener("keydown", this.onKeydown);
+        this.document.addEventListener("keydown", this.onKeydown);
       } else {
-        this.document.removeEventListener('keydown', this.onKeydown);
+        this.document.removeEventListener("keydown", this.onKeydown);
       }
     });
 
     this.destroyRef.onDestroy(() => {
-      this.document.removeEventListener('keydown', this.onKeydown);
-      if (lastActiveApi === this.api) { lastActiveApi = null; }
+      this.document.removeEventListener("keydown", this.onKeydown);
+      if (lastActiveApi === this.api) {
+        lastActiveApi = null;
+      }
     });
   }
 
@@ -81,13 +80,15 @@ export class EvaKeyboardShortcuts {
    * element responds. If focus is outside all players, the last-interacted player handles it.
    */
   private readonly onKeydown = (e: KeyboardEvent): void => {
-    if (!(e.target instanceof HTMLElement)) { return; }
-    const target = e.target;
-
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable) {
+    if (!(e.target instanceof HTMLElement)) {
       return;
     }
-    const role = target.getAttribute('role');
+    const target = e.target;
+
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT" || target.isContentEditable) {
+      return;
+    }
+    const role = target.getAttribute("role");
     if (role && INTERACTIVE_ROLES.has(role)) {
       return;
     }
@@ -98,12 +99,16 @@ export class EvaKeyboardShortcuts {
 
     const videoEl = this.api.assignedVideoElement;
     if (videoEl) {
-      const thisPlayer = videoEl.closest('eva-player');
-      const targetPlayer = target.closest('eva-player');
+      const thisPlayer = videoEl.closest("eva-player");
+      const targetPlayer = target.closest("eva-player");
       if (targetPlayer) {
-        if (targetPlayer !== thisPlayer) { return; }
+        if (targetPlayer !== thisPlayer) {
+          return;
+        }
         lastActiveApi = this.api;
-      } else if (lastActiveApi && lastActiveApi !== this.api) { return; }
+      } else if (lastActiveApi && lastActiveApi !== this.api) {
+        return;
+      }
     }
 
     const config = this.evaKeyboardShortcutsConfiguration();
@@ -124,7 +129,9 @@ export class EvaKeyboardShortcuts {
       this.api.seekForward(config.forwardSeconds);
     } else if (config.fullscreen && key === config.fullscreen) {
       e.preventDefault();
-      this.fullscreenService.toggleFullscreen().catch(() => { /* Ignored — browser may reject without user gesture */ });
+      this.fullscreenService.toggleFullscreen().catch(() => {
+        /* Ignored — browser may reject without user gesture */
+      });
     } else if (config.muteKey && key === config.muteKey) {
       e.preventDefault();
       this.api.muteOrUnmuteVideo();
@@ -137,12 +144,12 @@ export class EvaKeyboardShortcuts {
     } else if (config.oneFrameForward && key === config.oneFrameForward) {
       e.preventDefault();
       this.api.seekForward(FRAME_DURATION_SECONDS);
-    } else if (e.key === '?') {
+    } else if (e.key === "?") {
       e.preventDefault();
       const current = this.api.keyboardShortcutsOverlaySubject.value;
       this.api.keyboardShortcutsOverlaySubject.next(!current);
       this.api.controlsSelectorComponentActive.next(!current);
-    } else if (key >= '0' && key <= '9') {
+    } else if (key >= "0" && key <= "9") {
       e.preventDefault();
       this.api.jumpToVideoPercentage(key);
     }

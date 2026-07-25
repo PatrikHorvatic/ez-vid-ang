@@ -1,13 +1,13 @@
-import { Directive, ElementRef, inject, input, OnDestroy, OnInit } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
-import { EvaKeyboardShortcutsConfiguration } from '../../types';
+import { Directive, ElementRef, inject, input, OnDestroy, OnInit } from "@angular/core";
+import { EvaApi } from "../../api/eva-api";
+import { EvaKeyboardShortcutsConfiguration } from "../../types";
 
 const KEY_DISPLAY_MAP: Record<string, string> = {
-  ARROWLEFT: '←',
-  ARROWRIGHT: '→',
-  ARROWUP: '↑',
-  ARROWDOWN: '↓',
-  SPACE: 'Space',
+  ARROWLEFT: "←",
+  ARROWRIGHT: "→",
+  ARROWUP: "↑",
+  ARROWDOWN: "↓",
+  SPACE: "Space",
 };
 
 function formatTooltipKey(key: string): string {
@@ -18,7 +18,7 @@ function formatTooltipKey(key: string): string {
  * Valid property keys of `EvaKeyboardShortcutsConfiguration` that hold a key-binding string.
  * Pass one of these to `evaTooltipShortcutKey` to display the corresponding key next to the tooltip label.
  */
-export type EvaTooltipShortcutKey = keyof Omit<Required<EvaKeyboardShortcutsConfiguration>, 'backwardSeconds' | 'forwardSeconds'>;
+export type EvaTooltipShortcutKey = keyof Omit<Required<EvaKeyboardShortcutsConfiguration>, "backwardSeconds" | "forwardSeconds">;
 
 /**
  * Tooltip directive for Eva player control components.
@@ -58,12 +58,13 @@ export type EvaTooltipShortcutKey = keyof Omit<Required<EvaKeyboardShortcutsConf
  * <eva-fullscreen evaTooltip />
  */
 @Directive({
-  selector: 'eva-play-pause[evaTooltip], eva-backward[evaTooltip], eva-forward[evaTooltip], eva-loop[evaTooltip], eva-picture-in-picture[evaTooltip], eva-active-chapter[evaTooltip], eva-mute[evaTooltip], eva-volume[evaTooltip], eva-cinema-mode[evaTooltip], eva-download[evaTooltip], eva-screenshot[evaTooltip], eva-track-selector[evaTooltip], eva-playback-speed[evaTooltip], eva-quality-selector[evaTooltip], eva-settings-panel[evaTooltip], eva-fullscreen[evaTooltip]',
+  selector:
+    "eva-play-pause[evaTooltip], eva-backward[evaTooltip], eva-forward[evaTooltip], eva-loop[evaTooltip], eva-picture-in-picture[evaTooltip], eva-active-chapter[evaTooltip], eva-mute[evaTooltip], eva-volume[evaTooltip], eva-cinema-mode[evaTooltip], eva-download[evaTooltip], eva-screenshot[evaTooltip], eva-track-selector[evaTooltip], eva-playback-speed[evaTooltip], eva-quality-selector[evaTooltip], eva-settings-panel[evaTooltip], eva-fullscreen[evaTooltip]",
   host: {
-    '(mouseenter)': 'show()',
-    '(mouseleave)': 'hide()',
-    '(focus)': 'show()',
-    '(blur)': 'hide()',
+    "(mouseenter)": "show()",
+    "(mouseleave)": "hide()",
+    "(focus)": "show()",
+    "(blur)": "hide()",
   },
 })
 export class EvaTooltip implements OnInit, OnDestroy {
@@ -79,7 +80,7 @@ export class EvaTooltip implements OnInit, OnDestroy {
    *
    * @default '' (falls back to host aria-label)
    */
-  public readonly evaTooltip = input<string>('');
+  public readonly evaTooltip = input<string>("");
 
   /**
    * Property name in `EvaKeyboardShortcutsConfiguration` whose bound key will be displayed
@@ -90,28 +91,32 @@ export class EvaTooltip implements OnInit, OnDestroy {
    * @example 'muteKey'    // shows "M"
    * @example 'fullscreen' // shows "F"
    */
-  public readonly evaTooltipShortcutKey = input<EvaTooltipShortcutKey | ''>('');
+  public readonly evaTooltipShortcutKey = input<EvaTooltipShortcutKey | "">("");
 
   private tooltipEl: HTMLElement | null = null;
 
   public ngOnInit(): void {
-    this.playerEl = this.el.nativeElement.closest('eva-player');
+    this.playerEl = this.el.nativeElement.closest("eva-player");
   }
 
   protected show(): void {
-    if (typeof document === 'undefined') { return; }
+    if (typeof document === "undefined") {
+      return;
+    }
 
-    const label = this.evaTooltip() || this.el.nativeElement.getAttribute('aria-label') || '';
-    if (!label) { return; }
+    const label = this.evaTooltip() || this.el.nativeElement.getAttribute("aria-label") || "";
+    if (!label) {
+      return;
+    }
 
     this.hide();
 
-    const tooltip = document.createElement('div');
-    tooltip.className = 'eva-tooltip-popup';
-    tooltip.setAttribute('role', 'tooltip');
-    tooltip.style.visibility = 'hidden';
+    const tooltip = document.createElement("div");
+    tooltip.className = "eva-tooltip-popup";
+    tooltip.setAttribute("role", "tooltip");
+    tooltip.style.visibility = "hidden";
 
-    const labelSpan = document.createElement('span');
+    const labelSpan = document.createElement("span");
     labelSpan.textContent = label;
     tooltip.appendChild(labelSpan);
 
@@ -119,9 +124,9 @@ export class EvaTooltip implements OnInit, OnDestroy {
     if (shortcutKey) {
       const config = this.evaAPI.keyboardShortcutsConfigSubject.getValue();
       const rawKey = config ? (config as Record<string, unknown>)[shortcutKey] : null;
-      if (typeof rawKey === 'string') {
-        const kbd = document.createElement('kbd');
-        kbd.className = 'eva-tooltip-kbd';
+      if (typeof rawKey === "string") {
+        const kbd = document.createElement("kbd");
+        kbd.className = "eva-tooltip-kbd";
         kbd.textContent = formatTooltipKey(rawKey);
         tooltip.appendChild(kbd);
       }
@@ -146,18 +151,20 @@ export class EvaTooltip implements OnInit, OnDestroy {
     const maxLeft = (boundsRect?.right ?? window.innerWidth) - tooltipRect.width - EDGE;
 
     let top = hostRect.top - tooltipRect.height - GAP;
-    if (top < minTop) { top = hostRect.bottom + GAP; }
+    if (top < minTop) {
+      top = hostRect.bottom + GAP;
+    }
     top = Math.min(Math.max(top, minTop), Math.max(minTop, maxTop));
 
     let left = hostRect.left + hostRect.width / HALF - tooltipRect.width / HALF;
     left = Math.min(Math.max(left, minLeft), Math.max(minLeft, maxLeft));
 
-    tooltip.style.visibility = '';
+    tooltip.style.visibility = "";
     tooltip.style.top = `${top}px`;
     tooltip.style.left = `${left}px`;
 
     requestAnimationFrame(() => {
-      this.tooltipEl?.classList.add('eva-tooltip-visible');
+      this.tooltipEl?.classList.add("eva-tooltip-visible");
     });
   }
 

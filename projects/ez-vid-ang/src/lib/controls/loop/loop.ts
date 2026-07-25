@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { EvaIcon } from '../../core/icon/icon';
-import { EvaLoopAria, EvaLoopAriaTransformed, transformEvaLoopAria } from '../../utils/aria-utilities';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { EvaIcon } from "../../core/icon/icon";
+import { EvaLoopAria, EvaLoopAriaTransformed, transformEvaLoopAria } from "../../utils/aria-utilities";
 
 /**
  * Loop toggle button for the Eva video player.
@@ -33,20 +33,20 @@ import { EvaLoopAria, EvaLoopAriaTransformed, transformEvaLoopAria } from '../..
  * </eva-loop>
  */
 @Component({
-  selector: 'eva-loop',
+  selector: "eva-loop",
   imports: [EvaIcon],
-  templateUrl: './loop.html',
-  styleUrl: './loop.scss',
+  templateUrl: "./loop.html",
+  styleUrl: "./loop.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "button",
+    tabindex: "0",
+    role: "button",
     "[attr.aria-label]": "ariaLabel()",
     "[attr.aria-valuetext]": "ariaValueText()",
     "[class.eva-loop-active]": "isLoopActive()",
     "(click)": "toggleLoop()",
-    "(keydown)": "onKeydown($event)"
-  }
+    "(keydown)": "onKeydown($event)",
+  },
 })
 export class EvaLoop implements OnInit, OnDestroy {
   private readonly evaApi = inject(EvaApi);
@@ -64,19 +64,14 @@ export class EvaLoop implements OnInit, OnDestroy {
    * ARIA configuration for the loop button.
    * All properties are optional — defaults are applied via `transformEvaLoopAria`.
    */
-  public readonly evaAria = input<EvaLoopAriaTransformed, EvaLoopAria>(
-    transformEvaLoopAria(undefined),
-    { transform: transformEvaLoopAria }
-  );
+  public readonly evaAria = input<EvaLoopAriaTransformed, EvaLoopAria>(transformEvaLoopAria(undefined), { transform: transformEvaLoopAria });
 
   /** Whether video looping is currently enabled. */
   protected readonly isLoopActive = signal(false);
 
   protected readonly ariaLabel = computed(() => this.evaAria().ariaLabel);
 
-  protected readonly ariaValueText = computed(() => this.isLoopActive()
-    ? this.evaAria().ariaValueText.active
-    : this.evaAria().ariaValueText.inactive);
+  protected readonly ariaValueText = computed(() => (this.isLoopActive() ? this.evaAria().ariaValueText.active : this.evaAria().ariaValueText.inactive));
 
   public ngOnInit(): void {
     this.loop$ = this.evaApi.loopSubject.subscribe((isLoop) => {
@@ -89,13 +84,15 @@ export class EvaLoop implements OnInit, OnDestroy {
   }
 
   protected toggleLoop(): void {
-    if (!this.evaApi.validateVideoAndPlayerBeforeAction()) { return; }
+    if (!this.evaApi.validateVideoAndPlayerBeforeAction()) {
+      return;
+    }
     this.evaApi.assignedVideoElement!.loop = !this.evaApi.assignedVideoElement!.loop;
     this.evaApi.loopSubject.next(this.evaApi.assignedVideoElement!.loop);
   }
 
   protected onKeydown(e: KeyboardEvent): void {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       this.toggleLoop();
     }

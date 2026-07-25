@@ -1,13 +1,13 @@
 <div #volumeBar class="volumeBar">
-	<div class="volumeBackground" [class.dragging]="isDragging()">
-		<div class="volumeValue" aria-hidden="true" [style.width]="`${videoVolume() * (100 - 15)}%`"></div>
-		<div class="volumeKnob" aria-hidden="true" [style.left]="`${videoVolume() * (100 - 15)}%`"></div>
-	</div>
+  <div class="volumeBackground" [class.dragging]="isDragging()">
+    <div class="volumeValue" aria-hidden="true" [style.width]="`${videoVolume() * (100 - 15)}%`"></div>
+    <div class="volumeKnob" aria-hidden="true" [style.left]="`${videoVolume() * (100 - 15)}%`"></div>
+  </div>
 </div>
 
 <!-- Screen reader announcements for volume changes -->
 <div class="eva-sr-only" role="status" aria-live="polite" aria-atomic="true">
-	@if (shouldAnnounceVolume()) {
-	<span>Volume {{ ariaValue() }} percent</span>
-	}
+  @if (shouldAnnounceVolume()) {
+    <span>Volume {{ ariaValue() }} percent</span>
+  }
 </div>

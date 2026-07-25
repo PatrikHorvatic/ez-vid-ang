@@ -1,21 +1,28 @@
-<video #evaVideoElement evaMediaEventListeners evaConfigurationStorage evaVideoConfiguration evaKeyboardShortcuts
-	[evaLocalStorageEnabled]="evaLocalStorageEnabled()" [evaLocalStorageKey]="evaLocalStorageKey()"
-	[evaLocalStorageConfiguration]="evaLocalStorageConfiguration()" [id]="id()"
-	[evaKeyboardShortcutsEnabled]="evaKeyboardShortcutsEnabled()"
-	[evaKeyboardShortcutsConfiguration]="evaKeyboardShortcutsConfiguration()" [evaVideoConfig]="evaVideoConfiguration()"
-	(videoConfigurationDone)="videoConfigReady()">
-	@for (vs of evaVideoSources(); track $index) {
-	<source #evaVideoSources [type]="vs.type" [src]="vs.src" />
-	}
-	@if(evaNotSupportedText()){
-	<p>{{evaNotSupportedText()}}</p>
-	}
+<video
+  #evaVideoElement
+  evaMediaEventListeners
+  evaConfigurationStorage
+  evaVideoConfiguration
+  evaKeyboardShortcuts
+  [evaLocalStorageEnabled]="evaLocalStorageEnabled()"
+  [evaLocalStorageKey]="evaLocalStorageKey()"
+  [evaLocalStorageConfiguration]="evaLocalStorageConfiguration()"
+  [id]="id()"
+  [evaKeyboardShortcutsEnabled]="evaKeyboardShortcutsEnabled()"
+  [evaKeyboardShortcutsConfiguration]="evaKeyboardShortcutsConfiguration()"
+  [evaVideoConfig]="evaVideoConfiguration()"
+  (videoConfigurationDone)="videoConfigReady()"
+>
+  @for (vs of evaVideoSources(); track $index) {
+    <source #evaVideoSources [type]="vs.type" [src]="vs.src" />
+  }
+  @if (evaNotSupportedText()) {
+    <p>{{ evaNotSupportedText() }}</p>
+  }
 
-	@for (t of evaVideoTracks(); track $index) {
-	<track #evaVideoTracks evaCueChange [default]="t.default" [kind]="t.kind" [label]="t.label" [src]="t.src"
-		[srclang]="t.srclang" [ariaLabel]="t.label"
-		[evaCueChangeActive]="t.kind === 'subtitles' && activeSubtitleLabel() === t.label" />
-	}
+  @for (t of evaVideoTracks(); track $index) {
+    <track #evaVideoTracks evaCueChange [default]="t.default" [kind]="t.kind" [label]="t.label" [src]="t.src" [srclang]="t.srclang" [ariaLabel]="t.label" [evaCueChangeActive]="t.kind === 'subtitles' && activeSubtitleLabel() === t.label" />
+  }
 </video>
 
 <ng-content />

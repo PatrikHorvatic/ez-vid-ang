@@ -1,16 +1,16 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { EvaCinemaMode } from './cinema-mode';
-import { EvaApi } from '../../api/eva-api';
-import { EvaFullscreenAPI } from '../../api/fullscreen';
+import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { EvaCinemaMode } from "./cinema-mode";
+import { EvaApi } from "../../api/eva-api";
+import { EvaFullscreenAPI } from "../../api/fullscreen";
 
-describe('EvaCinemaMode', () => {
+describe("EvaCinemaMode", () => {
   let component: EvaCinemaMode;
   let fixture: ComponentFixture<EvaCinemaMode>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [EvaCinemaMode],
-      providers: [EvaApi, EvaFullscreenAPI]
+      providers: [EvaApi, EvaFullscreenAPI],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EvaCinemaMode);
@@ -18,7 +18,7 @@ describe('EvaCinemaMode', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it("should create", () => {
     expect(component).toBeTruthy();
   });
 });

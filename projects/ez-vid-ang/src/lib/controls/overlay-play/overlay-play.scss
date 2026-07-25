@@ -1,35 +1,35 @@
 :host {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
-	height: calc(100% - var(--eva-control-element-height));
-	cursor: pointer;
-	color: var(--eva-icon-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: calc(100% - var(--eva-control-element-height));
+  cursor: pointer;
+  color: var(--eva-icon-color);
 
-	user-select: none;
-	-webkit-touch-callout: none;
-	-webkit-user-select: none;
-	-khtml-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 
-	position: absolute;
-	top: 0;
-	left: 0;
-	transition:
-		visibility var(--eva-transition-duration) linear,
-		background-color var(--eva-transition-duration) linear,
-		opacity var(--eva-transition-duration) linear;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition:
+    visibility var(--eva-transition-duration) linear,
+    background-color var(--eva-transition-duration) linear,
+    opacity var(--eva-transition-duration) linear;
 
-	background-color: rgba(0, 0, 0, 0);
-	z-index: 301;
-	// visibility: hidden;
-	opacity: 0;
+  background-color: rgba(0, 0, 0, 0);
+  z-index: 301;
+  // visibility: hidden;
+  opacity: 0;
 }
 
 :host(.eva-display-overlay-play) {
-	background-color: var(--eva-overlay-play-background-color) !important;
-	opacity: 1 !important;
-	// visibility: visible !important;
+  background-color: var(--eva-overlay-play-background-color) !important;
+  opacity: 1 !important;
+  // visibility: visible !important;
 }

@@ -1,22 +1,9 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  ElementRef,
-  inject,
-  input,
-  OnDestroy,
-  OnInit,
-  output,
-  signal,
-  viewChild,
-} from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
-import { CLICK_OUTSIDE_DEBOUNCE_MS, HEIGHT_TRANSITION_FALLBACK_MS } from '../../constants';
-import { EvaIcon } from '../../core/icon/icon';
-import { EvaSettingsMenuEvent, EvaSettingsMenuItem, EvaSettingsMenuOption } from '../../types';
-import { EvaSettingsPanelAria, EvaSettingsPanelAriaTransformed, transformEvaSettingsPanelAria } from '../../utils/aria-utilities';
+import { AfterViewInit, ChangeDetectionStrategy, Component, computed, ElementRef, inject, input, OnDestroy, OnInit, output, signal, viewChild } from "@angular/core";
+import { EvaApi } from "../../api/eva-api";
+import { CLICK_OUTSIDE_DEBOUNCE_MS, HEIGHT_TRANSITION_FALLBACK_MS } from "../../constants";
+import { EvaIcon } from "../../core/icon/icon";
+import { EvaSettingsMenuEvent, EvaSettingsMenuItem, EvaSettingsMenuOption } from "../../types";
+import { EvaSettingsPanelAria, EvaSettingsPanelAriaTransformed, transformEvaSettingsPanelAria } from "../../utils/aria-utilities";
 
 /**
  * YouTube-style settings panel component for the Eva video player.
@@ -66,32 +53,31 @@ import { EvaSettingsPanelAria, EvaSettingsPanelAriaTransformed, transformEvaSett
  * </eva-settings-panel>
  */
 @Component({
-  selector: 'eva-settings-panel',
+  selector: "eva-settings-panel",
   imports: [EvaIcon],
-  templateUrl: './settings-panel.html',
-  styleUrl: './settings-panel.scss',
+  templateUrl: "./settings-panel.html",
+  styleUrl: "./settings-panel.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    'tabindex': '0',
-    'role': 'button',
-    '[attr.aria-label]': 'ariaLabel()',
-    '[attr.aria-expanded]': 'isOpen()',
-    '[class.open]': 'isOpen()',
-    '(click)': 'onHostClick($event)',
-    '(keydown)': 'onHostKeyDown($event)',
-    '(blur)': 'onBlur($event)',
-  }
+    tabindex: "0",
+    role: "button",
+    "[attr.aria-label]": "ariaLabel()",
+    "[attr.aria-expanded]": "isOpen()",
+    "[class.open]": "isOpen()",
+    "(click)": "onHostClick($event)",
+    "(keydown)": "onHostKeyDown($event)",
+    "(blur)": "onBlur($event)",
+  },
 })
 export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
-
   private readonly evaAPI = inject(EvaApi);
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
 
   /** Reference to the panel content wrapper, used for height animation. */
-  private readonly contentEl = viewChild<ElementRef<HTMLElement>>('panelContent');
+  private readonly contentEl = viewChild<ElementRef<HTMLElement>>("panelContent");
 
   /** Reference to the dropdown wrapper, used for position clamping. */
-  private readonly dropdownEl = viewChild<ElementRef<HTMLElement>>('dropdown');
+  private readonly dropdownEl = viewChild<ElementRef<HTMLElement>>("dropdown");
 
   /** Cached parent `eva-player` element, resolved once on init. */
   private playerElement: HTMLElement | null = null;
@@ -116,22 +102,19 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
    *
    * @default "Settings"
    */
-  public readonly evaSettingsPanelTitle = input<string>('Settings');
+  public readonly evaSettingsPanelTitle = input<string>("Settings");
 
   /**
    * Text for the back button in sub-menus.
    *
    * @default "Back"
    */
-  public readonly evaSettingsBackText = input<string>('Back');
+  public readonly evaSettingsBackText = input<string>("Back");
 
   /**
    * ARIA configuration for the settings button.
    */
-  public readonly evaAria = input<EvaSettingsPanelAriaTransformed, EvaSettingsPanelAria>(
-    transformEvaSettingsPanelAria(undefined),
-    { transform: transformEvaSettingsPanelAria },
-  );
+  public readonly evaAria = input<EvaSettingsPanelAriaTransformed, EvaSettingsPanelAria>(transformEvaSettingsPanelAria(undefined), { transform: transformEvaSettingsPanelAria });
 
   /** Emitted when a menu option is selected (either from sub-menu or a direct-action item). */
   public readonly evaSettingsMenuItemSelected = output<EvaSettingsMenuEvent>();
@@ -168,9 +151,9 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
 
   /** Caches the parent player element and attaches the document-level click-outside listener. */
   public ngOnInit(): void {
-    this.playerElement = this.el.nativeElement.closest('eva-player');
+    this.playerElement = this.el.nativeElement.closest("eva-player");
     this.clickOutsideListener = this.handleClickOutside.bind(this);
-    document.addEventListener('click', this.clickOutsideListener, true);
+    document.addEventListener("click", this.clickOutsideListener, true);
   }
 
   /** Takes an initial height snapshot for the content element. */
@@ -181,13 +164,13 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
   /** Removes the document-level click-outside listener. */
   public ngOnDestroy(): void {
     if (this.clickOutsideListener) {
-      document.removeEventListener('click', this.clickOutsideListener, true);
+      document.removeEventListener("click", this.clickOutsideListener, true);
     }
   }
 
   /** Toggles the panel when the host element itself is clicked (not propagated from panel content). */
   protected onHostClick(event: MouseEvent): void {
-    if (event.target instanceof HTMLElement && event.target.closest('.eva-settings-panel-dropdown')) {
+    if (event.target instanceof HTMLElement && event.target.closest(".eva-settings-panel-dropdown")) {
       return;
     }
     this.togglePanel();
@@ -196,15 +179,15 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
   /** Handles keyboard navigation: Enter/Space toggle, Arrow keys navigate, Escape closes, Home/End jump. */
   protected onHostKeyDown(event: KeyboardEvent): void {
     switch (event.key) {
-      case 'Enter':
-      case ' ':
+      case "Enter":
+      case " ":
         event.preventDefault();
         if (!this.isOpen()) {
           this.togglePanel();
         }
         break;
 
-      case 'ArrowDown':
+      case "ArrowDown":
         event.preventDefault();
         if (!this.isOpen()) {
           this.togglePanel();
@@ -213,7 +196,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
         }
         break;
 
-      case 'ArrowUp':
+      case "ArrowUp":
         event.preventDefault();
         if (!this.isOpen()) {
           this.togglePanel();
@@ -222,7 +205,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
         }
         break;
 
-      case 'Escape':
+      case "Escape":
         event.preventDefault();
         if (this.activeSubMenu()) {
           this.goBack();
@@ -231,14 +214,14 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
         }
         break;
 
-      case 'Home':
+      case "Home":
         if (this.isOpen()) {
           event.preventDefault();
           this.focusedIndex.set(0);
         }
         break;
 
-      case 'End':
+      case "End":
         if (this.isOpen() && this.visibleItems().length > 0) {
           event.preventDefault();
           this.focusedIndex.set(this.visibleItems().length - 1);
@@ -253,14 +236,16 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
   /** Closes the panel when focus moves outside the component. */
   protected onBlur(event: FocusEvent): void {
     const relatedTarget = event.relatedTarget;
-    if (!(relatedTarget instanceof HTMLElement) || !relatedTarget.closest('eva-settings-panel')) {
+    if (!(relatedTarget instanceof HTMLElement) || !relatedTarget.closest("eva-settings-panel")) {
       this.closePanel();
     }
   }
 
   /** Handles clicking a main menu item. */
   protected onMainItemClick(item: EvaSettingsMenuItem): void {
-    if (item.disabled) { return; }
+    if (item.disabled) {
+      return;
+    }
 
     if (item.options?.length) {
       this.animateHeightTransition(() => {
@@ -280,7 +265,9 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
   /** Handles clicking a sub-menu option. Emits the event and returns to the main menu. */
   protected onOptionClick(option: EvaSettingsMenuOption): void {
     const parent = this.activeSubMenu();
-    if (!parent) { return; }
+    if (!parent) {
+      return;
+    }
 
     this.evaSettingsMenuItemSelected.emit({
       itemId: parent.id,
@@ -292,7 +279,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
 
   /** Keyboard handler for main menu items. */
   protected onMainItemKeyDown(event: KeyboardEvent, item: EvaSettingsMenuItem): void {
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       event.stopPropagation();
       this.onMainItemClick(item);
@@ -301,7 +288,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
 
   /** Keyboard handler for sub-menu options. */
   protected onOptionKeyDown(event: KeyboardEvent, option: EvaSettingsMenuOption): void {
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       event.stopPropagation();
       this.onOptionClick(option);
@@ -364,8 +351,12 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
 
   /** Closes the panel when a click is detected outside the host element. Debounced to ignore the opening click. */
   private handleClickOutside(event: MouseEvent): void {
-    if (!this.isOpen()) { return; }
-    if (Date.now() - this.openedAt < CLICK_OUTSIDE_DEBOUNCE_MS) { return; }
+    if (!this.isOpen()) {
+      return;
+    }
+    if (Date.now() - this.openedAt < CLICK_OUTSIDE_DEBOUNCE_MS) {
+      return;
+    }
 
     if (!(event.target instanceof Node) || !this.el.nativeElement.contains(event.target)) {
       this.closePanel();
@@ -383,35 +374,39 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
   /** Measures the dropdown against the player bounds and shifts it inward if it overflows. */
   private clampDropdownPosition(): void {
     const dropdown = this.dropdownEl()?.nativeElement;
-    if (!dropdown || !this.playerElement) { return; }
+    if (!dropdown || !this.playerElement) {
+      return;
+    }
 
     const playerRect = this.playerElement.getBoundingClientRect();
     const dropdownRect = dropdown.getBoundingClientRect();
 
     if (dropdownRect.left < playerRect.left) {
-      dropdown.style.right = 'auto';
-      dropdown.style.left = '0px';
+      dropdown.style.right = "auto";
+      dropdown.style.left = "0px";
     }
 
     if (dropdownRect.right > playerRect.right) {
-      dropdown.style.left = 'auto';
-      dropdown.style.right = '0px';
+      dropdown.style.left = "auto";
+      dropdown.style.right = "0px";
     }
 
     if (dropdownRect.top < playerRect.top) {
-      dropdown.style.bottom = 'auto';
-      dropdown.style.top = '0px';
+      dropdown.style.bottom = "auto";
+      dropdown.style.top = "0px";
     }
   }
 
   /** Clears inline position styles so the next open starts from default CSS positioning. */
   private resetDropdownPosition(): void {
     const dropdown = this.dropdownEl()?.nativeElement;
-    if (!dropdown) { return; }
-    dropdown.style.left = '';
-    dropdown.style.right = '';
-    dropdown.style.bottom = '';
-    dropdown.style.top = '';
+    if (!dropdown) {
+      return;
+    }
+    dropdown.style.left = "";
+    dropdown.style.right = "";
+    dropdown.style.bottom = "";
+    dropdown.style.top = "";
   }
 
   /** Animates the content height from current to new value using a double-rAF FLIP pattern with a timeout fallback. */
@@ -424,7 +419,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
 
     const startHeight = el.offsetHeight;
 
-    el.style.height = 'auto';
+    el.style.height = "auto";
     changeFn();
 
     requestAnimationFrame(() => {
@@ -435,10 +430,10 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
         el.style.height = `${endHeight}px`;
 
         const resetHeight = (): void => {
-          el.removeEventListener('transitionend', resetHeight);
-          el.style.height = 'auto';
+          el.removeEventListener("transitionend", resetHeight);
+          el.style.height = "auto";
         };
-        el.addEventListener('transitionend', resetHeight, { once: true });
+        el.addEventListener("transitionend", resetHeight, { once: true });
         setTimeout(resetHeight, HEIGHT_TRANSITION_FALLBACK_MS);
       });
     });

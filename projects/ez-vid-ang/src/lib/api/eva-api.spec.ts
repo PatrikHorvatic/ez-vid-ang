@@ -1,8 +1,8 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed } from "@angular/core/testing";
 
-import { EvaApi } from './eva-api';
+import { EvaApi } from "./eva-api";
 
-describe('EvaApi', () => {
+describe("EvaApi", () => {
   let service: EvaApi;
 
   beforeEach(() => {
@@ -10,7 +10,7 @@ describe('EvaApi', () => {
     service = TestBed.inject(EvaApi);
   });
 
-  it('should be created', () => {
+  it("should be created", () => {
     expect(service).toBeTruthy();
   });
 });

@@ -1,9 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
-import { DEFAULT_SEEK_SECONDS } from '../../constants';
-import { EvaIcon } from '../../core/icon/icon';
-import { EvaForwardAria, EvaForwardAriaTransformed, transformEvaForwardAria, validateAndTransformEvaForwardAndBackwardSeconds } from '../../utils/aria-utilities';
-
+import { ChangeDetectionStrategy, Component, inject, input } from "@angular/core";
+import { EvaApi } from "../../api/eva-api";
+import { DEFAULT_SEEK_SECONDS } from "../../constants";
+import { EvaIcon } from "../../core/icon/icon";
+import { EvaForwardAria, EvaForwardAriaTransformed, transformEvaForwardAria, validateAndTransformEvaForwardAndBackwardSeconds } from "../../utils/aria-utilities";
 
 /**
  * Forward seek button component for the Eva video player.
@@ -42,18 +41,18 @@ import { EvaForwardAria, EvaForwardAriaTransformed, transformEvaForwardAria, val
  * />
  */
 @Component({
-  selector: 'eva-forward',
+  selector: "eva-forward",
   imports: [EvaIcon],
-  templateUrl: './forward.html',
-  styleUrl: './forward.scss',
+  templateUrl: "./forward.html",
+  styleUrl: "./forward.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "button",
+    tabindex: "0",
+    role: "button",
     "[attr.aria-label]": "evaAria().ariaLabel",
     "(click)": "forwardClicked()",
-    "(keydown)": "forwardClickedKeyboard($event)"
-  }
+    "(keydown)": "forwardClickedKeyboard($event)",
+  },
 })
 export class EvaForward {
   private readonly evaAPI = inject(EvaApi);
@@ -95,7 +94,7 @@ export class EvaForward {
    * Triggers the forward seek on `Enter` (13) or `Space` (32) keypress.
    */
   protected forwardClickedKeyboard(k: KeyboardEvent): void {
-    if (k.key === 'Enter' || k.key === ' ') {
+    if (k.key === "Enter" || k.key === " ") {
       k.preventDefault();
       this.forwardClicked();
     }

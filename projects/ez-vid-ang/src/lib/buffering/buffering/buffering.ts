@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
+import { ChangeDetectionStrategy, Component, inject, input } from "@angular/core";
+import { EvaApi } from "../../api/eva-api";
 
 /**
  * Buffering indicator component for the Eva video player.
@@ -22,13 +22,13 @@ import { EvaApi } from '../../api/eva-api';
  * </eva-buffering>
  */
 @Component({
-  selector: 'eva-buffering',
-  templateUrl: './buffering.html',
-  styleUrl: './buffering.scss',
+  selector: "eva-buffering",
+  templateUrl: "./buffering.html",
+  styleUrl: "./buffering.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "[class.eva-display-buffering]": "evaAPI.isBuffering()"
-  }
+    "[class.eva-display-buffering]": "evaAPI.isBuffering()",
+  },
 })
 export class EvaBuffering {
   protected evaAPI = inject(EvaApi);

@@ -1,18 +1,9 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  input,
-  signal,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
-import { UpperCasePipe } from '@angular/common';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { EvaAudioTrack } from '../../types';
-import { EvaAudioTrackSelectorAria } from '../../utils/aria-utilities';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, OnDestroy, OnInit } from "@angular/core";
+import { UpperCasePipe } from "@angular/common";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { EvaAudioTrack } from "../../types";
+import { EvaAudioTrackSelectorAria } from "../../utils/aria-utilities";
 
 const LANGUAGE_CODE_LENGTH = 2;
 const LABEL_PREVIEW_LENGTH = 4;
@@ -54,21 +45,21 @@ const LABEL_PREVIEW_LENGTH = 4;
  * <eva-audio-track-selector evaAudioTrackSelectorText="Language" />
  */
 @Component({
-  selector: 'eva-audio-track-selector',
+  selector: "eva-audio-track-selector",
   imports: [UpperCasePipe],
-  templateUrl: './audio-track-selector.html',
-  styleUrl: './audio-track-selector.scss',
+  templateUrl: "./audio-track-selector.html",
+  styleUrl: "./audio-track-selector.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    'tabindex': '0',
-    'role': 'button',
-    '[attr.aria-label]': 'ariaLabel()',
-    '[attr.aria-valuetext]': 'currentTrackLabel()',
-    '[class.open]': 'isOpen()',
-    '[style.display]': 'tracks().length <= 1 ? "none" : null',
-    '(click)': 'onClicked()',
-    '(keydown)': 'onKeyDown($event)',
-    '(blur)': 'onBlur($event)',
+    tabindex: "0",
+    role: "button",
+    "[attr.aria-label]": "ariaLabel()",
+    "[attr.aria-valuetext]": "currentTrackLabel()",
+    "[class.open]": "isOpen()",
+    "[style.display]": 'tracks().length <= 1 ? "none" : null',
+    "(click)": "onClicked()",
+    "(keydown)": "onKeyDown($event)",
+    "(blur)": "onBlur($event)",
   },
 })
 export class EvaAudioTrackSelector implements OnInit, OnDestroy {
@@ -79,15 +70,15 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
    *
    * @default "Audio track"
    */
-  public readonly evaAudioTrackSelectorText = input<string>('Audio track');
+  public readonly evaAudioTrackSelectorText = input<string>("Audio track");
 
   /**
    * ARIA label for the audio track selector button.
    */
-  public readonly evaAria = input<EvaAudioTrackSelectorAria>({ ariaLabel: 'Audio track selector' });
+  public readonly evaAria = input<EvaAudioTrackSelectorAria>({ ariaLabel: "Audio track selector" });
 
   /** Resolves the `aria-label` from the aria input. */
-  protected readonly ariaLabel = computed<string>(() => this.evaAria().ariaLabel ?? 'Audio track selector');
+  protected readonly ariaLabel = computed<string>(() => this.evaAria().ariaLabel ?? "Audio track selector");
 
   /** Whether the dropdown is currently open. */
   protected readonly isOpen = signal(false);
@@ -110,9 +101,13 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
    */
   protected readonly currentTrackLabel = computed<string>(() => {
     const id = this.evaAPI.currentAudioTrackId();
-    const track = this.tracks().find(t => t.id === id);
-    if (!track) { return ''; }
-    if (track.language) { return track.language.slice(0, LANGUAGE_CODE_LENGTH).toUpperCase(); }
+    const track = this.tracks().find((t) => t.id === id);
+    if (!track) {
+      return "";
+    }
+    if (track.language) {
+      return track.language.slice(0, LANGUAGE_CODE_LENGTH).toUpperCase();
+    }
     return track.label.slice(0, LABEL_PREVIEW_LENGTH);
   });
 
@@ -122,24 +117,24 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
    * Attaches a document-level click listener to close on outside clicks.
    */
   public ngOnInit(): void {
-    this.audioTracksSub = this.evaAPI.audioTracksSubject.subscribe(tracks => {
+    this.audioTracksSub = this.evaAPI.audioTracksSubject.subscribe((tracks) => {
       this.tracks.set(tracks);
 
       // Sync keyboard cursor to the current track
       const id = this.evaAPI.currentAudioTrackId();
-      const idx = tracks.findIndex(t => t.id === id);
+      const idx = tracks.findIndex((t) => t.id === id);
       this.keyboardIndex.set(idx >= 0 ? idx : 0);
     });
 
     this.clickOutsideListener = this.handleClickOutside.bind(this);
-    document.addEventListener('click', this.clickOutsideListener, true);
+    document.addEventListener("click", this.clickOutsideListener, true);
   }
 
   /** Unsubscribes and removes the document-level click listener. */
   public ngOnDestroy(): void {
     this.audioTracksSub?.unsubscribe();
     if (this.clickOutsideListener) {
-      document.removeEventListener('click', this.clickOutsideListener, true);
+      document.removeEventListener("click", this.clickOutsideListener, true);
     }
   }
 
@@ -175,18 +170,20 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
    */
   protected onKeyDown(e: KeyboardEvent): void {
     const tracks = this.tracks();
-    if (!tracks.length) { return; }
+    if (!tracks.length) {
+      return;
+    }
     const isOpen = this.isOpen();
     const currentIndex = this.keyboardIndex();
 
     switch (e.key) {
-      case 'Enter':
-      case ' ':
+      case "Enter":
+      case " ":
         e.preventDefault();
         this.toggleDropdown();
         break;
 
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
         if (!isOpen) {
           this.isOpen.set(true);
@@ -197,7 +194,7 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
         }
         break;
 
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
         if (!isOpen) {
           this.isOpen.set(true);
@@ -208,14 +205,14 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
         }
         break;
 
-      case 'Home':
+      case "Home":
         if (isOpen) {
           e.preventDefault();
           this.selectTrack(tracks[0], 0);
         }
         break;
 
-      case 'End':
+      case "End":
         if (isOpen) {
           e.preventDefault();
           const last = tracks.length - 1;
@@ -223,7 +220,7 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
         }
         break;
 
-      case 'Escape':
+      case "Escape":
         e.preventDefault();
         this.isOpen.set(false);
         this.evaAPI.controlsSelectorComponentActive.next(false);
@@ -237,20 +234,22 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
   /** Closes the dropdown when focus moves outside the `eva-audio-track-selector` element. */
   protected onBlur(event: FocusEvent): void {
     const related = event.relatedTarget;
-    if (!(related instanceof HTMLElement) || !related.closest('eva-audio-track-selector')) {
+    if (!(related instanceof HTMLElement) || !related.closest("eva-audio-track-selector")) {
       this.isOpen.set(false);
       this.evaAPI.controlsSelectorComponentActive.next(false);
     }
   }
 
   private toggleDropdown(): void {
-    this.isOpen.update(open => !open);
+    this.isOpen.update((open) => !open);
     this.evaAPI.controlsSelectorComponentActive.next(this.isOpen());
   }
 
   private handleClickOutside(event: MouseEvent): void {
-    if (!(event.target instanceof HTMLElement)) { return; }
-    if (!event.target.closest('eva-audio-track-selector')) {
+    if (!(event.target instanceof HTMLElement)) {
+      return;
+    }
+    if (!event.target.closest("eva-audio-track-selector")) {
       this.isOpen.set(false);
       this.evaAPI.controlsSelectorComponentActive.next(false);
     }

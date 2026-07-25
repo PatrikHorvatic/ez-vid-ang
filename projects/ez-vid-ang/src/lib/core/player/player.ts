@@ -1,16 +1,16 @@
-import { AfterViewInit, booleanAttribute, ChangeDetectionStrategy, Component, ElementRef, inject, input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges, viewChild } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { EvaFullscreenAPI } from '../../api/fullscreen';
-import { EvaKeyboardShortcutsConfiguration, EvaStorageConfiguration, EvaTrack, EvaVideoElementConfiguration, EvaVideoSource, validateAndTransformStorageKey } from '../../types';
-import { DEFAULT_STORAGE_KEY } from '../../constants';
-import { prepareDefaultKeyboardShortcutsConfiguration, prepareDefaultStorageConfiguration, validateAndTransformEvaKeyboardShortcutsConfiguration, validateAndTransformEvaStorageConfiguration, validateTracks } from '../../utils/utilities';
-import { EvaCueChangeDirective } from '../directives/cue-change';
+import { AfterViewInit, booleanAttribute, ChangeDetectionStrategy, Component, ElementRef, inject, input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges, viewChild } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { EvaFullscreenAPI } from "../../api/fullscreen";
+import { EvaKeyboardShortcutsConfiguration, EvaStorageConfiguration, EvaTrack, EvaVideoElementConfiguration, EvaVideoSource, validateAndTransformStorageKey } from "../../types";
+import { DEFAULT_STORAGE_KEY } from "../../constants";
+import { prepareDefaultKeyboardShortcutsConfiguration, prepareDefaultStorageConfiguration, validateAndTransformEvaKeyboardShortcutsConfiguration, validateAndTransformEvaStorageConfiguration, validateTracks } from "../../utils/utilities";
+import { EvaCueChangeDirective } from "../directives/cue-change";
 import { EvaKeyboardShortcuts } from "../directives/keyboard-shortcuts";
-import { EvaMediaEventListenersDirective } from '../directives/media-event-listeners';
-import { EvaVideoConfigurationDirective } from '../directives/video-configuration';
+import { EvaMediaEventListenersDirective } from "../directives/media-event-listeners";
+import { EvaVideoConfigurationDirective } from "../directives/video-configuration";
 import { ConfigurationStorage } from "../directives/configuration-storage";
-import { EvaConfigurationStorage } from '../../api/configuration-storage';
+import { EvaConfigurationStorage } from "../../api/configuration-storage";
 
 /**
  * Root player component for the Eva video player.
@@ -37,17 +37,14 @@ import { EvaConfigurationStorage } from '../../api/configuration-storage';
  * />
  */
 @Component({
-  selector: 'eva-player',
-  imports: [EvaMediaEventListenersDirective,
-    EvaVideoConfigurationDirective,
-    EvaCueChangeDirective, EvaKeyboardShortcuts, ConfigurationStorage],
-  templateUrl: './player.html',
-  styleUrl: './player.scss',
+  selector: "eva-player",
+  imports: [EvaMediaEventListenersDirective, EvaVideoConfigurationDirective, EvaCueChangeDirective, EvaKeyboardShortcuts, ConfigurationStorage],
+  templateUrl: "./player.html",
+  styleUrl: "./player.scss",
   providers: [EvaApi, EvaFullscreenAPI, EvaConfigurationStorage],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
-
   /** The scoped `EvaApi` instance provided to this player's component subtree. */
   public playerMainAPI = inject(EvaApi);
 
@@ -114,7 +111,9 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
    *
    * @default prepareDefaultKeyboardShortcutsConfiguration()
    */
-  public readonly evaKeyboardShortcutsConfiguration = input<Required<EvaKeyboardShortcutsConfiguration>, EvaKeyboardShortcutsConfiguration>(prepareDefaultKeyboardShortcutsConfiguration(), { transform: validateAndTransformEvaKeyboardShortcutsConfiguration });
+  public readonly evaKeyboardShortcutsConfiguration = input<Required<EvaKeyboardShortcutsConfiguration>, EvaKeyboardShortcutsConfiguration>(prepareDefaultKeyboardShortcutsConfiguration(), {
+    transform: validateAndTransformEvaKeyboardShortcutsConfiguration,
+  });
 
   /**
    * List of subtitle/text tracks to attach to the video element.
@@ -136,8 +135,7 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
    * Reference to the native `<video>` element rendered in the template.
    * Assigned to `EvaApi` in `ngAfterViewInit`.
    */
-  private readonly evaVideoElement = viewChild.required<ElementRef<HTMLVideoElement>>('evaVideoElement');
-
+  private readonly evaVideoElement = viewChild.required<ElementRef<HTMLVideoElement>>("evaVideoElement");
 
   /** Subscription to `EvaApi.videoSubtitlesSubject`. Keeps `activeSubtitleLabel` in sync. */
   private subtitleChangeSubject: Subscription | null = null;
@@ -159,7 +157,7 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
   }
 
   public ngOnInit(): void {
-    const defaultTrack = this.evaVideoTracks().find(t => t.default && t.kind === 'subtitles');
+    const defaultTrack = this.evaVideoTracks().find((t) => t.default && t.kind === "subtitles");
     if (defaultTrack) {
       this.activeSubtitleLabel.set(defaultTrack.label ?? null);
     }
@@ -171,7 +169,7 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
    */
   public ngAfterViewInit(): void {
     this.playerMainAPI.assignElementToApi(this.evaVideoElement().nativeElement);
-    this.subtitleChangeSubject = this.playerMainAPI.videoSubtitlesSubject.subscribe(a => {
+    this.subtitleChangeSubject = this.playerMainAPI.videoSubtitlesSubject.subscribe((a) => {
       if (a) {
         if (a.id !== "off") {
           this.activeSubtitleLabel.set(a.label);
@@ -193,5 +191,4 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
   protected videoConfigReady(): void {
     this.playerMainAPI.onPlayerReady();
   }
-
 }

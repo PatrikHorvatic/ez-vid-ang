@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaFullscreenAPI } from '../../api/fullscreen';
-import { EvaIcon } from '../../core/icon/icon';
-import { EvaFullscreenAria, EvaFullscreenAriaTransformed, transformEvaFullscreenAria } from '../../utils/aria-utilities';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, signal } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaFullscreenAPI } from "../../api/fullscreen";
+import { EvaIcon } from "../../core/icon/icon";
+import { EvaFullscreenAria, EvaFullscreenAriaTransformed, transformEvaFullscreenAria } from "../../utils/aria-utilities";
 
 /**
  * Fullscreen toggle button component for the Eva video player.
@@ -44,18 +44,18 @@ import { EvaFullscreenAria, EvaFullscreenAriaTransformed, transformEvaFullscreen
  * </eva-fullscreen>
  */
 @Component({
-  selector: 'eva-fullscreen',
+  selector: "eva-fullscreen",
   imports: [EvaIcon],
-  templateUrl: './fullscreen.html',
-  styleUrl: './fullscreen.scss',
+  templateUrl: "./fullscreen.html",
+  styleUrl: "./fullscreen.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "button",
+    tabindex: "0",
+    role: "button",
     "[attr.aria-label]": "ariaLabel()",
     "(click)": "fullscreenClicked()",
-    "(keydown)": "fullscreenClickedKeyboard($event)"
-  }
+    "(keydown)": "fullscreenClickedKeyboard($event)",
+  },
 })
 export class EvaFullscreen implements OnInit, OnDestroy {
   private readonly fullscreenService = inject(EvaFullscreenAPI);
@@ -84,7 +84,7 @@ export class EvaFullscreen implements OnInit, OnDestroy {
    * Resolves the `aria-label` based on the current fullscreen state.
    * Returns `exitFullscreen` when in fullscreen, `enterFullscreen` otherwise.
    */
-  protected readonly ariaLabel = computed(() => this.isFullscreen() ? this.evaAria().exitFullscreen : this.evaAria().enterFullscreen);
+  protected readonly ariaLabel = computed(() => (this.isFullscreen() ? this.evaAria().exitFullscreen : this.evaAria().enterFullscreen));
 
   /** Subscription to fullscreen state changes from `EvaFullscreenAPI`. Cleaned up in `ngOnDestroy`. */
   private fullscreenSubscription: Subscription | null = null;
@@ -94,11 +94,9 @@ export class EvaFullscreen implements OnInit, OnDestroy {
    * in sync with the actual fullscreen state of the browser.
    */
   public ngOnInit(): void {
-    this.fullscreenSubscription = this.fullscreenService.isFullscreenObs.subscribe(
-      isFullscreen => {
-        this.isFullscreen.set(isFullscreen);
-      }
-    );
+    this.fullscreenSubscription = this.fullscreenService.isFullscreenObs.subscribe((isFullscreen) => {
+      this.isFullscreen.set(isFullscreen);
+    });
   }
 
   /** Unsubscribes from the fullscreen state subscription to prevent memory leaks. */
@@ -120,7 +118,7 @@ export class EvaFullscreen implements OnInit, OnDestroy {
     try {
       await this.fullscreenService.toggleFullscreen();
     } catch (error) {
-      console.warn('Failed to toggle fullscreen:', error);
+      console.warn("Failed to toggle fullscreen:", error);
     }
   }
 
@@ -129,7 +127,7 @@ export class EvaFullscreen implements OnInit, OnDestroy {
    * Triggers fullscreen toggle on `Enter` or `Space` keypress.
    */
   protected fullscreenClickedKeyboard(k: KeyboardEvent): void {
-    if (k.key === 'Enter' || k.key === ' ') {
+    if (k.key === "Enter" || k.key === " ") {
       k.preventDefault();
       this.fullscreenClicked();
     }

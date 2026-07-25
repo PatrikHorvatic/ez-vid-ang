@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
-import { EvaIcon } from '../../core/icon/icon';
-import { EvaDownloadEvent } from '../../types';
-import { EvaDownloadAria, EvaDownloadAriaTransformed, transformEvaDownloadAria } from '../../utils/aria-utilities';
+import { ChangeDetectionStrategy, Component, inject, input, output } from "@angular/core";
+import { EvaApi } from "../../api/eva-api";
+import { EvaIcon } from "../../core/icon/icon";
+import { EvaDownloadEvent } from "../../types";
+import { EvaDownloadAria, EvaDownloadAriaTransformed, transformEvaDownloadAria } from "../../utils/aria-utilities";
 
 /**
  * Download button component for the Eva video player.
@@ -43,18 +43,18 @@ import { EvaDownloadAria, EvaDownloadAriaTransformed, transformEvaDownloadAria }
  * />
  */
 @Component({
-  selector: 'eva-download',
+  selector: "eva-download",
   imports: [EvaIcon],
-  templateUrl: './download.html',
-  styleUrl: './download.scss',
+  templateUrl: "./download.html",
+  styleUrl: "./download.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "button",
+    tabindex: "0",
+    role: "button",
     "[attr.aria-label]": "evaAria().ariaLabel",
     "(click)": "downloadClicked()",
-    "(keydown)": "downloadClickedKeyboard($event)"
-  }
+    "(keydown)": "downloadClickedKeyboard($event)",
+  },
 })
 export class EvaDownload {
   private readonly evaAPI = inject(EvaApi);
@@ -85,7 +85,7 @@ export class EvaDownload {
   }
 
   protected downloadClickedKeyboard(e: KeyboardEvent): void {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       this.downloadClicked();
     }
@@ -94,7 +94,7 @@ export class EvaDownload {
   private buildEvent(): EvaDownloadEvent {
     const video = this.evaAPI.assignedVideoElement;
     return {
-      currentSrc: video?.currentSrc ?? '',
+      currentSrc: video?.currentSrc ?? "",
       currentTime: video?.currentTime ?? 0,
       duration: this.evaAPI.time().total,
     };

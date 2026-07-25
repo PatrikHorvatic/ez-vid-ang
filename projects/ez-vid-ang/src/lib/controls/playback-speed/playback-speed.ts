@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal, OnDestroy, OnInit } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
-import { transformEvaPlaybackSpeedAria, EvaPlaybackSpeedAria, EvaPlaybackSpeedAriaTransformed } from '../../utils/aria-utilities';
-import { transformDefaultPlaybackSpeed, validateAndTransformPlaybackSpeeds } from '../../utils/utilities';
-import { Subscription } from 'rxjs';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, OnDestroy, OnInit } from "@angular/core";
+import { EvaApi } from "../../api/eva-api";
+import { transformEvaPlaybackSpeedAria, EvaPlaybackSpeedAria, EvaPlaybackSpeedAriaTransformed } from "../../utils/aria-utilities";
+import { transformDefaultPlaybackSpeed, validateAndTransformPlaybackSpeeds } from "../../utils/utilities";
+import { Subscription } from "rxjs";
 
 /**
  * Playback speed selector component for the Eva video player.
@@ -37,23 +37,22 @@ import { Subscription } from 'rxjs';
  * />
  */
 @Component({
-  selector: 'eva-playback-speed',
-  templateUrl: './playback-speed.html',
-  styleUrl: './playback-speed.scss',
+  selector: "eva-playback-speed",
+  templateUrl: "./playback-speed.html",
+  styleUrl: "./playback-speed.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "button",
+    tabindex: "0",
+    role: "button",
     "[attr.aria-label]": "ariaLabel()",
     "[attr.aria-valuetext]": "currentSpeed() + 'x'",
     "[class.open]": "isOpen()",
     "(click)": "playbackClicked()",
     "(keydown)": "playbackClickedKeyboard($event)",
-    "(blur)": "handleBlur($event)"
-  }
+    "(blur)": "handleBlur($event)",
+  },
 })
 export class EvaPlaybackSpeed implements OnInit, OnDestroy {
-
   private readonly evaAPI = inject(EvaApi);
 
   /**
@@ -67,7 +66,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
    * **It is your responsibility to sort the values** in the desired display order.
    */
   public readonly evaPlaybackSpeeds = input.required<number[], number[]>({
-    transform: validateAndTransformPlaybackSpeeds
+    transform: validateAndTransformPlaybackSpeeds,
   });
 
   /**
@@ -80,7 +79,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
    * @default 1
    */
   public readonly evaDefaultPlaybackSpeed = input<number, number>(1, {
-    transform: transformDefaultPlaybackSpeed
+    transform: transformDefaultPlaybackSpeed,
   });
 
   /**
@@ -123,7 +122,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
 
     // Listen for clicks outside
     this.clickOutsideListener = this.handleClickOutside.bind(this);
-    document.addEventListener('click', this.clickOutsideListener, true);
+    document.addEventListener("click", this.clickOutsideListener, true);
   }
 
   private initializeSpeed(): void {
@@ -146,11 +145,9 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
   public ngOnDestroy(): void {
     this.playerReady$?.unsubscribe();
     if (this.clickOutsideListener) {
-      document.removeEventListener('click', this.clickOutsideListener, true);
+      document.removeEventListener("click", this.clickOutsideListener, true);
     }
   }
-
-
 
   /** Toggles the dropdown open/closed on click. */
   protected playbackClicked(): void {
@@ -173,13 +170,13 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
     const currentIndex = this.selectedIndex();
 
     switch (e.key) {
-      case 'Enter':
-      case ' ':
+      case "Enter":
+      case " ":
         e.preventDefault();
         this.toggleDropdown();
         break;
 
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
         if (isOpen && currentIndex > 0) {
           this.selectSpeed(speeds[currentIndex - 1], currentIndex - 1);
@@ -189,7 +186,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
         }
         break;
 
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
         if (isOpen && currentIndex < speeds.length - 1) {
           this.selectSpeed(speeds[currentIndex + 1], currentIndex + 1);
@@ -199,20 +196,20 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
         }
         break;
 
-      case 'Escape':
+      case "Escape":
         e.preventDefault();
         this.isOpen.set(false);
         this.evaAPI.controlsSelectorComponentActive.next(false);
         break;
 
-      case 'Home':
+      case "Home":
         if (isOpen) {
           e.preventDefault();
           this.selectSpeed(speeds[0], 0);
         }
         break;
 
-      case 'End':
+      case "End":
         if (isOpen) {
           e.preventDefault();
           const lastIndex = speeds.length - 1;
@@ -232,7 +229,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
     // Close dropdown when focus moves outside the component
 
     const relatedTarget = event.relatedTarget;
-    if (!(relatedTarget instanceof HTMLElement) || !relatedTarget.closest('eva-playback-speed')) {
+    if (!(relatedTarget instanceof HTMLElement) || !relatedTarget.closest("eva-playback-speed")) {
       this.isOpen.set(false);
       this.evaAPI.controlsSelectorComponentActive.next(false);
     }
@@ -261,12 +258,12 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
    * @param speed - The speed value to format.
    */
   protected formatSpeed(speed: number): string {
-    return speed === 1 ? 'Normal' : `${speed}x`;
+    return speed === 1 ? "Normal" : `${speed}x`;
   }
 
   /** Toggles the `isOpen` signal between `true` and `false`. */
   private toggleDropdown(): void {
-    this.isOpen.update(open => !open);
+    this.isOpen.update((open) => !open);
     this.evaAPI.controlsSelectorComponentActive.next(this.isOpen());
   }
 
@@ -277,8 +274,10 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
    * @param event - The native `MouseEvent` from the document listener.
    */
   private handleClickOutside(event: MouseEvent): void {
-    if (!(event.target instanceof HTMLElement)) { return; }
-    if (!event.target.closest('eva-playback-speed')) {
+    if (!(event.target instanceof HTMLElement)) {
+      return;
+    }
+    if (!event.target.closest("eva-playback-speed")) {
       this.isOpen.set(false);
       this.evaAPI.controlsSelectorComponentActive.next(false);
     }

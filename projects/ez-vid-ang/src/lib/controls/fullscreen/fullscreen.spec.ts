@@ -1,16 +1,16 @@
-import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { EvaFullscreen } from './fullscreen';
-import { EvaApi } from '../../api/eva-api';
-import { EvaFullscreenAPI } from '../../api/fullscreen';
+import { TestBed, ComponentFixture } from "@angular/core/testing";
+import { EvaFullscreen } from "./fullscreen";
+import { EvaApi } from "../../api/eva-api";
+import { EvaFullscreenAPI } from "../../api/fullscreen";
 
-describe('EvaFullscreen', () => {
+describe("EvaFullscreen", () => {
   let component: EvaFullscreen;
   let fixture: ComponentFixture<EvaFullscreen>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [EvaFullscreen],
-      providers: [EvaApi, EvaFullscreenAPI]
+      providers: [EvaApi, EvaFullscreenAPI],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EvaFullscreen);
@@ -18,7 +18,7 @@ describe('EvaFullscreen', () => {
     await fixture.whenStable();
   });
 
-  it('should create', () => {
+  it("should create", () => {
     expect(component).toBeTruthy();
   });
 });

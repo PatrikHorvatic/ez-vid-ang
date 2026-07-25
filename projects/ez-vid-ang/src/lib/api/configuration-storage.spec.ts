@@ -1,7 +1,7 @@
-import { TestBed } from '@angular/core/testing';
-import { EvaConfigurationStorage } from './configuration-storage';
+import { TestBed } from "@angular/core/testing";
+import { EvaConfigurationStorage } from "./configuration-storage";
 
-describe('EvaConfigurationStorage', () => {
+describe("EvaConfigurationStorage", () => {
   let service: EvaConfigurationStorage;
 
   beforeEach(() => {
@@ -9,7 +9,7 @@ describe('EvaConfigurationStorage', () => {
     service = TestBed.inject(EvaConfigurationStorage);
   });
 
-  it('should be created', () => {
+  it("should be created", () => {
     expect(service).toBeTruthy();
   });
 });

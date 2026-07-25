@@ -1,24 +1,25 @@
+import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, input, NgZone, signal, AfterViewInit, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
+import { skip, Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { EvaChapterMarker, EvaThumbnailCue, EvaTimeFormating } from "../../types";
+import { transformEvaScrubBarAria, EvaScrubBarAria, EvaScrubBarAriaTransformed } from "../../utils/aria-utilities";
+import { transformTimeoutDuration } from "../../utils/utilities";
 import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  ElementRef,
-  inject,
-  input,
-  NgZone,
-  signal,
-  AfterViewInit,
-  OnChanges,
-  OnDestroy,
-  OnInit,
-  SimpleChanges,
-} from '@angular/core';
-import { skip, Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { EvaChapterMarker, EvaThumbnailCue, EvaTimeFormating } from '../../types';
-import { transformEvaScrubBarAria, EvaScrubBarAria, EvaScrubBarAriaTransformed } from '../../utils/aria-utilities';
-import { transformTimeoutDuration } from '../../utils/utilities';
-import { PERCENTAGE, SCRUB_BAR_MAX_SEEK_PERCENT, SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_DISPLAY_PAD_WIDTH, DEFAULT_AUTOHIDE_TIMEOUT_MS, SCRUB_BAR_TOOLTIP_HALF_WIDTH_PX, HALF_DIVISOR, VTT_XYWH_COORDS_LENGTH, VTT_XYWH_PREFIX_LENGTH, VTT_TIMESTAMP_MIN_PARTS, VTT_TIMESTAMP_MAX_PARTS, VTT_MS_PAD_LENGTH, MS_PER_SECOND } from '../../constants';
+  PERCENTAGE,
+  SCRUB_BAR_MAX_SEEK_PERCENT,
+  SECONDS_PER_HOUR,
+  SECONDS_PER_MINUTE,
+  TIME_DISPLAY_PAD_WIDTH,
+  DEFAULT_AUTOHIDE_TIMEOUT_MS,
+  SCRUB_BAR_TOOLTIP_HALF_WIDTH_PX,
+  HALF_DIVISOR,
+  VTT_XYWH_COORDS_LENGTH,
+  VTT_XYWH_PREFIX_LENGTH,
+  VTT_TIMESTAMP_MIN_PARTS,
+  VTT_TIMESTAMP_MAX_PARTS,
+  VTT_MS_PAD_LENGTH,
+  MS_PER_SECOND,
+} from "../../constants";
 
 /**
  * Scrub bar (seek bar) component for the Eva video player.
@@ -64,13 +65,13 @@ import { PERCENTAGE, SCRUB_BAR_MAX_SEEK_PERCENT, SECONDS_PER_HOUR, SECONDS_PER_M
  * </eva-scrub-bar>
  */
 @Component({
-  selector: 'eva-scrub-bar',
-  templateUrl: './scrub-bar.html',
-  styleUrl: './scrub-bar.scss',
+  selector: "eva-scrub-bar",
+  templateUrl: "./scrub-bar.html",
+  styleUrl: "./scrub-bar.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "slider",
+    tabindex: "0",
+    role: "slider",
     "[attr.aria-label]": "ariaLabel()",
     "[attr.aria-valuenow]": "getPercentage()",
     "aria-valuemin": "0",
@@ -83,7 +84,7 @@ import { PERCENTAGE, SCRUB_BAR_MAX_SEEK_PERCENT, SECONDS_PER_HOUR, SECONDS_PER_M
     "(document:touchcancel)": "touchCancelScrub($event)",
     "(document:touchend)": "touchEndScrub($event)",
     "(keydown)": "arrowAdjustTime($event)",
-  }
+  },
 })
 export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   protected evaAPI = inject(EvaApi);
@@ -138,7 +139,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    *
    * @default 'mm:ss'
    */
-  public readonly evaTimeFormat = input<EvaTimeFormating>('mm:ss');
+  public readonly evaTimeFormat = input<EvaTimeFormating>("mm:ss");
 
   /**
    * When `true`, chapter markers are rendered on the scrub bar.
@@ -150,13 +151,13 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
   public readonly evaShowChapters = input<boolean>(true);
 
   /**
- * Chapter markers to display on the scrub bar.
- *
- * If provided and non-empty, these take priority over any VTT text track on the video element.
- * Only used when `evaShowChapters` is `true`.
- *
- * @default []
- */
+   * Chapter markers to display on the scrub bar.
+   *
+   * If provided and non-empty, these take priority over any VTT text track on the video element.
+   * Only used when `evaShowChapters` is `true`.
+   *
+   * @default []
+   */
   public readonly evaChapters = input<EvaChapterMarker[]>([]);
 
   /**
@@ -167,7 +168,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    *
    * @default ''
    */
-  public readonly evaThumbnailVtt = input<string>('');
+  public readonly evaThumbnailVtt = input<string>("");
 
   /** Whether the scrub bar is currently hidden. Applies the `hide` class to the host. */
   protected readonly hideControls = signal(false);
@@ -220,10 +221,10 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
 
   /** Re-syncs external chapters when the `evaChapters` input changes at runtime. */
   public ngOnChanges(changes: SimpleChanges): void {
-    if (changes['evaChapters'] && !changes['evaChapters'].firstChange) {
+    if (changes["evaChapters"] && !changes["evaChapters"].firstChange) {
       this.syncExternalChapters(this.evaChapters());
     }
-    if (changes['evaThumbnailVtt'] && !changes['evaThumbnailVtt'].firstChange) {
+    if (changes["evaThumbnailVtt"] && !changes["evaThumbnailVtt"].firstChange) {
       this.loadThumbnailVtt(this.evaThumbnailVtt());
     }
   }
@@ -240,16 +241,14 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
     this.loadThumbnailVtt(this.evaThumbnailVtt());
   }
 
-
-
   /**
    * Registers `mousemove` and `touchmove` document listeners outside Angular's zone
    * to handle seeking and hover tooltip updates without triggering change detection on every event.
    */
   public ngAfterViewInit(): void {
     const registerListeners = (): void => {
-      document.addEventListener('mousemove', this.onDocumentMouseMove);
-      document.addEventListener('touchmove', this.onDocumentTouchMove, { passive: true });
+      document.addEventListener("mousemove", this.onDocumentMouseMove);
+      document.addEventListener("touchmove", this.onDocumentTouchMove, { passive: true });
     };
 
     if (this.ngZone) {
@@ -268,8 +267,8 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
       clearTimeout(this.hideTimeout);
     }
 
-    document.removeEventListener('mousemove', this.onDocumentMouseMove);
-    document.removeEventListener('touchmove', this.onDocumentTouchMove);
+    document.removeEventListener("mousemove", this.onDocumentMouseMove);
+    document.removeEventListener("touchmove", this.onDocumentTouchMove);
     if (this.hoverRafId !== null) {
       cancelAnimationFrame(this.hoverRafId);
     }
@@ -283,7 +282,9 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    */
   protected getPercentage(): string {
     const time = this.evaAPI.time();
-    if (!time.total) { return '0%'; }
+    if (!time.total) {
+      return "0%";
+    }
     return `${Math.round((time.current * PERCENTAGE) / time.total)}%`;
   }
 
@@ -294,7 +295,9 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    */
   protected getChapterLeftPercent(chapter: EvaChapterMarker): string {
     const { total } = this.evaAPI.time();
-    if (!total) { return '0%'; }
+    if (!total) {
+      return "0%";
+    }
     return `${(chapter.startTime / total) * PERCENTAGE}%`;
   }
 
@@ -306,7 +309,9 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    */
   protected getChapterWidthPercent(chapter: EvaChapterMarker): string {
     const { total } = this.evaAPI.time();
-    if (!total) { return '0%'; }
+    if (!total) {
+      return "0%";
+    }
     return `${((chapter.endTime - chapter.startTime) / total) * PERCENTAGE}%`;
   }
 
@@ -316,8 +321,12 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    * No-ops for live streams.
    */
   protected mouseDownScrub(e: MouseEvent): void {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
-    if (this.evaAPI.isLive()) { return; }
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
+      return;
+    }
+    if (this.evaAPI.isLive()) {
+      return;
+    }
 
     if (this.evaSlidingEnabled()) {
       this.seekStart();
@@ -332,8 +341,12 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    * No-ops for live streams.
    */
   protected mouseUpScrubBar(e: MouseEvent): void {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
-    if (this.evaAPI.isLive()) { return; }
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
+      return;
+    }
+    if (this.evaAPI.isLive()) {
+      return;
+    }
 
     if (this.evaSlidingEnabled() && this.isSeeking) {
       this.seekEnd(this.getOffsetFromEvent(e.clientX));
@@ -346,8 +359,12 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    * No-ops for live streams.
    */
   protected touchStartScrub(e: TouchEvent): void {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
-    if (this.evaAPI.isLive()) { return; }
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
+      return;
+    }
+    if (this.evaAPI.isLive()) {
+      return;
+    }
 
     if (this.evaSlidingEnabled()) {
       this.seekStart();
@@ -362,8 +379,12 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    * No-ops for live streams.
    */
   protected touchCancelScrub(_e: TouchEvent): void {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
-    if (this.evaAPI.isLive()) { return; }
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
+      return;
+    }
+    if (this.evaAPI.isLive()) {
+      return;
+    }
 
     if (this.evaSlidingEnabled() && this.isSeeking) {
       this.touchEnd();
@@ -376,8 +397,12 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    * No-ops for live streams.
    */
   protected touchEndScrub(_e: TouchEvent): void {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
-    if (this.evaAPI.isLive()) { return; }
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
+      return;
+    }
+    if (this.evaAPI.isLive()) {
+      return;
+    }
 
     if (this.evaSlidingEnabled() && this.isSeeking) {
       this.touchEnd();
@@ -391,14 +416,18 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    * No-ops for live streams.
    */
   protected arrowAdjustTime(e: KeyboardEvent): void {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
-    if (this.evaAPI.isLive()) { return; }
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
+      return;
+    }
+    if (this.evaAPI.isLive()) {
+      return;
+    }
 
-    if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+    if (e.key === "ArrowUp" || e.key === "ArrowRight") {
       e.preventDefault();
       this.evaAPI.seekForward();
       this.emitChapterAtTime(this.evaAPI.time().current);
-    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
       e.preventDefault();
       this.evaAPI.seekBack();
       this.emitChapterAtTime(this.evaAPI.time().current);
@@ -406,21 +435,21 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
   }
 
   /**
- * Looks up the chapter at the given time and emits it via `onChapterChange`.
- * Emits the matching `EvaChapterMarker` if the time falls within a chapter,
- * or `null` if no chapter contains that time.
- *
- * Called after every user-initiated seek: click, drag release, touch end, and keyboard.
- *
- * @param time - The playback time in seconds to look up.
- */
+   * Looks up the chapter at the given time and emits it via `onChapterChange`.
+   * Emits the matching `EvaChapterMarker` if the time falls within a chapter,
+   * or `null` if no chapter contains that time.
+   *
+   * Called after every user-initiated seek: click, drag release, touch end, and keyboard.
+   *
+   * @param time - The playback time in seconds to look up.
+   */
   private emitChapterAtTime(time: number): void {
     const chapters = this.chapters();
     if (!chapters.length) {
       this.evaAPI.activeChapterSubject.next(null);
       return;
     }
-    const chapter = chapters.find(c => time >= c.startTime && time < c.endTime) ?? null;
+    const chapter = chapters.find((c) => time >= c.startTime && time < c.endTime) ?? null;
     this.evaAPI.activeChapterSubject.next(chapter);
   }
 
@@ -434,17 +463,25 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    *   mouse leaves the bar. Signal updates are run back inside the Angular zone via `runInZone`.
    */
   private readonly onDocumentMouseMove = (e: MouseEvent): void => {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
-    if (this.evaAPI.isLive()) { return; }
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
+      return;
+    }
+    if (this.evaAPI.isLive()) {
+      return;
+    }
 
     // Handle seeking
     if (this.evaSlidingEnabled() && this.isSeeking) {
-      this.runInZone(() => { this.seekMove(this.getOffsetFromEvent(e.clientX)); });
+      this.runInZone(() => {
+        this.seekMove(this.getOffsetFromEvent(e.clientX));
+      });
     }
 
     // Handle tooltip — coalesce to one update per animation frame
     if (this.evaShowTimeOnHover()) {
-      if (this.hoverRafId !== null) { return; }
+      if (this.hoverRafId !== null) {
+        return;
+      }
       const clientX = e.clientX;
       const clientY = e.clientY;
       this.hoverRafId = requestAnimationFrame(() => {
@@ -457,11 +494,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
   /** Computes and updates hover tooltip signals (time, chapter, thumbnail, position). Called once per animation frame. */
   private updateHoverTooltip(clientX: number, clientY: number): void {
     const rect = this.elementRef.nativeElement.getBoundingClientRect();
-    const isOverHost =
-      clientX >= rect.left &&
-      clientX <= rect.right &&
-      clientY >= rect.top &&
-      clientY <= rect.bottom;
+    const isOverHost = clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
 
     if (isOverHost) {
       const offset = clientX - rect.left;
@@ -474,12 +507,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
       const halfWidth = thumbnail ? Math.max(thumbnail.width / HALF_DIVISOR, SCRUB_BAR_TOOLTIP_HALF_WIDTH_PX) : SCRUB_BAR_TOOLTIP_HALF_WIDTH_PX;
       const clampedLeft = Math.max(halfWidth, Math.min(offset, rect.width - halfWidth));
 
-      if (
-        this.hoverLeft() !== clampedLeft ||
-        this.hoverTime() !== formatted ||
-        this.hoverChapter() !== chapter ||
-        this.hoverThumbnail() !== thumbnail
-      ) {
+      if (this.hoverLeft() !== clampedLeft || this.hoverTime() !== formatted || this.hoverChapter() !== chapter || this.hoverThumbnail() !== thumbnail) {
         this.runInZone(() => {
           this.hoverTime.set(formatted);
           this.hoverLeft.set(clampedLeft);
@@ -507,13 +535,20 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    * Updates `currentTime` based on touch position during an active drag seek.
    */
   private readonly onDocumentTouchMove = (e: TouchEvent): void => {
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
-    if (this.evaAPI.isLive()) { return; }
-    if (!this.evaSlidingEnabled() || !this.isSeeking) { return; }
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
+      return;
+    }
+    if (this.evaAPI.isLive()) {
+      return;
+    }
+    if (!this.evaSlidingEnabled() || !this.isSeeking) {
+      return;
+    }
 
-    this.runInZone(() => { this.seekMove(this.getTouchOffset(e)); });
+    this.runInZone(() => {
+      this.seekMove(this.getTouchOffset(e));
+    });
   };
-
 
   /**
    * Begins a drag seek operation.
@@ -521,7 +556,9 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    * Safely handles any pending play promise to avoid unhandled rejections.
    */
   private seekStart(): void {
-    if (!this.evaAPI.canPlay()) { return; }
+    if (!this.evaAPI.canPlay()) {
+      return;
+    }
 
     this.isSeeking = true;
     this.wasPlaying = !this.evaAPI.assignedVideoElement!.paused;
@@ -544,14 +581,15 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    * @param offsetX - Horizontal pixel offset from the left edge of the scrub bar.
    */
   private seekMove(offsetX: number): void {
-    if (!this.isSeeking) { return; }
+    if (!this.isSeeking) {
+      return;
+    }
 
-    const percentage = Math.max(
-      Math.min((offsetX * PERCENTAGE) / this.elementRef.nativeElement.clientWidth, SCRUB_BAR_MAX_SEEK_PERCENT),
-      0
-    );
+    const percentage = Math.max(Math.min((offsetX * PERCENTAGE) / this.elementRef.nativeElement.clientWidth, SCRUB_BAR_MAX_SEEK_PERCENT), 0);
     const newTime = (percentage * this.evaAPI.time().total) / PERCENTAGE;
-    if (isNaN(newTime) || newTime < 0) { return; }
+    if (isNaN(newTime) || newTime < 0) {
+      return;
+    }
 
     this.evaAPI.assignedVideoElement!.currentTime = newTime;
   }
@@ -572,10 +610,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
     }
 
     if (offsetX !== false) {
-      const percentage = Math.max(
-        Math.min((offsetX * PERCENTAGE) / this.elementRef.nativeElement.clientWidth, SCRUB_BAR_MAX_SEEK_PERCENT),
-        0
-      );
+      const percentage = Math.max(Math.min((offsetX * PERCENTAGE) / this.elementRef.nativeElement.clientWidth, SCRUB_BAR_MAX_SEEK_PERCENT), 0);
       const newTime = (percentage * this.evaAPI.time().total) / PERCENTAGE;
       if (isNaN(newTime) || newTime < 0) {
         this.wasPlaying = false;
@@ -598,7 +633,9 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    */
   private touchEnd(): void {
     this.isSeeking = false;
-    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) { return; }
+    if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
+      return;
+    }
     this.emitChapterAtTime(this.evaAPI.assignedVideoElement!.currentTime);
 
     if (this.wasPlaying) {
@@ -616,10 +653,14 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    *    If the player is not yet ready, waits for `playerReadyEvent` before loading the track.
    */
   private initChapters(): void {
-    if (!this.evaShowChapters()) { return; }
+    if (!this.evaShowChapters()) {
+      return;
+    }
     this.syncExternalChapters(this.evaChapters());
     this.chapterChanges$ = this.evaAPI.chapterMarkerChangesSubject.subscribe((d) => {
-      if (this.evaChapters().length > 0) { return; }
+      if (this.evaChapters().length > 0) {
+        return;
+      }
       this.chapters.set(d);
     });
   }
@@ -648,8 +689,10 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    */
   private getChapterAtTime(time: number): string | null {
     const chapters = this.chapters();
-    if (!chapters.length) { return null; }
-    const chapter = chapters.find(c => time >= c.startTime && time < c.endTime);
+    if (!chapters.length) {
+      return null;
+    }
+    const chapter = chapters.find((c) => time >= c.startTime && time < c.endTime);
     return chapter ? chapter.title : null;
   }
 
@@ -670,12 +713,15 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
     const mm = Math.floor((totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
     const ss = totalSeconds % SECONDS_PER_MINUTE;
 
-    const pad = (n: number): string => String(n).padStart(TIME_DISPLAY_PAD_WIDTH, '0');
+    const pad = (n: number): string => String(n).padStart(TIME_DISPLAY_PAD_WIDTH, "0");
 
     switch (format) {
-      case 'HH:mm:ss': return `${pad(hh)}:${pad(mm)}:${pad(ss)}`;
-      case 'mm:ss': return `${pad(mm)}:${pad(ss)}`;
-      case 'ss': return `${pad(ss)}s`;
+      case "HH:mm:ss":
+        return `${pad(hh)}:${pad(mm)}:${pad(ss)}`;
+      case "mm:ss":
+        return `${pad(mm)}:${pad(ss)}`;
+      case "ss":
+        return `${pad(ss)}s`;
       default:
         return `${pad(ss)}s`;
     }
@@ -697,7 +743,9 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    * @param event - The `TouchEvent` to extract the offset from.
    */
   private getTouchOffset(event: TouchEvent): number {
-    if (!event.touches.length) { return 0; }
+    if (!event.touches.length) {
+      return 0;
+    }
     const rect = this.elementRef.nativeElement.getBoundingClientRect();
     return event.touches[0].clientX - rect.left;
   }
@@ -756,8 +804,10 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
 
   /** Returns the thumbnail cue matching the given time, or `null` if no VTT is loaded or no cue matches. */
   private getThumbnailAtTime(time: number): EvaThumbnailCue | null {
-    if (!this.thumbnailCues.length) { return null; }
-    return this.thumbnailCues.find(c => time >= c.startTime && time < c.endTime) ?? null;
+    if (!this.thumbnailCues.length) {
+      return null;
+    }
+    return this.thumbnailCues.find((c) => time >= c.startTime && time < c.endTime) ?? null;
   }
 
   /** Fetches and parses a VTT thumbnail file. Aborts any in-flight fetch before starting a new one. */
@@ -767,16 +817,22 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
     this.thumbnailCues = [];
     this.hoverThumbnail.set(null);
 
-    if (!url) { return; }
+    if (!url) {
+      return;
+    }
 
     const controller = new AbortController();
     this.thumbnailAbortController = controller;
 
     try {
       const response = await fetch(url, { signal: controller.signal });
-      if (!response.ok || controller.signal.aborted) { return; }
+      if (!response.ok || controller.signal.aborted) {
+        return;
+      }
       const text = await response.text();
-      if (!text || controller.signal.aborted) { return; }
+      if (!text || controller.signal.aborted) {
+        return;
+      }
       this.thumbnailCues = this.parseThumbnailVtt(text, url);
       this.preloadThumbnailSprites();
     } catch {
@@ -790,7 +846,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
   private parseThumbnailVtt(text: string, vttUrl: string): EvaThumbnailCue[] {
     const cues: EvaThumbnailCue[] = [];
     const blocks = text.split(/\n\s*\n/u);
-    const baseUrl = vttUrl.substring(0, vttUrl.lastIndexOf('/') + 1);
+    const baseUrl = vttUrl.substring(0, vttUrl.lastIndexOf("/") + 1);
 
     for (const block of blocks) {
       const parsed = this.parseThumbnailBlock(block, baseUrl);
@@ -804,49 +860,66 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
 
   /** Parses a single VTT block into an `EvaThumbnailCue`. Returns `null` if the block is invalid. */
   private parseThumbnailBlock(block: string, baseUrl: string): EvaThumbnailCue | null {
-    const lines = block.trim().split('\n');
-    let timeLine = '';
-    let imageLine = '';
+    const lines = block.trim().split("\n");
+    let timeLine = "";
+    let imageLine = "";
 
     for (const line of lines) {
-      if (line.includes('-->')) {
+      if (line.includes("-->")) {
         timeLine = line.trim();
-      } else if (line.includes('#xywh=') || line.includes('.jpg') || line.includes('.png') || line.includes('.webp')) {
+      } else if (line.includes("#xywh=") || line.includes(".jpg") || line.includes(".png") || line.includes(".webp")) {
         imageLine = line.trim();
       }
     }
 
-    if (!timeLine || !imageLine) { return null; }
+    if (!timeLine || !imageLine) {
+      return null;
+    }
 
-    const times = timeLine.split('-->').map(t => t.trim());
-    if (times.length !== VTT_TIMESTAMP_MIN_PARTS) { return null; }
+    const times = timeLine.split("-->").map((t) => t.trim());
+    if (times.length !== VTT_TIMESTAMP_MIN_PARTS) {
+      return null;
+    }
 
     const startTime = this.parseVttTimestamp(times[0]);
     const endTime = this.parseVttTimestamp(times[1]);
-    if (startTime < 0 || endTime < 0 || endTime <= startTime) { return null; }
+    if (startTime < 0 || endTime < 0 || endTime <= startTime) {
+      return null;
+    }
 
-    const hashIndex = imageLine.indexOf('#xywh=');
-    if (hashIndex === -1) { return null; }
+    const hashIndex = imageLine.indexOf("#xywh=");
+    if (hashIndex === -1) {
+      return null;
+    }
 
     let url = imageLine.substring(0, hashIndex);
-    if (!url.startsWith('http') && !url.startsWith('/') && !url.startsWith('data:')) {
+    if (!url.startsWith("http") && !url.startsWith("/") && !url.startsWith("data:")) {
       url = baseUrl + url;
     }
 
-    const coords = imageLine.substring(hashIndex + VTT_XYWH_PREFIX_LENGTH).split(',').map(Number);
-    if (coords.length !== VTT_XYWH_COORDS_LENGTH || !coords.every(Number.isFinite) || coords.some(c => c < 0)) { return null; }
+    const coords = imageLine
+      .substring(hashIndex + VTT_XYWH_PREFIX_LENGTH)
+      .split(",")
+      .map(Number);
+    if (coords.length !== VTT_XYWH_COORDS_LENGTH || !coords.every(Number.isFinite) || coords.some((c) => c < 0)) {
+      return null;
+    }
 
     const width = coords[VTT_TIMESTAMP_MIN_PARTS];
     const height = coords[VTT_TIMESTAMP_MAX_PARTS];
-    if (width <= 0 || height <= 0) { return null; }
+    if (width <= 0 || height <= 0) {
+      return null;
+    }
 
     return { startTime, endTime, url, x: coords[0], y: coords[1], width, height };
   }
 
   /** Parses a VTT timestamp (`HH:MM:SS.mmm` or `MM:SS.mmm`) into seconds. Returns `-1` on failure. */
   private parseVttTimestamp(timestamp: string): number {
-    const parts = timestamp.split(':');
-    if (parts.length < VTT_TIMESTAMP_MIN_PARTS || parts.length > VTT_TIMESTAMP_MAX_PARTS) { return -1; }
+    const parts = timestamp.split(":");
+    if (parts.length < VTT_TIMESTAMP_MIN_PARTS || parts.length > VTT_TIMESTAMP_MAX_PARTS) {
+      return -1;
+    }
 
     let hours = 0;
     let minutes: number;
@@ -861,9 +934,9 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
       secondsPart = parts[1];
     }
 
-    const secParts = secondsPart.split('.');
+    const secParts = secondsPart.split(".");
     const seconds = Number(secParts[0]);
-    const ms = secParts.length > 1 ? Number(secParts[1].padEnd(VTT_MS_PAD_LENGTH, '0').substring(0, VTT_MS_PAD_LENGTH)) : 0;
+    const ms = secParts.length > 1 ? Number(secParts[1].padEnd(VTT_MS_PAD_LENGTH, "0").substring(0, VTT_MS_PAD_LENGTH)) : 0;
 
     if (!Number.isFinite(hours) || !Number.isFinite(minutes) || !Number.isFinite(seconds) || !Number.isFinite(ms)) {
       return -1;
@@ -874,7 +947,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
 
   /** Preloads unique sprite image URLs via `new Image()` to avoid flicker on first hover. */
   private preloadThumbnailSprites(): void {
-    const urls = new Set(this.thumbnailCues.map(c => c.url));
+    const urls = new Set(this.thumbnailCues.map((c) => c.url));
     for (const url of urls) {
       const img = new Image();
       img.src = url;

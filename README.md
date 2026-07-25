@@ -206,6 +206,17 @@ npx ng lint --fix   # Auto-fix fixable errors
 
 All magic numbers are centralized in `src/lib/constants.ts`. See [linting documentation](documentation/core/linting.md) and [constants documentation](documentation/core/constants.md) for details.
 
+### Formatting
+
+The project uses [Prettier](https://prettier.io) for code formatting, kept conflict-free with ESLint via `eslint-config-prettier`.
+
+```bash
+npm run format        # Format all files
+npm run format:check  # Check formatting without writing changes
+```
+
+Install the recommended `esbenp.prettier-vscode` VS Code extension for format-on-save. See [formatting documentation](documentation/core/formatting.md) for details.
+
 ---
 ### 💖 Support This Project
 

@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { getEvaIcon } from './icon-registry';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from "@angular/core";
+import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
+import { getEvaIcon } from "./icon-registry";
 
 /**
  * Internal rendering component for Eva icon registry lookups.
@@ -15,12 +15,14 @@ import { getEvaIcon } from './icon-registry';
  * @internal Not intended for direct use by library consumers.
  */
 @Component({
-  selector: 'eva-icon',
-  template: `<span aria-hidden="true" style="display:contents" [innerHTML]="safeSvg()"></span>`,
+  selector: "eva-icon",
+  template: `
+    <span aria-hidden="true" style="display:contents" [innerHTML]="safeSvg()"></span>
+  `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    style: 'display:contents'
-  }
+    style: "display:contents",
+  },
 })
 export class EvaIcon {
   private readonly sanitizer = inject(DomSanitizer);

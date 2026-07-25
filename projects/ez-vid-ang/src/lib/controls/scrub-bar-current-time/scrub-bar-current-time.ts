@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
-import { PERCENTAGE } from '../../constants';
+import { ChangeDetectionStrategy, Component, computed, inject } from "@angular/core";
+import { EvaApi } from "../../api/eva-api";
+import { PERCENTAGE } from "../../constants";
 
 /**
  * Current playback position indicator component for the Eva scrub bar.
@@ -19,10 +19,10 @@ import { PERCENTAGE } from '../../constants';
  * <eva-scrub-bar-current-time />
  */
 @Component({
-  selector: 'eva-scrub-bar-current-time',
-  templateUrl: './scrub-bar-current-time.html',
-  styleUrl: './scrub-bar-current-time.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  selector: "eva-scrub-bar-current-time",
+  templateUrl: "./scrub-bar-current-time.html",
+  styleUrl: "./scrub-bar-current-time.scss",
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EvaScrubBarCurrentTime {
   private readonly evaAPI = inject(EvaApi);

@@ -1,8 +1,8 @@
-import { Directive, ElementRef, inject, OnDestroy, OnInit } from '@angular/core';
-import { fromEvent, Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { EvaVideoEvent } from '../../types';
-import { EvaFullscreenAPI } from '../../api/fullscreen';
+import { Directive, ElementRef, inject, OnDestroy, OnInit } from "@angular/core";
+import { fromEvent, Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { EvaVideoEvent } from "../../types";
+import { EvaFullscreenAPI } from "../../api/fullscreen";
 
 /**
  * Directive that bridges native `HTMLVideoElement` media events to the `EvaApi` layer.
@@ -39,7 +39,7 @@ import { EvaFullscreenAPI } from '../../api/fullscreen';
  * | `leavepictureinpicture` | `removePictureInPictureWindow()` |
  */
 @Directive({
-  selector: 'video[evaMediaEventListeners]'
+  selector: "video[evaMediaEventListeners]",
 })
 export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
   private readonly evaAPI = inject(EvaApi);
@@ -52,30 +52,78 @@ export class EvaMediaEventListenersDirective implements OnInit, OnDestroy {
     const el = this.elementRef.nativeElement;
 
     const on = (event: string, handler: (e: Event) => void): void => {
-      this.subs.push(fromEvent<Event>(el, event).subscribe(e => { handler(e); }));
+      this.subs.push(
+        fromEvent<Event>(el, event).subscribe((e) => {
+          handler(e);
+        }),
+      );
     };
 
-    on(EvaVideoEvent.CAN_PLAY, () => { this.evaAPI.videoCanPlay(); });
-    on(EvaVideoEvent.ENDED, () => { this.evaAPI.endedVideo(); });
-    on(EvaVideoEvent.ERROR, () => { this.evaAPI.erroredVideo(); });
-    on(EvaVideoEvent.LOADED_METADATA, e => { this.evaAPI.loadedVideoMetadata(e); });
-    on(EvaVideoEvent.PAUSE, () => { this.evaAPI.pauseVideo(); });
-    on(EvaVideoEvent.PLAY, () => { this.evaAPI.playVideo(); });
-    on(EvaVideoEvent.DOUBLE_CLICK, () => { this.fullscreenService.toggleFullscreen().catch(() => { /* Ignored */ }); });
-    on(EvaVideoEvent.PLAYING, () => { this.evaAPI.playingVideo(); });
-    on(EvaVideoEvent.PROGRESS, () => { this.evaAPI.checkBufferStatus(); });
-    on(EvaVideoEvent.RATECHANGE, e => { this.evaAPI.playbackRateVideoChanged(e); });
-    on(EvaVideoEvent.SEEKED, () => { this.evaAPI.videoSeeked(); });
-    on(EvaVideoEvent.SEEKING, () => { this.evaAPI.videoSeeking(); });
-    on(EvaVideoEvent.STALLED, () => { this.evaAPI.videoStalled(); });
-    on(EvaVideoEvent.TIME_UPDATE, () => { this.evaAPI.updateVideoTime(); });
-    on(EvaVideoEvent.VOLUME_CHANGE, e => { this.evaAPI.volumeChanged(e); });
-    on(EvaVideoEvent.WAITING, () => { this.evaAPI.videoWaiting(); });
-    on(EvaVideoEvent.ENTERED_PICTURE_IN_PICTURE, e => { if (e instanceof PictureInPictureEvent) { this.evaAPI.assignPictureInPictureWindow(e); } });
-    on(EvaVideoEvent.LEFT_PICTURE_IN_PICTURE, e => { if (e instanceof PictureInPictureEvent) { this.evaAPI.removePictureInPictureWindow(e); } });
+    on(EvaVideoEvent.CAN_PLAY, () => {
+      this.evaAPI.videoCanPlay();
+    });
+    on(EvaVideoEvent.ENDED, () => {
+      this.evaAPI.endedVideo();
+    });
+    on(EvaVideoEvent.ERROR, () => {
+      this.evaAPI.erroredVideo();
+    });
+    on(EvaVideoEvent.LOADED_METADATA, (e) => {
+      this.evaAPI.loadedVideoMetadata(e);
+    });
+    on(EvaVideoEvent.PAUSE, () => {
+      this.evaAPI.pauseVideo();
+    });
+    on(EvaVideoEvent.PLAY, () => {
+      this.evaAPI.playVideo();
+    });
+    on(EvaVideoEvent.DOUBLE_CLICK, () => {
+      this.fullscreenService.toggleFullscreen().catch(() => {
+        /* Ignored */
+      });
+    });
+    on(EvaVideoEvent.PLAYING, () => {
+      this.evaAPI.playingVideo();
+    });
+    on(EvaVideoEvent.PROGRESS, () => {
+      this.evaAPI.checkBufferStatus();
+    });
+    on(EvaVideoEvent.RATECHANGE, (e) => {
+      this.evaAPI.playbackRateVideoChanged(e);
+    });
+    on(EvaVideoEvent.SEEKED, () => {
+      this.evaAPI.videoSeeked();
+    });
+    on(EvaVideoEvent.SEEKING, () => {
+      this.evaAPI.videoSeeking();
+    });
+    on(EvaVideoEvent.STALLED, () => {
+      this.evaAPI.videoStalled();
+    });
+    on(EvaVideoEvent.TIME_UPDATE, () => {
+      this.evaAPI.updateVideoTime();
+    });
+    on(EvaVideoEvent.VOLUME_CHANGE, (e) => {
+      this.evaAPI.volumeChanged(e);
+    });
+    on(EvaVideoEvent.WAITING, () => {
+      this.evaAPI.videoWaiting();
+    });
+    on(EvaVideoEvent.ENTERED_PICTURE_IN_PICTURE, (e) => {
+      if (e instanceof PictureInPictureEvent) {
+        this.evaAPI.assignPictureInPictureWindow(e);
+      }
+    });
+    on(EvaVideoEvent.LEFT_PICTURE_IN_PICTURE, (e) => {
+      if (e instanceof PictureInPictureEvent) {
+        this.evaAPI.removePictureInPictureWindow(e);
+      }
+    });
   }
 
   public ngOnDestroy(): void {
-    this.subs.forEach(s => { s.unsubscribe(); });
+    this.subs.forEach((s) => {
+      s.unsubscribe();
+    });
   }
 }

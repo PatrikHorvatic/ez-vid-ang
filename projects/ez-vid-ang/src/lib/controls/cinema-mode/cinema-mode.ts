@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, OnInit, output, signal } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { EvaIcon } from '../../core/icon/icon';
-import { EvaCinemaModeAria, EvaCinemaModeAriaTransformed, transformEvaCinemaModeAria } from '../../utils/aria-utilities';
+import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, OnInit, output, signal } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { EvaIcon } from "../../core/icon/icon";
+import { EvaCinemaModeAria, EvaCinemaModeAriaTransformed, transformEvaCinemaModeAria } from "../../utils/aria-utilities";
 
 /**
  * Cinema mode toggle button for the Eva video player.
@@ -37,20 +37,20 @@ import { EvaCinemaModeAria, EvaCinemaModeAriaTransformed, transformEvaCinemaMode
  * </eva-cinema-mode>
  */
 @Component({
-  selector: 'eva-cinema-mode',
+  selector: "eva-cinema-mode",
   imports: [EvaIcon],
-  templateUrl: './cinema-mode.html',
-  styleUrl: './cinema-mode.scss',
+  templateUrl: "./cinema-mode.html",
+  styleUrl: "./cinema-mode.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "button",
+    tabindex: "0",
+    role: "button",
     "[attr.aria-label]": "evaAria().ariaLabel",
     "[attr.aria-valuetext]": "isActive() ? evaAria().ariaValueText.active : evaAria().ariaValueText.inactive",
     "[class.eva-cinema-mode-active]": "isActive()",
     "(click)": "toggle()",
-    "(keydown)": "onKeyDown($event)"
-  }
+    "(keydown)": "onKeyDown($event)",
+  },
 })
 export class EvaCinemaMode implements OnInit, OnDestroy {
   private readonly evaAPI = inject(EvaApi);
@@ -82,7 +82,7 @@ export class EvaCinemaMode implements OnInit, OnDestroy {
   protected readonly isActive = signal(false);
 
   public ngOnInit(): void {
-    this.cinemaSub = this.evaAPI.cinemaModeSubject.subscribe(active => {
+    this.cinemaSub = this.evaAPI.cinemaModeSubject.subscribe((active) => {
       if (active !== this.isActive()) {
         this.isActive.set(active);
       }
@@ -103,7 +103,7 @@ export class EvaCinemaMode implements OnInit, OnDestroy {
   }
 
   protected onKeyDown(e: KeyboardEvent): void {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       this.toggle();
     }

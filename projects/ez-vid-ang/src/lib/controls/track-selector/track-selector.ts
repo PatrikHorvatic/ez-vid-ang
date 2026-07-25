@@ -1,10 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal, AfterViewInit, OnDestroy, OnInit } from '@angular/core';
-import { combineLatest, Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { EvaTrack, EvaTrackInternal, EvaStreamSubtitleTrack } from '../../types';
-import { SCREEN_READER_ANNOUNCEMENT_DURATION_MS } from '../../constants';
-
-
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, AfterViewInit, OnDestroy, OnInit } from "@angular/core";
+import { combineLatest, Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { EvaTrack, EvaTrackInternal, EvaStreamSubtitleTrack } from "../../types";
+import { SCREEN_READER_ANNOUNCEMENT_DURATION_MS } from "../../constants";
 
 /**
  * Subtitle/text track selector component for the Eva video player.
@@ -60,14 +58,14 @@ import { SCREEN_READER_ANNOUNCEMENT_DURATION_MS } from '../../constants';
  * />
  */
 @Component({
-  selector: 'eva-track-selector',
-  templateUrl: './track-selector.html',
-  styleUrl: './track-selector.scss',
+  selector: "eva-track-selector",
+  templateUrl: "./track-selector.html",
+  styleUrl: "./track-selector.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     "[class.open]": "isOpen()",
-    "[attr.aria-label]": "evaTrackSelectorText()"
-  }
+    "[attr.aria-label]": "evaTrackSelectorText()",
+  },
 })
 export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
   private readonly evaAPI = inject(EvaApi);
@@ -99,7 +97,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * Returns `null` if `localTracks` is not yet initialized.
    */
   protected readonly currentTrack = computed<string | null>(() => {
-    const t = this.localTracks().filter(a => a.selected);
+    const t = this.localTracks().filter((a) => a.selected);
     if (!t[0]) {
       return this.evaTrackOffText();
     }
@@ -132,17 +130,14 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * dropdown when clicking outside.
    */
   public ngOnInit(): void {
-    this.tracksSub = combineLatest([
-      this.evaAPI.videoTracksSubject,
-      this.evaAPI.streamSubtitleTracksSubject,
-    ]).subscribe(([declared, stream]) => {
+    this.tracksSub = combineLatest([this.evaAPI.videoTracksSubject, this.evaAPI.streamSubtitleTracksSubject]).subscribe(([declared, stream]) => {
       this.localTracks.set(this.buildTrackList(declared, stream));
       this.changeSubtitles();
     });
 
     // Listen for clicks outside
     this.clickOutsideListener = this.handleClickOutside.bind(this);
-    document.addEventListener('click', this.clickOutsideListener, true);
+    document.addEventListener("click", this.clickOutsideListener, true);
   }
 
   // We need to set first value to the player component.
@@ -159,7 +154,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
       clearTimeout(this.announceTimeout);
     }
     if (this.clickOutsideListener) {
-      document.removeEventListener('click', this.clickOutsideListener, true);
+      document.removeEventListener("click", this.clickOutsideListener, true);
     }
   }
 
@@ -174,10 +169,10 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * @param i - The index of the track within `localTracks`.
    */
   protected selectTrack(tr: EvaTrackInternal, i: number): void {
-    this.localTracks.update(tracks => {
-      const updated = tracks.map(track => ({
+    this.localTracks.update((tracks) => {
+      const updated = tracks.map((track) => ({
         ...track,
-        selected: false
+        selected: false,
       }));
       updated[i].selected = true;
       return updated;
@@ -185,13 +180,14 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
 
     // Update the video element's text tracks
     if (this.evaAPI.assignedVideoElement) {
-      Array.from(this.evaAPI.assignedVideoElement.textTracks)
-        .forEach(textTrack => { textTrack.mode = "hidden"; });
+      Array.from(this.evaAPI.assignedVideoElement.textTracks).forEach((textTrack) => {
+        textTrack.mode = "hidden";
+      });
     }
 
     // Mutual exclusivity: selecting a stream-native track switches to it directly.
     // Selecting anything else (a declared track, or "Off") turns any active stream track off.
-    if (tr.source === 'stream' && tr.streamId !== undefined) {
+    if (tr.source === "stream" && tr.streamId !== undefined) {
       this.evaAPI.setStreamSubtitleTrack(tr.streamId);
     } else {
       this.evaAPI.setStreamSubtitleTrack(-1);
@@ -225,19 +221,19 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
     const isDropdownOpen = this.isOpen();
 
     switch (e.key) {
-      case 'Enter':
-      case ' ':
+      case "Enter":
+      case " ":
         e.preventDefault();
         if (!isDropdownOpen) {
           this.isOpen.set(true);
           this.evaAPI.controlsSelectorComponentActive.next(true);
           // Reset keyboard navigation to current selection
-          const currentIndex = tracks.findIndex(t => t.selected);
+          const currentIndex = tracks.findIndex((t) => t.selected);
           this.keyboardNavigationIndex.set(currentIndex >= 0 ? currentIndex : 0);
         }
         break;
 
-      case 'Escape':
+      case "Escape":
         e.preventDefault();
         if (isDropdownOpen) {
           this.isOpen.set(false);
@@ -245,7 +241,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
         }
         break;
 
-      case 'ArrowDown':
+      case "ArrowDown":
         e.preventDefault();
         if (!isDropdownOpen) {
           this.isOpen.set(true);
@@ -259,7 +255,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
         }
         break;
 
-      case 'ArrowUp':
+      case "ArrowUp":
         e.preventDefault();
         if (!isDropdownOpen) {
           this.isOpen.set(true);
@@ -273,7 +269,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
         }
         break;
 
-      case 'Home':
+      case "Home":
         e.preventDefault();
         if (isDropdownOpen) {
           this.keyboardNavigationIndex.set(0);
@@ -281,7 +277,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
         }
         break;
 
-      case 'End':
+      case "End":
         e.preventDefault();
         if (isDropdownOpen) {
           const lastIndex = tracks.length - 1;
@@ -301,7 +297,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
   protected handleBlur(event: FocusEvent): void {
     // Close dropdown when focus moves outside the component
     const relatedTarget = event.relatedTarget;
-    if (!(relatedTarget instanceof HTMLElement) || !relatedTarget.closest('eva-track-selector')) {
+    if (!(relatedTarget instanceof HTMLElement) || !relatedTarget.closest("eva-track-selector")) {
       this.isOpen.set(false);
       this.evaAPI.controlsSelectorComponentActive.next(false);
     }
@@ -313,7 +309,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    */
   protected getActiveIndex(): number {
     const tracks = this.localTracks();
-    const activeIndex = tracks.findIndex(t => t.selected);
+    const activeIndex = tracks.findIndex((t) => t.selected);
     return activeIndex >= 0 ? activeIndex : 0;
   }
 
@@ -324,8 +320,10 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * @param event - The native `MouseEvent` from the document listener.
    */
   private handleClickOutside(event: MouseEvent): void {
-    if (!(event.target instanceof HTMLElement)) { return; }
-    if (!event.target.closest('eva-track-selector')) {
+    if (!(event.target instanceof HTMLElement)) {
+      return;
+    }
+    if (!event.target.closest("eva-track-selector")) {
       this.isOpen.set(false);
       this.evaAPI.controlsSelectorComponentActive.next(false);
     }
@@ -336,11 +334,11 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * When opening, resets `keyboardNavigationIndex` to the currently selected track.
    */
   private toggleDropdown(): void {
-    this.isOpen.update(open => !open);
+    this.isOpen.update((open) => !open);
     this.evaAPI.controlsSelectorComponentActive.next(this.isOpen());
     if (this.isOpen()) {
       // Set keyboard navigation to current selection when opening
-      const currentIndex = this.localTracks().findIndex(t => t.selected);
+      const currentIndex = this.localTracks().findIndex((t) => t.selected);
       this.keyboardNavigationIndex.set(currentIndex >= 0 ? currentIndex : 0);
     }
   }
@@ -360,24 +358,24 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    */
   private buildTrackList(declaredTracks: EvaTrack[] | null, streamTracks: EvaStreamSubtitleTrack[]): EvaTrackInternal[] {
     const declared: EvaTrackInternal[] = (declaredTracks ?? [])
-      .filter(t => t.kind === "subtitles")
-      .map(b => ({
+      .filter((t) => t.kind === "subtitles")
+      .map((b) => ({
         id: b.srclang,
         label: b.label || "",
         selected: b.default === true,
-        source: 'declared' as const
+        source: "declared" as const,
       }));
 
-    const stream: EvaTrackInternal[] = streamTracks.map(t => ({
+    const stream: EvaTrackInternal[] = streamTracks.map((t) => ({
       id: `stream:${t.id}`,
       label: t.label,
       selected: false,
-      source: 'stream' as const,
-      streamId: t.id
+      source: "stream" as const,
+      streamId: t.id,
     }));
 
     const combined = [...declared, ...stream];
-    const hasSelected = combined.some(i => i.selected);
+    const hasSelected = combined.some((i) => i.selected);
 
     return [
       ...combined,
@@ -385,8 +383,8 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
         id: "off",
         label: this.evaTrackOffText(),
         selected: !hasSelected,
-        source: 'declared' as const
-      }
+        source: "declared" as const,
+      },
     ];
   }
 
@@ -403,11 +401,11 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
     if (this.announceTimeout) {
       clearTimeout(this.announceTimeout);
     }
-    const announcement = document.createElement('div');
-    announcement.setAttribute('role', 'status');
-    announcement.setAttribute('aria-live', 'polite');
-    announcement.setAttribute('aria-atomic', 'true');
-    announcement.className = 'eva-sr-only';
+    const announcement = document.createElement("div");
+    announcement.setAttribute("role", "status");
+    announcement.setAttribute("aria-live", "polite");
+    announcement.setAttribute("aria-atomic", "true");
+    announcement.className = "eva-sr-only";
     announcement.textContent = `${this.evaTrackSelectorText()}: ${trackLabel}`;
 
     document.body.appendChild(announcement);
@@ -424,7 +422,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
       this.evaAPI.subtitlesChanged(null);
       return;
     }
-    const t = this.localTracks().find(a => a.selected);
+    const t = this.localTracks().find((a) => a.selected);
     this.evaAPI.subtitlesChanged(t ? t : null);
   }
 }

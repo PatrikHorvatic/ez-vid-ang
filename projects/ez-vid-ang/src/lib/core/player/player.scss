@@ -1,26 +1,26 @@
 :host {
-	display: block;
-	position: relative;
-	padding: 0;
-	margin: 0;
-	border: 0;
-	border-radius: 0px;
-	overflow: hidden;
+  display: block;
+  position: relative;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0px;
+  overflow: hidden;
 }
 
 :host > video {
-	display: block;
-	width: 100%;
-	object-fit: contain;
-	object-position: 0 0;
-	transition: padding-bottom var(--eva-transition-duration) ease-in-out;
+  display: block;
+  width: 100%;
+  object-fit: contain;
+  object-position: 0 0;
+  transition: padding-bottom var(--eva-transition-duration) ease-in-out;
 }
 
 :host(video::cue) {
-	font-family: var(--eva-font-family);
-	color: unset;
-	background-color: transparent;
-	font-size: 0px;
-	text-decoration: none;
-	text-shadow: none;
+  font-family: var(--eva-font-family);
+  color: unset;
+  background-color: transparent;
+  font-size: 0px;
+  text-decoration: none;
+  text-shadow: none;
 }

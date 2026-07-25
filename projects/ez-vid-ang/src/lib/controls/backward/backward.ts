@@ -1,9 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
-import { DEFAULT_SEEK_SECONDS } from '../../constants';
-import { EvaIcon } from '../../core/icon/icon';
-import { EvaBackwardAria, EvaBackwardAriaTransformed, transformEvaBackwardAria, validateAndTransformEvaForwardAndBackwardSeconds } from '../../utils/aria-utilities';
-
+import { ChangeDetectionStrategy, Component, inject, input } from "@angular/core";
+import { EvaApi } from "../../api/eva-api";
+import { DEFAULT_SEEK_SECONDS } from "../../constants";
+import { EvaIcon } from "../../core/icon/icon";
+import { EvaBackwardAria, EvaBackwardAriaTransformed, transformEvaBackwardAria, validateAndTransformEvaForwardAndBackwardSeconds } from "../../utils/aria-utilities";
 
 /**
  * Backward seek button component for the Eva video player.
@@ -42,18 +41,18 @@ import { EvaBackwardAria, EvaBackwardAriaTransformed, transformEvaBackwardAria, 
  * />
  */
 @Component({
-  selector: 'eva-backward',
+  selector: "eva-backward",
   imports: [EvaIcon],
-  templateUrl: './backward.html',
-  styleUrl: './backward.scss',
+  templateUrl: "./backward.html",
+  styleUrl: "./backward.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "button",
+    tabindex: "0",
+    role: "button",
     "[attr.aria-label]": "evaAria().ariaLabel",
     "(click)": "backwardClicked()",
-    "(keydown)": "backwardClickedKeyboard($event)"
-  }
+    "(keydown)": "backwardClickedKeyboard($event)",
+  },
 })
 export class EvaBackward {
   private readonly evaAPI = inject(EvaApi);
@@ -95,7 +94,7 @@ export class EvaBackward {
    * Triggers the backward seek on `Enter` or `Space` keypress.
    */
   protected backwardClickedKeyboard(k: KeyboardEvent): void {
-    if (k.key === 'Enter' || k.key === ' ') {
+    if (k.key === "Enter" || k.key === " ") {
       k.preventDefault();
       this.backwardClicked();
     }

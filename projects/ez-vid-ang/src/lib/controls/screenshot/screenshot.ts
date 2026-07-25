@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
-import { EvaApi } from '../../api/eva-api';
-import { DEFAULT_IMAGE_QUALITY } from '../../constants';
-import { EvaIcon } from '../../core/icon/icon';
-import { EvaScreenshotEvent } from '../../types';
-import { EvaScreenshotAria, EvaScreenshotAriaTransformed, transformEvaScreenshotAria } from '../../utils/aria-utilities';
+import { ChangeDetectionStrategy, Component, inject, input, output } from "@angular/core";
+import { EvaApi } from "../../api/eva-api";
+import { DEFAULT_IMAGE_QUALITY } from "../../constants";
+import { EvaIcon } from "../../core/icon/icon";
+import { EvaScreenshotEvent } from "../../types";
+import { EvaScreenshotAria, EvaScreenshotAriaTransformed, transformEvaScreenshotAria } from "../../utils/aria-utilities";
 
 /**
  * Screenshot button component for the Eva video player.
@@ -41,18 +41,18 @@ import { EvaScreenshotAria, EvaScreenshotAriaTransformed, transformEvaScreenshot
  *   (evaScreenshotCaptured)="onScreenshot($event)" />
  */
 @Component({
-  selector: 'eva-screenshot',
+  selector: "eva-screenshot",
   imports: [EvaIcon],
-  templateUrl: './screenshot.html',
-  styleUrl: './screenshot.scss',
+  templateUrl: "./screenshot.html",
+  styleUrl: "./screenshot.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "button",
+    tabindex: "0",
+    role: "button",
     "[attr.aria-label]": "evaAria().ariaLabel",
     "(click)": "captureClicked()",
-    "(keydown)": "captureClickedKeyboard($event)"
-  }
+    "(keydown)": "captureClickedKeyboard($event)",
+  },
 })
 export class EvaScreenshot {
   private readonly evaAPI = inject(EvaApi);
@@ -71,7 +71,7 @@ export class EvaScreenshot {
    *
    * @default "image/png"
    */
-  public readonly evaImageFormat = input<string>('image/png');
+  public readonly evaImageFormat = input<string>("image/png");
 
   /**
    * Image quality for lossy formats (`image/jpeg`, `image/webp`).
@@ -101,7 +101,7 @@ export class EvaScreenshot {
   }
 
   protected captureClickedKeyboard(e: KeyboardEvent): void {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       this.capture();
     }

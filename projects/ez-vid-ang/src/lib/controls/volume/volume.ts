@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, Renderer2, signal, viewChild, ElementRef, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { transformEvaVolumeAria, EvaVolumeAria, EvaVolumeAriaTransformed } from '../../utils/aria-utilities';
-import { PERCENTAGE, VOLUME_ARROW_KEY_STEP, VOLUME_PAGE_KEY_STEP, VOLUME_ANNOUNCE_DEBOUNCE_MS, VOLUME_ANNOUNCE_RESET_MS, POST_DRAG_CLICK_SUPPRESS_MS } from '../../constants';
+import { ChangeDetectionStrategy, Component, computed, inject, input, Renderer2, signal, viewChild, ElementRef, OnDestroy, OnInit } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { transformEvaVolumeAria, EvaVolumeAria, EvaVolumeAriaTransformed } from "../../utils/aria-utilities";
+import { PERCENTAGE, VOLUME_ARROW_KEY_STEP, VOLUME_PAGE_KEY_STEP, VOLUME_ANNOUNCE_DEBOUNCE_MS, VOLUME_ANNOUNCE_RESET_MS, POST_DRAG_CLICK_SUPPRESS_MS } from "../../constants";
 
 /**
  * Volume slider component for the Eva video player.
@@ -41,13 +41,13 @@ import { PERCENTAGE, VOLUME_ARROW_KEY_STEP, VOLUME_PAGE_KEY_STEP, VOLUME_ANNOUNC
  * <eva-volume [evaAria]="{ ariaLabel: 'Video volume' }" />
  */
 @Component({
-  selector: 'eva-volume',
-  templateUrl: './volume.html',
-  styleUrl: './volume.scss',
+  selector: "eva-volume",
+  templateUrl: "./volume.html",
+  styleUrl: "./volume.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "slider",
+    tabindex: "0",
+    role: "slider",
     "aria-orientation": "horizontal",
     "aria-valuemin": "0",
     "aria-valuemax": "100",
@@ -60,8 +60,8 @@ import { PERCENTAGE, VOLUME_ARROW_KEY_STEP, VOLUME_PAGE_KEY_STEP, VOLUME_ANNOUNC
     "(keydown)": "onKeyDown($event)",
     "(touchstart)": "onTouchStart($event)",
     "(focus)": "onFocus()",
-    "(blur)": "onBlur()"
-  }
+    "(blur)": "onBlur()",
+  },
 })
 export class EvaVolume implements OnInit, OnDestroy {
   private readonly evaAPI = inject(EvaApi);
@@ -70,7 +70,7 @@ export class EvaVolume implements OnInit, OnDestroy {
   private readonly renderer = inject(Renderer2);
 
   /** Reference to the volume bar element used to calculate click/drag position relative to the bar's bounds. */
-  public readonly volumeBar = viewChild.required<ElementRef<HTMLDivElement>>('volumeBar');
+  public readonly volumeBar = viewChild.required<ElementRef<HTMLDivElement>>("volumeBar");
 
   /**
    * ARIA label for the volume slider.
@@ -138,7 +138,7 @@ export class EvaVolume implements OnInit, OnDestroy {
       });
     }
     // Subscribe to volume changes from API
-    this.videoVolumeSub = this.evaAPI.videoVolumeSubject.subscribe(volume => {
+    this.videoVolumeSub = this.evaAPI.videoVolumeSubject.subscribe((volume) => {
       if (volume !== null) {
         this.videoVolume.set(volume);
         this.ariaValue.set(String(Math.round(volume * PERCENTAGE)));
@@ -198,12 +198,12 @@ export class EvaVolume implements OnInit, OnDestroy {
     this.setVolume(this.calculateVolume(e.clientX), false);
 
     // Attach document-level mousemove listener
-    this.mouseMoveListener = this.renderer.listen('document', 'mousemove', (event: MouseEvent) => {
+    this.mouseMoveListener = this.renderer.listen("document", "mousemove", (event: MouseEvent) => {
       this.onDrag(event);
     });
 
     // Attach document-level mouseup listener
-    this.mouseUpListener = this.renderer.listen('document', 'mouseup', (event: MouseEvent) => {
+    this.mouseUpListener = this.renderer.listen("document", "mouseup", (event: MouseEvent) => {
       this.onStopDrag(event);
     });
   }
@@ -278,34 +278,34 @@ export class EvaVolume implements OnInit, OnDestroy {
     let handled = true;
 
     switch (key) {
-      case 'ArrowUp':
-      case 'ArrowRight':
+      case "ArrowUp":
+      case "ArrowRight":
         event.preventDefault();
         this.setVolume(Math.min(PERCENTAGE, currentVolume + VOLUME_ARROW_KEY_STEP), true);
         break;
 
-      case 'ArrowDown':
-      case 'ArrowLeft':
+      case "ArrowDown":
+      case "ArrowLeft":
         event.preventDefault();
         this.setVolume(Math.max(0, currentVolume - VOLUME_ARROW_KEY_STEP), true);
         break;
 
-      case 'PageUp':
+      case "PageUp":
         event.preventDefault();
         this.setVolume(Math.min(PERCENTAGE, currentVolume + VOLUME_PAGE_KEY_STEP), true);
         break;
 
-      case 'PageDown':
+      case "PageDown":
         event.preventDefault();
         this.setVolume(Math.max(0, currentVolume - VOLUME_PAGE_KEY_STEP), true);
         break;
 
-      case 'Home':
+      case "Home":
         event.preventDefault();
         this.setVolume(PERCENTAGE, true);
         break;
 
-      case 'End':
+      case "End":
         event.preventDefault();
         this.setVolume(0, true);
         break;
@@ -395,7 +395,9 @@ export class EvaVolume implements OnInit, OnDestroy {
    */
   protected onTouchStart(e: TouchEvent): void {
     e.preventDefault();
-    if (!e.touches.length) { return; }
+    if (!e.touches.length) {
+      return;
+    }
     const touch = e.touches[0];
 
     this.mouseDownPosition.set(touch.clientX);
@@ -404,7 +406,7 @@ export class EvaVolume implements OnInit, OnDestroy {
     // Set initial volume
     this.setVolume(this.calculateVolume(touch.clientX), false);
 
-    this.mouseMoveListener = this.renderer.listen('document', 'touchmove', (event: TouchEvent) => {
+    this.mouseMoveListener = this.renderer.listen("document", "touchmove", (event: TouchEvent) => {
       event.preventDefault();
       const touchMove = event.touches[0];
       if (this.isDragging()) {
@@ -412,7 +414,7 @@ export class EvaVolume implements OnInit, OnDestroy {
       }
     });
 
-    this.mouseUpListener = this.renderer.listen('document', 'touchend', () => {
+    this.mouseUpListener = this.renderer.listen("document", "touchend", () => {
       if (this.isDragging()) {
         // Announce final volume after touch ends
         this.announceVolumeChange();

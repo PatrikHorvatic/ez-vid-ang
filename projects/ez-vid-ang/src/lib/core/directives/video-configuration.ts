@@ -1,8 +1,8 @@
-import { Directive, ElementRef, inject, input, output, SecurityContext, AfterViewInit, OnChanges, SimpleChanges } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
-import { EvaApi } from '../../api/eva-api';
-import { EvaVideoElementConfiguration } from '../../types';
-import { validateAndPrepareStartingVideoVolume } from '../../utils/utilities';
+import { Directive, ElementRef, inject, input, output, SecurityContext, AfterViewInit, OnChanges, SimpleChanges } from "@angular/core";
+import { DomSanitizer } from "@angular/platform-browser";
+import { EvaApi } from "../../api/eva-api";
+import { EvaVideoElementConfiguration } from "../../types";
+import { validateAndPrepareStartingVideoVolume } from "../../utils/utilities";
 
 /**
  * Directive that applies an `EvaVideoElementConfiguration` object to a native
@@ -51,7 +51,7 @@ import { validateAndPrepareStartingVideoVolume } from '../../utils/utilities';
  * />
  */
 @Directive({
-  selector: 'video[evaVideoConfiguration]'
+  selector: "video[evaVideoConfiguration]",
 })
 export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit {
   protected evaAPI = inject(EvaApi);
@@ -83,7 +83,7 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
    * @param changes - The `SimpleChanges` map provided by Angular.
    */
   public ngOnChanges(changes: SimpleChanges): void {
-    if (this.isViewInitialized && changes['evaVideoConfig']) {
+    if (this.isViewInitialized && changes["evaVideoConfig"]) {
       this.applyConfiguration();
     }
   }
@@ -167,8 +167,7 @@ export class EvaVideoConfigurationDirective implements OnChanges, AfterViewInit 
     // URL property — sanitized with SecurityContext.URL as the browser fetches this
     // As a resource and it is reflected in the DOM as an attribute
     if (config.poster) {
-      this.elementRef.nativeElement.poster = this.sanitizer.sanitize(SecurityContext.URL, config.poster) ?? '';
+      this.elementRef.nativeElement.poster = this.sanitizer.sanitize(SecurityContext.URL, config.poster) ?? "";
     }
-
   }
 }

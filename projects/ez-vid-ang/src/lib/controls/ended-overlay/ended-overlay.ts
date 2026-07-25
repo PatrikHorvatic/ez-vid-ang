@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
-import { Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { EvaState } from '../../types';
-import { EvaEndedOverlayAria, EvaEndedOverlayAriaTransformed, transformEvaEndedOverlayAria } from '../../utils/aria-utilities';
+import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, OnInit, signal } from "@angular/core";
+import { Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { EvaState } from "../../types";
+import { EvaEndedOverlayAria, EvaEndedOverlayAriaTransformed, transformEvaEndedOverlayAria } from "../../utils/aria-utilities";
 
 /**
  * Ended overlay component for the Eva video player.
@@ -32,15 +32,15 @@ import { EvaEndedOverlayAria, EvaEndedOverlayAriaTransformed, transformEvaEndedO
  * </eva-ended-overlay>
  */
 @Component({
-  selector: 'eva-ended-overlay',
-  templateUrl: './ended-overlay.html',
-  styleUrl: './ended-overlay.scss',
+  selector: "eva-ended-overlay",
+  templateUrl: "./ended-overlay.html",
+  styleUrl: "./ended-overlay.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "role": "alert",
+    role: "alert",
     "[attr.aria-label]": "evaAria().ariaLabel",
     "[class.eva-ended-overlay-visible]": "isVisible()",
-  }
+  },
 })
 export class EvaEndedOverlay implements OnInit, OnDestroy {
   private readonly evaAPI = inject(EvaApi);
@@ -64,7 +64,7 @@ export class EvaEndedOverlay implements OnInit, OnDestroy {
    * the state is `EvaState.ENDED`, unless the video is set to loop.
    */
   public ngOnInit(): void {
-    this.stateSub = this.evaAPI.videoStateSubject.subscribe(state => {
+    this.stateSub = this.evaAPI.videoStateSubject.subscribe((state) => {
       if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
         return;
       }
@@ -79,5 +79,4 @@ export class EvaEndedOverlay implements OnInit, OnDestroy {
   public ngOnDestroy(): void {
     this.stateSub?.unsubscribe();
   }
-
 }

@@ -1,117 +1,121 @@
 :host {
-	user-select: none;
-	position: absolute;
-	width: 100%;
-	height: var(--eva-scrub-bar-heights);
-	bottom: var(--eva-control-element-height);
-	margin: 0;
-	cursor: pointer;
+  user-select: none;
+  position: absolute;
+  width: 100%;
+  height: var(--eva-scrub-bar-heights);
+  bottom: var(--eva-control-element-height);
+  margin: 0;
+  cursor: pointer;
 
-	display: flex;
-	align-items: center;
-	background: var(--eva-scrub-bar-background);
-	z-index: 303;
-	-webkit-touch-callout: none;
-	-webkit-user-select: none;
-	-moz-user-select: none;
-	-ms-user-select: none;
-	transition:
-		bottom var(--eva-transition-duration) ease-in-out,
-		opacity var(--eva-transition-duration) ease-in-out;
+  display: flex;
+  align-items: center;
+  background: var(--eva-scrub-bar-background);
+  z-index: 303;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  transition:
+    bottom var(--eva-transition-duration) ease-in-out,
+    opacity var(--eva-transition-duration) ease-in-out;
 }
 
 :host-context(eva-controls-container) {
-	position: relative;
-	bottom: 0;
-	background: var(--eva-scrub-bar-background);
-	height: var(--eva-scrub-bar-heights);
-	flex-grow: 1;
-	flex-basis: 0;
-	margin: 0px 10px;
-	-webkit-transition: initial;
-	-khtml-transition: initial;
-	-moz-transition: initial;
-	-ms-transition: initial;
-	transition: initial;
+  position: relative;
+  bottom: 0;
+  background: var(--eva-scrub-bar-background);
+  height: var(--eva-scrub-bar-heights);
+  flex-grow: 1;
+  flex-basis: 0;
+  margin: 0px 10px;
+  -webkit-transition: initial;
+  -khtml-transition: initial;
+  -moz-transition: initial;
+  -ms-transition: initial;
+  transition: initial;
 }
 
 :host(.hide) {
-	// bottom: calc(-1 * var(--eva-control-element-height) + var(--eva-scrub-bar-heights));
-	bottom: 0 !important;
-	opacity: 1;
+  // bottom: calc(-1 * var(--eva-control-element-height) + var(--eva-scrub-bar-heights));
+  bottom: 0 !important;
+  opacity: 1;
 }
 
 .eva-chapter-markers {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	pointer-events: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 
 .eva-chapter-marker {
-	position: absolute;
-	top: 0;
-	height: 100%;
-	border-right: var(--eva-scrub-bar-chapter-marker-width) solid var(--eva-scrub-bar-chapter-marker-color);
-	box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-right: var(--eva-scrub-bar-chapter-marker-width) solid var(--eva-scrub-bar-chapter-marker-color);
+  box-sizing: border-box;
 
-	&:last-child {
-		border-right: none;
-	}
+  &:last-child {
+    border-right: none;
+  }
 }
 
 .eva-hover-tooltip {
-	position: absolute;
-	bottom: calc(100% + 8px);
-	transform: translateX(-50%);
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 2px;
-	pointer-events: none;
-	z-index: 400;
-	will-change: left;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+  z-index: 400;
+  will-change: left;
 }
 
 .eva-hover-chapter {
-	background-color: var(--eva-scrub-bar-chapter-hover-background-color);
-	color: var(--eva-scrub-bar-chapter-hover-text-color);
-	padding: 3px 8px;
-	border-radius: 4px;
-	font-size: var(--eva-scrub-bar-chapter-hover-font-size);
-	white-space: nowrap;
-	text-align: center;
-	max-width: 160px;
-	overflow: hidden;
-	text-overflow: ellipsis;
+  background-color: var(--eva-scrub-bar-chapter-hover-background-color);
+  color: var(--eva-scrub-bar-chapter-hover-text-color);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: var(--eva-scrub-bar-chapter-hover-font-size);
+  white-space: nowrap;
+  text-align: center;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .eva-hover-thumbnail {
-	background-size: auto;
-	background-repeat: no-repeat;
-	border-radius: var(--eva-scrub-bar-thumbnail-border-radius, 4px);
-	border: var(--eva-scrub-bar-thumbnail-border, 2px solid rgba(255, 255, 255, 0.9));
-	box-shadow: var(--eva-scrub-bar-thumbnail-box-shadow, 0 2px 8px rgba(0, 0, 0, 0.4));
-	flex-shrink: 0;
-	will-change: background-position;
-	transition: opacity var(--eva-transition-duration, 0.25s) ease;
-	animation: thumbnailFadeIn var(--eva-transition-duration, 0.25s) ease;
+  background-size: auto;
+  background-repeat: no-repeat;
+  border-radius: var(--eva-scrub-bar-thumbnail-border-radius, 4px);
+  border: var(--eva-scrub-bar-thumbnail-border, 2px solid rgba(255, 255, 255, 0.9));
+  box-shadow: var(--eva-scrub-bar-thumbnail-box-shadow, 0 2px 8px rgba(0, 0, 0, 0.4));
+  flex-shrink: 0;
+  will-change: background-position;
+  transition: opacity var(--eva-transition-duration, 0.25s) ease;
+  animation: thumbnailFadeIn var(--eva-transition-duration, 0.25s) ease;
 }
 
 @keyframes thumbnailFadeIn {
-	from { opacity: 0; }
-	to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .eva-hover-time {
-	background-color: var(--eva-scrub-bar-chapter-hover-tooltip-background-color);
-	color: var(--eva-scrub-bar-chapter-hover-tooltip-text-color);
-	padding: 4px 8px;
-	border-radius: 4px;
-	font-size: var(--eva-scrub-bar-chapter-hover-tooltip-font-size);
-	font-family: var(--eva-font-family);
-	white-space: nowrap;
-	text-align: center;
+  background-color: var(--eva-scrub-bar-chapter-hover-tooltip-background-color);
+  color: var(--eva-scrub-bar-chapter-hover-tooltip-text-color);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: var(--eva-scrub-bar-chapter-hover-tooltip-font-size);
+  font-family: var(--eva-font-family);
+  white-space: nowrap;
+  text-align: center;
 }

@@ -1,7 +1,15 @@
 @if (evaCustomIcon()) {
-  @if (evaIconPause()) { <ng-content select="[evaPause]" /> }
-  @if (evaIconPlay()) { <ng-content select="[evaPlay]" /> }
+  @if (evaIconPause()) {
+    <ng-content select="[evaPause]" />
+  }
+  @if (evaIconPlay()) {
+    <ng-content select="[evaPlay]" />
+  }
 } @else {
-  @if (evaIconPause()) { <eva-icon name="pause" /> }
-  @if (evaIconPlay()) { <eva-icon name="play" /> }
+  @if (evaIconPause()) {
+    <eva-icon name="pause" />
+  }
+  @if (evaIconPlay()) {
+    <eva-icon name="play" />
+  }
 }

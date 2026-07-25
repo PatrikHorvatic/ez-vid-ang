@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { transformEvaControlsDividerAria, EvaControlsDividerAria, EvaControlsDividerAriaTransformed } from '../../utils/aria-utilities';
+import { ChangeDetectionStrategy, Component, input } from "@angular/core";
+import { transformEvaControlsDividerAria, EvaControlsDividerAria, EvaControlsDividerAriaTransformed } from "../../utils/aria-utilities";
 
 /**
  * Visual and semantic separator component for the Eva player controls bar.
@@ -25,18 +25,18 @@ import { transformEvaControlsDividerAria, EvaControlsDividerAria, EvaControlsDiv
  * <eva-controls-divider [evaAria]="{ ariaLabel: 'Section divider' }" />
  */
 @Component({
-  selector: 'eva-controls-divider',
-  templateUrl: './controls-divider.html',
-  styleUrl: './controls-divider.scss',
+  selector: "eva-controls-divider",
+  templateUrl: "./controls-divider.html",
+  styleUrl: "./controls-divider.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "tabindex": "0",
-    "role": "separator",
+    tabindex: "0",
+    role: "separator",
     "aria-orientation": "horizontal",
     "aria-valuemin": "0",
     "aria-valuemax": "100",
-    "[attr.aria-label]": "evaAria().ariaLabel"
-  }
+    "[attr.aria-label]": "evaAria().ariaLabel",
+  },
 })
 export class EvaControlsDivider {
   /**

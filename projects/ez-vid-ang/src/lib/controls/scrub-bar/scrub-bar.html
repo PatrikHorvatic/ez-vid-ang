@@ -1,25 +1,23 @@
 <ng-content />
 
 @if (evaShowChapters() && chapters().length > 0) {
-<div class="eva-chapter-markers">
-	@for (chapter of chapters(); track chapter.startTime) {
-	<div class="eva-chapter-marker" [style.left]="getChapterLeftPercent(chapter)"
-		[style.width]="getChapterWidthPercent(chapter)">
-	</div>
-	}
-</div>
+  <div class="eva-chapter-markers">
+    @for (chapter of chapters(); track chapter.startTime) {
+      <div class="eva-chapter-marker" [style.left]="getChapterLeftPercent(chapter)" [style.width]="getChapterWidthPercent(chapter)"></div>
+    }
+  </div>
 }
 
 @if (hoverTime() !== null) {
-<div class="eva-hover-tooltip" [style.left.px]="hoverLeft()">
-	@if (hoverThumbnail(); as thumb) {
-	<div class="eva-hover-thumbnail"
-		[style.width.px]="thumb.width"
-		[style.height.px]="thumb.height"
-		[style.background-image]="`url(${thumb.url})`"
-		[style.background-position]="`${-thumb.x}px ${-thumb.y}px`">
-	</div>
-	}
-	<span class="eva-hover-time">{{ hoverTime() }} @if(hoverChapter()) { {{hoverChapter()}}}</span>
-</div>
+  <div class="eva-hover-tooltip" [style.left.px]="hoverLeft()">
+    @if (hoverThumbnail(); as thumb) {
+      <div class="eva-hover-thumbnail" [style.width.px]="thumb.width" [style.height.px]="thumb.height" [style.background-image]="`url(${thumb.url})`" [style.background-position]="`${-thumb.x}px ${-thumb.y}px`"></div>
+    }
+    <span class="eva-hover-time">
+      {{ hoverTime() }}
+      @if (hoverChapter()) {
+        {{ hoverChapter() }}
+      }
+    </span>
+  </div>
 }

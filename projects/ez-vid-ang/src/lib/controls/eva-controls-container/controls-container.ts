@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
-import { skip, Subscription } from 'rxjs';
-import { EvaApi } from '../../api/eva-api';
-import { transformTimeoutDuration } from '../../utils/utilities';
-import { DEFAULT_AUTOHIDE_TIMEOUT_MS } from '../../constants';
+import { ChangeDetectionStrategy, Component, inject, input, signal, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
+import { skip, Subscription } from "rxjs";
+import { EvaApi } from "../../api/eva-api";
+import { transformTimeoutDuration } from "../../utils/utilities";
+import { DEFAULT_AUTOHIDE_TIMEOUT_MS } from "../../constants";
 
 /**
  * Controls container component for the Eva video player.
@@ -30,16 +30,15 @@ import { DEFAULT_AUTOHIDE_TIMEOUT_MS } from '../../constants';
  * </eva-controls-container>
  */
 @Component({
-  selector: 'eva-controls-container',
-  templateUrl: './controls-container.html',
-  styleUrl: './controls-container.scss',
+  selector: "eva-controls-container",
+  templateUrl: "./controls-container.html",
+  styleUrl: "./controls-container.scss",
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    "[class.hide]": "hideControls()"
-  }
+    "[class.hide]": "hideControls()",
+  },
 })
 export class EvaControlsContainer implements OnInit, OnDestroy, OnChanges {
-
   private readonly evaAPI = inject(EvaApi);
 
   /**
@@ -76,29 +75,27 @@ export class EvaControlsContainer implements OnInit, OnDestroy, OnChanges {
   private hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
   /**
- * Responds to runtime changes of `evaAutohide`.
- *
- * - `evaAutohide` changed to `true` — starts listening and schedules the first hide.
- * - `evaAutohide` changed to `false` — cancels any pending timeout, unsubscribes,
- *   and immediately makes the controls visible.
- *
- * First-change is ignored since `ngOnInit` handles the initial state.
- *
- * @todo `evaAutohideTime` change handling is not yet implemented.
- */
+   * Responds to runtime changes of `evaAutohide`.
+   *
+   * - `evaAutohide` changed to `true` — starts listening and schedules the first hide.
+   * - `evaAutohide` changed to `false` — cancels any pending timeout, unsubscribes,
+   *   and immediately makes the controls visible.
+   *
+   * First-change is ignored since `ngOnInit` handles the initial state.
+   *
+   * @todo `evaAutohideTime` change handling is not yet implemented.
+   */
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes["evaAutohide"]) {
       if (!changes["evaAutohide"].firstChange) {
         if (changes["evaAutohide"].currentValue === true) {
           this.startListening();
-        }
-        else {
+        } else {
           this.disableHiding();
         }
       }
     }
   }
-
 
   /**
    * Starts listening for user interaction events if `evaAutohide` is enabled on init,
@@ -109,7 +106,6 @@ export class EvaControlsContainer implements OnInit, OnDestroy, OnChanges {
       this.startListening();
     }
   }
-
 
   /** Unsubscribes from the user interaction subscription to prevent memory leaks. */
   public ngOnDestroy(): void {

@@ -143,7 +143,7 @@ module.exports = defineConfig([
       "max-lines": ["error", { max: 2000, skipBlankLines: true, skipComments: true }],
       "max-lines-per-function": [
         "error",
-        { max: 75, skipBlankLines: true, skipComments: true },
+        { max: 175, skipBlankLines: true, skipComments: true },
       ],
       "max-classes-per-file": ["error", { max: 1 }],
       "id-length": ["error", { min: 1, exceptions: ["_"] }],

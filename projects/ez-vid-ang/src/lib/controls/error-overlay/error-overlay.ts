@@ -117,6 +117,6 @@ export class EvaErrorOverlay implements OnInit, OnDestroy {
   /** Emits `evaRetryClicked` and reloads the video source. */
   protected onRetry(): void {
     this.evaRetryClicked.emit();
-    this.evaAPI.assignedVideoElement?.load();
+    this.evaAPI.retryVideo();
   }
 }

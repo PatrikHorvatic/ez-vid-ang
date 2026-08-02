@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, input, OnInit, output } from "@angular/core";
 import { EvaApi } from "../../api/eva-api";
 import { EvaIcon } from "../../core/icon/icon";
 import { EvaDownloadEvent } from "../../types";
@@ -56,7 +56,7 @@ import { EvaDownloadAria, EvaDownloadAriaTransformed, transformEvaDownloadAria }
     "(keydown)": "downloadClickedKeyboard($event)",
   },
 })
-export class EvaDownload {
+export class EvaDownload implements OnInit {
   private readonly evaAPI = inject(EvaApi);
 
   /**
@@ -79,6 +79,13 @@ export class EvaDownload {
    * Contains the current video source URL, playback time, and duration.
    */
   public readonly evaDownloadClicked = output<EvaDownloadEvent>();
+
+  /** Registers this component's click handler with `EvaApi` so `EvaKeyboardShortcuts` can trigger it via `downloadKey`. */
+  public ngOnInit(): void {
+    this.evaAPI.registerDownloadTrigger((): void => {
+      this.downloadClicked();
+    });
+  }
 
   protected downloadClicked(): void {
     this.evaDownloadClicked.emit(this.buildEvent());

@@ -62,10 +62,47 @@ Then add the script to `angular.json` → `architect.build.options.scripts`:
   private get api(): EvaApi { return this.player().playerMainAPI; }
   ```
 
+## Keyboard shortcuts — no key has a default binding
+
+`evaKeyboardShortcutsEnabled="true"` on its own binds **nothing**. Every shortcut requires an explicit key in `evaKeyboardShortcutsConfiguration` — do not tell a consumer "shortcuts work out of the box" or assume `J`/`L`/`M`/`F`/`Space` are pre-bound; they are not. This also means a key works independently of whether the matching control component is rendered — e.g. `screenshotKey` calls `EvaApi.captureScreenshot()` directly even with no `<eva-screenshot>` in the template. The only two shortcuts that are always active, not configurable, are digits `0`–`9` (jump to 0%–90% of duration) and `?` (toggle `eva-keyboard-shortcuts-overlay`).
+
+`backwardSeconds`/`forwardSeconds` are the one exception — they default to `10` once the corresponding seek key is set, since they're seek amounts, not key bindings.
+
+| Property | Action | Property | Action |
+|---|---|---|---|
+| `backwardsKeyOne` / `backwardsKeyTwo` | Seek backward `backwardSeconds` | `nextQualityKey` / `previousQualityKey` | Cycle quality (needs `evaHls`/`evaDash`) |
+| `forwardKeyOne` / `forwardKeyTwo` | Seek forward `forwardSeconds` | `nextAudioTrackKey` / `previousAudioTrackKey` | Cycle audio track (needs `evaHls`/`evaDash`) |
+| `oneFrameBackward` / `oneFrameForward` | Step one frame (1/30s) | `nextSubtitleTrackKey` / `previousSubtitleTrackKey` | Cycle subtitle track (declared + stream + "Off") |
+| `nextChapterKey` / `previousChapterKey` | Jump to next/previous chapter | `increasePlaybackSpeedKey` / `decreasePlaybackSpeedKey` | Step speed by `0.25`, clamped `[0.25, 4]` |
+| `playPause` | Play/pause (matched via `KeyboardEvent.code`) | `muteKey` | Toggle mute |
+| `volumeUp` / `volumeDown` | Step volume by 5% | `fullscreen` | Toggle fullscreen |
+| `pictureInPictureKey` | Toggle Picture-in-Picture | `cinemaModeKey` | Toggle cinema mode |
+| `loopKey` | Toggle video looping | `screenshotKey` | Capture screenshot |
+| `downloadKey`\* | Trigger `<eva-download>`'s click handler | `remotePlaybackKey`\* | Open Cast/AirPlay picker |
+| `retryKey` | Reload video source (same as error overlay retry) | | |
+
+\* No-op unless `<eva-download>`/`<eva-remote-playback>` is present in the template — every other key works even without its matching control component.
+
+```html
+<!-- Bind only the keys you actually want active -->
+<eva-player
+  #player id="simple" [evaVideoSources]="sources()"
+  [evaKeyboardShortcutsEnabled]="true"
+  [evaKeyboardShortcutsConfiguration]="{ playPause: 'Space', muteKey: 'M', fullscreen: 'F', backwardsKeyTwo: 'ArrowLeft', forwardKeyTwo: 'ArrowRight' }"
+>
+```
+
+For the full property list and exact `EvaApi` delegate per key, read `documentation/core/player.md` (`EvaKeyboardShortcutsConfiguration` section).
+
 ## Minimal working example
 
 ```html
-<eva-player #player id="simple" [evaVideoSources]="sources()" [evaKeyboardShortcutsEnabled]="true">
+<!-- evaKeyboardShortcutsConfiguration is what actually turns shortcuts on — see "Keyboard shortcuts" above -->
+<eva-player
+  #player id="simple" [evaVideoSources]="sources()"
+  [evaKeyboardShortcutsEnabled]="true"
+  [evaKeyboardShortcutsConfiguration]="{ playPause: 'Space', muteKey: 'M', fullscreen: 'F' }"
+>
   <eva-overlay-play />
   <eva-buffering />
   <eva-error-overlay />
@@ -150,11 +187,11 @@ Selector and class must match exactly — do not invent alternate names (e.g. it
 | `eva-screenshot` | `EvaScreenshot` | — | `evaScreenshotCaptured` | Captures current frame; also callable directly via `EvaApi.captureScreenshot()`. |
 | `eva-context-menu` | `EvaContextMenu` | `evaMenuItems` | `evaMenuItemClicked` | Custom right-click menu. |
 | `eva-settings-panel` | `EvaSettingsPanel` | `evaSettingsMenuItems` | `evaSettingsMenuItemSelected` | YouTube-style nested settings menu; caller owns the menu state/items. |
-| `eva-keyboard-shortcuts-overlay` | `EvaKeyboardShortcutsOverlay` | — | — | Shortcut cheat-sheet overlay, opened via `EvaApi.keyboardShortcutsOverlaySubject`. |
+| `eva-keyboard-shortcuts-overlay` | `EvaKeyboardShortcutsOverlay` | — | — | Shortcut cheat-sheet overlay, opened via `EvaApi.keyboardShortcutsOverlaySubject`. Only lists shortcuts that actually have a key bound. Group headings/descriptions are localizable via `evaShortcutsOverlayLabels` (`EvaKeyboardShortcutsOverlayLabels`) — do not hardcode a translated overlay by forking the component. |
 | `eva-chapter-list` | `EvaChapterList` | — | `evaChapterListClose` | Chapter list panel; controlled via `evaChapterListOpen` input. |
 | `eva-active-chapter` | `EvaActiveChapter` | — | `evaChapterClicked` | Shows the chapter title active at the current time. |
 | `eva-icon` | `EvaIcon` | `name` (registry key) | — | Renders a registered SVG icon by kebab-case key. |
-| `eva-play-pause[evaTooltip]`…(any of the 16 Eva control elements) | `EvaTooltip` | — | — | Floating tooltip directive. Add the `evaTooltip` attribute (optional label string) to any supported Eva control element inside `<eva-controls-container>`. When `evaTooltip` is empty, the label is read from the element's `aria-label`. Add `evaTooltipShortcutKey` (a `keyof EvaKeyboardShortcutsConfiguration` string, e.g. `"playPause"`, `"muteKey"`, `"fullscreen"`) to show a keyboard-shortcut badge — badge is auto-suppressed when shortcuts are disabled. Must be added to the consuming component's `imports` array. Supported elements: `eva-play-pause`, `eva-backward`, `eva-forward`, `eva-loop`, `eva-picture-in-picture`, `eva-active-chapter`, `eva-mute`, `eva-volume`, `eva-cinema-mode`, `eva-download`, `eva-screenshot`, `eva-track-selector`, `eva-playback-speed`, `eva-quality-selector`, `eva-settings-panel`, `eva-fullscreen`. |
+| `eva-play-pause[evaTooltip]`…(any of the 16 Eva control elements) | `EvaTooltip` | — | — | Floating tooltip directive. Add the `evaTooltip` attribute (optional label string) to any supported Eva control element inside `<eva-controls-container>`. When `evaTooltip` is empty, the label is read from the element's `aria-label`. Add `evaTooltipShortcutKey` (a `keyof EvaKeyboardShortcutsConfiguration` string, e.g. `"playPause"`, `"muteKey"`, `"fullscreen"`, `"screenshotKey"`, `"loopKey"`) to show a keyboard-shortcut badge — badge is auto-suppressed when the key isn't bound in `evaKeyboardShortcutsConfiguration`, not just when shortcuts are disabled entirely. Must be added to the consuming component's `imports` array. Supported elements: `eva-play-pause`, `eva-backward`, `eva-forward`, `eva-loop`, `eva-picture-in-picture`, `eva-active-chapter`, `eva-mute`, `eva-volume`, `eva-cinema-mode`, `eva-download`, `eva-screenshot`, `eva-track-selector`, `eva-playback-speed`, `eva-quality-selector`, `eva-settings-panel`, `eva-fullscreen`. |
 | `[evaVideoConfiguration]` | `EvaVideoConfigurationDirective` | `evaVideoConfig` | `videoConfigurationDone` | Internal — configured via `evaVideoConfiguration` input on `eva-player`, not applied directly by consumers. |
 | `[evaKeyboardShortcuts]` | `EvaKeyboardShortcuts` | `evaKeyboardShortcutsEnabled`, `evaKeyboardShortcutsConfiguration` | — | Internal — configured via the same-named inputs on `eva-player`. |
 | `[evaConfigurationStorage]` | `ConfigurationStorage` | `evaLocalStorageEnabled`, `evaLocalStorageConfiguration` | — | Internal — configured via the same-named inputs on `eva-player`. |
@@ -185,6 +222,7 @@ To use a custom icon instead of the registry, set `[evaCustomIcon]="true"` on th
 
 ## Hard rules for the assistant
 
+- `evaKeyboardShortcutsEnabled="true"` alone binds no shortcuts — every key requires an explicit entry in `evaKeyboardShortcutsConfiguration`. Never claim a shortcut "works by default"; only `0`–`9` and `?` are always active. See "Keyboard shortcuts" above for the full property → action table.
 - Never suggest `NgModule`, `CommonModule` imports, or `*ngIf`/`*ngFor` for this library's own templates — every export is standalone; add it directly to the consuming component's `imports` array.
 - Never invent a scoped package name. It is `ez-vid-ang`, not `@ez-vid-ang/ez-vid-ang` or similar.
 - `eva-player` always needs both `id` and `evaVideoSources`, even when using `evaHls`/`evaDash` (pass `[evaVideoSources]="[]"` when streaming exclusively).

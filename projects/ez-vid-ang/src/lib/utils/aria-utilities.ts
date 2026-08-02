@@ -619,3 +619,126 @@ export function transformEvaEndedOverlayAria(v: EvaEndedOverlayAria | undefined)
     ariaLabel: v.ariaLabel ?? "Video ended",
   };
 }
+
+/**
+ * Visible text shown in `eva-keyboard-shortcuts-overlay` — group headings and per-shortcut
+ * descriptions, not ARIA attributes. All properties are optional for localization; any
+ * omitted property falls back to its English default via `transformEvaKeyboardShortcutsOverlayLabels`.
+ */
+export type EvaKeyboardShortcutsOverlayLabels = {
+  groupPlayback?: string;
+  groupSeeking?: string;
+  groupMedia?: string;
+  groupTracksAndQuality?: string;
+  playPause?: string;
+  increasePlaybackSpeed?: string;
+  decreasePlaybackSpeed?: string;
+  /** Formats the "seek backward" row description. Receives `backwardSeconds`. */
+  seekBackward?: (seconds: number) => string;
+  /** Formats the "seek forward" row description. Receives `forwardSeconds`. */
+  seekForward?: (seconds: number) => string;
+  previousFrame?: string;
+  nextFrame?: string;
+  nextChapter?: string;
+  previousChapter?: string;
+  jumpToPercentage?: string;
+  muteUnmute?: string;
+  increaseVolume?: string;
+  decreaseVolume?: string;
+  toggleFullscreen?: string;
+  togglePictureInPicture?: string;
+  toggleCinemaMode?: string;
+  toggleLoop?: string;
+  captureScreenshot?: string;
+  downloadVideo?: string;
+  castAirplay?: string;
+  retryAfterError?: string;
+  showHideShortcuts?: string;
+  nextQuality?: string;
+  previousQuality?: string;
+  nextAudioTrack?: string;
+  previousAudioTrack?: string;
+  nextSubtitleTrack?: string;
+  previousSubtitleTrack?: string;
+};
+
+/** Transforms all properties to required. */
+export type EvaKeyboardShortcutsOverlayLabelsTransformed = Required<EvaKeyboardShortcutsOverlayLabels>;
+
+const DEFAULT_KEYBOARD_SHORTCUTS_OVERLAY_LABELS: EvaKeyboardShortcutsOverlayLabelsTransformed = {
+  groupPlayback: "Playback",
+  groupSeeking: "Seeking",
+  groupMedia: "Media",
+  groupTracksAndQuality: "Tracks & quality",
+  playPause: "Play / Pause",
+  increasePlaybackSpeed: "Increase playback speed",
+  decreasePlaybackSpeed: "Decrease playback speed",
+  seekBackward: (seconds: number): string => `Seek backward ${seconds}s`,
+  seekForward: (seconds: number): string => `Seek forward ${seconds}s`,
+  previousFrame: "Previous frame",
+  nextFrame: "Next frame",
+  nextChapter: "Next chapter",
+  previousChapter: "Previous chapter",
+  jumpToPercentage: "Jump to 0%–90%",
+  muteUnmute: "Mute / Unmute",
+  increaseVolume: "Increase volume by 5%",
+  decreaseVolume: "Decrease volume by 5%",
+  toggleFullscreen: "Toggle fullscreen",
+  togglePictureInPicture: "Toggle Picture-in-Picture",
+  toggleCinemaMode: "Toggle cinema mode",
+  toggleLoop: "Toggle loop",
+  captureScreenshot: "Capture screenshot",
+  downloadVideo: "Download video",
+  castAirplay: "Cast / AirPlay",
+  retryAfterError: "Retry after error",
+  showHideShortcuts: "Show / hide shortcuts",
+  nextQuality: "Next quality level",
+  previousQuality: "Previous quality level",
+  nextAudioTrack: "Next audio track",
+  previousAudioTrack: "Previous audio track",
+  nextSubtitleTrack: "Next subtitle track",
+  previousSubtitleTrack: "Previous subtitle track",
+};
+
+/** Transforms overlay label input to an object with all the values, falling back to English defaults per-property. */
+export function transformEvaKeyboardShortcutsOverlayLabels(v: EvaKeyboardShortcutsOverlayLabels | undefined): EvaKeyboardShortcutsOverlayLabelsTransformed {
+  const d = DEFAULT_KEYBOARD_SHORTCUTS_OVERLAY_LABELS;
+  if (!v) {
+    return d;
+  }
+
+  return {
+    groupPlayback: v.groupPlayback ?? d.groupPlayback,
+    groupSeeking: v.groupSeeking ?? d.groupSeeking,
+    groupMedia: v.groupMedia ?? d.groupMedia,
+    groupTracksAndQuality: v.groupTracksAndQuality ?? d.groupTracksAndQuality,
+    playPause: v.playPause ?? d.playPause,
+    increasePlaybackSpeed: v.increasePlaybackSpeed ?? d.increasePlaybackSpeed,
+    decreasePlaybackSpeed: v.decreasePlaybackSpeed ?? d.decreasePlaybackSpeed,
+    seekBackward: v.seekBackward ?? d.seekBackward,
+    seekForward: v.seekForward ?? d.seekForward,
+    previousFrame: v.previousFrame ?? d.previousFrame,
+    nextFrame: v.nextFrame ?? d.nextFrame,
+    nextChapter: v.nextChapter ?? d.nextChapter,
+    previousChapter: v.previousChapter ?? d.previousChapter,
+    jumpToPercentage: v.jumpToPercentage ?? d.jumpToPercentage,
+    muteUnmute: v.muteUnmute ?? d.muteUnmute,
+    increaseVolume: v.increaseVolume ?? d.increaseVolume,
+    decreaseVolume: v.decreaseVolume ?? d.decreaseVolume,
+    toggleFullscreen: v.toggleFullscreen ?? d.toggleFullscreen,
+    togglePictureInPicture: v.togglePictureInPicture ?? d.togglePictureInPicture,
+    toggleCinemaMode: v.toggleCinemaMode ?? d.toggleCinemaMode,
+    toggleLoop: v.toggleLoop ?? d.toggleLoop,
+    captureScreenshot: v.captureScreenshot ?? d.captureScreenshot,
+    downloadVideo: v.downloadVideo ?? d.downloadVideo,
+    castAirplay: v.castAirplay ?? d.castAirplay,
+    retryAfterError: v.retryAfterError ?? d.retryAfterError,
+    showHideShortcuts: v.showHideShortcuts ?? d.showHideShortcuts,
+    nextQuality: v.nextQuality ?? d.nextQuality,
+    previousQuality: v.previousQuality ?? d.previousQuality,
+    nextAudioTrack: v.nextAudioTrack ?? d.nextAudioTrack,
+    previousAudioTrack: v.previousAudioTrack ?? d.previousAudioTrack,
+    nextSubtitleTrack: v.nextSubtitleTrack ?? d.nextSubtitleTrack,
+    previousSubtitleTrack: v.previousSubtitleTrack ?? d.previousSubtitleTrack,
+  };
+}

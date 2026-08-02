@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [22.0.9, 21.2.9] - 2026-07-30
+
+### Breaking Changes
+
+- **`EvaKeyboardShortcutsConfiguration` — no key has a default binding anymore**: Previously, every shortcut (`backwardsKeyOne`/`J`, `forwardKeyOne`/`L`, `backwardsKeyTwo`/`ArrowLeft`, `forwardKeyTwo`/`ArrowRight`, `muteKey`/`M`, `fullscreen`/`F`, `playPause`/`Space`, `oneFrameBackward`/`,`, `oneFrameForward`/`.`) worked out of the box the moment `evaKeyboardShortcutsEnabled` was `true`, even if the corresponding control wasn't rendered in the template. Enabling keyboard shortcuts now binds nothing until you explicitly set a key for each action you want — e.g. a player with no `<eva-mute>` and no `muteKey` set will no longer let `M` mute the video. Only `backwardSeconds`/`forwardSeconds` keep their `10` fallback, since those are seek amounts, not key bindings. Update any `[evaKeyboardShortcutsEnabled]="true"` usage that relied on the old defaults to also pass an explicit `evaKeyboardShortcutsConfiguration`.
+- **`eva-keyboard-shortcuts-overlay` now only lists bound shortcuts**: A row (and its entire group, e.g. "Tracks & quality") is omitted whenever its key is unset, instead of always listing every action with its default key.
+
+### Added
+
+- **Keyboard shortcuts now cover every control the library ships** (GitHub issue: not all actions could be tied to a shortcut, e.g. screenshot). New optional `EvaKeyboardShortcutsConfiguration` properties, each disabled until you assign a key: `screenshotKey`, `pictureInPictureKey`, `cinemaModeKey`, `loopKey`, `downloadKey`, `remotePlaybackKey`, `retryKey`, `nextQualityKey`/`previousQualityKey`, `nextAudioTrackKey`/`previousAudioTrackKey`, `nextSubtitleTrackKey`/`previousSubtitleTrackKey`, `increasePlaybackSpeedKey`/`decreasePlaybackSpeedKey`, `nextChapterKey`/`previousChapterKey`, and `volumeUp`/`volumeDown` (5% step). Every action delegates to a new or existing `EvaApi` method that works independently of whether the matching component is present — e.g. `screenshotKey` calls `EvaApi.captureScreenshot()` directly. `downloadKey`/`remotePlaybackKey` are the two exceptions, since they trigger a callback registered by `<eva-download>`/`<eva-remote-playback>` and no-op if those aren't rendered.
+- **New `EvaApi` methods**: `toggleLoop()`, `toggleCinemaMode()`, `retryVideo()`, `stepVolume()`, `increasePlaybackSpeed()`/`decreasePlaybackSpeed()`, `cycleQuality()`, `cycleAudioTrack()`, `cycleSubtitleTrack()`, `jumpToChapter()`/`jumpToNextChapter()`/`jumpToPreviousChapter()`, `registerDownloadTrigger()`/`triggerDownload()`. `EvaLoop`, `EvaCinemaMode`, `EvaErrorOverlay`, and `EvaChapterList` now delegate to these shared methods instead of duplicating the logic locally.
+- **`EvaTrackSelector` and `EvaPlaybackSpeed` stay in sync with keyboard-triggered changes**: both now subscribe to the relevant `EvaApi` subject (`videoSubtitlesSubject`, `playbackRateSubject`) so their dropdown UI reflects a subtitle/speed change made via `cycleSubtitleTrack()`/`increasePlaybackSpeed()`, not just their own click handlers.
+- **`eva-keyboard-shortcuts-overlay` is now localizable**: new `evaShortcutsOverlayLabels` input (type `EvaKeyboardShortcutsOverlayLabels`, transformed via `transformEvaKeyboardShortcutsOverlayLabels`) overrides any group heading or shortcut description, following the same partial-input/fully-resolved pattern as every other `EvaXAria` type in the library. `seekBackward`/`seekForward` are `(seconds: number) => string` functions since their text embeds the configured seek amount; every other property is a plain string. All group titles and descriptions in `buildGroups()` were hardcoded English strings before this — now every one of them reads from `evaShortcutsOverlayLabels()`, defaulting to English when unset.
+
+### Changed
+
+- **`EvaKeyboardShortcuts` directive — the key-to-action lookup table is now a `computed()`, not rebuilt on every `keydown`**: previously `buildKeyActions()` reconstructed the ~27-entry array (with fresh closures) on every single keystroke, whether or not `evaKeyboardShortcutsConfiguration` had changed. It's now memoized behind a `keyActions` computed signal that only re-runs when the configuration input actually changes, matching the library's "configure once" usage pattern while still picking up runtime reconfiguration automatically (no manual cache invalidation needed — that's what `computed()` is for).
+
+### Fixed
+
+- **`documentation/core/directives.md` and `documentation/example-configuration.md`** referenced non-existent `EvaKeyboardShortcutsConfiguration` properties (`backwardsKey`, `forwardKey`, `cinemaMode`) in `evaTooltipShortcutKey` examples — corrected to `backwardsKeyOne`, `forwardKeyOne`, `cinemaModeKey`.
+
+---
+
 ## [22.0.8, 21.2.8] - 2026-07-10
 
 ### Added

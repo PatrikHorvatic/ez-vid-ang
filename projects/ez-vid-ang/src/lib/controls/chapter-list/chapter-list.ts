@@ -157,25 +157,7 @@ export class EvaChapterList implements OnInit, OnDestroy {
 
   /** Seeks the video to the chapter's start time with proper seek coordination. */
   protected seekToChapter(chapter: EvaChapterMarker): void {
-    if (!this.evaApi.validateVideoAndPlayerBeforeAction()) {
-      return;
-    }
-    if (chapter.startTime < 0 || !isFinite(chapter.startTime)) {
-      return;
-    }
-
-    const wasPlaying = !this.evaApi.assignedVideoElement!.paused;
-    this.evaApi.isSeeking.set(true);
-    this.evaApi.assignedVideoElement!.currentTime = chapter.startTime;
-    this.evaApi.time.update((a) => ({
-      ...a,
-      current: chapter.startTime,
-      remaining: a.total - chapter.startTime,
-    }));
-    this.evaApi.activeChapterSubject.next(chapter);
-    if (wasPlaying) {
-      this.evaApi.pendingPlayAfterSeek = true;
-    }
+    this.evaApi.jumpToChapter(chapter);
   }
 
   protected onKeydown(e: KeyboardEvent, chapter: EvaChapterMarker): void {

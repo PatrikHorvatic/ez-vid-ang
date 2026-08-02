@@ -43,32 +43,92 @@ export type EvaVideoElementConfiguration = {
 
 /**
  * Configuration for keyboard shortcuts on the Eva video player.
- * All properties are optional — omitted keys fall back to their defaults
- * via `validateAndTransformEvaKeyboardShortcutsConfiguration`.
+ * All properties are optional and **have no default value** — a shortcut only
+ * becomes active once you explicitly assign a key to it. This is intentional:
+ * enabling `evaKeyboardShortcutsEnabled` must never activate a shortcut for a
+ * control you haven't placed in your template (e.g. binding `screenshotKey`
+ * without rendering `<eva-screenshot>` still works — the API method exists
+ * independently of the button — but nothing is bound unless you set the key).
+ *
+ * The only exception is `backwardSeconds`/`forwardSeconds`, which are seek
+ * *amounts*, not key bindings — they fall back to `10` when the corresponding
+ * seek key is set but no amount is given. See `validateAndTransformEvaKeyboardShortcutsConfiguration`.
  */
 export type EvaKeyboardShortcutsConfiguration = {
   /** Seconds to seek when a backward key is pressed. @default 10 */
   backwardSeconds?: number;
-  /** Primary backward seek key. Matched via `KeyboardEvent.key`. @default "J" */
-  backwardsKeyOne?: string;
-  /** Primary forward seek key. Matched via `KeyboardEvent.key`. @default "L" */
-  forwardKeyOne?: string;
-  /** Secondary backward seek key. Matched via `KeyboardEvent.key`. @default "ArrowLeft" */
-  backwardsKeyTwo?: string;
-  /** Secondary forward seek key. Matched via `KeyboardEvent.key`. @default "ArrowRight" */
-  forwardKeyTwo?: string;
+  /** Primary backward seek key. Matched via `KeyboardEvent.key`. */
+  backwardsKeyOne?: string | undefined;
+  /** Primary forward seek key. Matched via `KeyboardEvent.key`. */
+  forwardKeyOne?: string | undefined;
+  /** Secondary backward seek key. Matched via `KeyboardEvent.key`. */
+  backwardsKeyTwo?: string | undefined;
+  /** Secondary forward seek key. Matched via `KeyboardEvent.key`. */
+  forwardKeyTwo?: string | undefined;
   /** Seconds to seek when a forward key is pressed. @default 10 */
   forwardSeconds?: number;
-  /** Mute toggle key. Matched via `KeyboardEvent.key`. @default "M" */
-  muteKey?: string;
-  /** Play/pause toggle key. Matched via `KeyboardEvent.code`. @default "Space" */
-  playPause?: string;
-  /** Fullscreen toggle key. Matched via `KeyboardEvent.key`. @default "F" */
-  fullscreen?: string;
-  /** Step forward one frame key. Matched via `KeyboardEvent.key`. @default "." */
-  oneFrameForward?: string;
-  /** Step backward one frame key. Matched via `KeyboardEvent.key`. @default "," */
-  oneFrameBackward?: string;
+  /** Mute toggle key. Matched via `KeyboardEvent.key`. */
+  muteKey?: string | undefined;
+  /** Play/pause toggle key. Matched via `KeyboardEvent.code`. */
+  playPause?: string | undefined;
+  /** Fullscreen toggle key. Matched via `KeyboardEvent.key`. */
+  fullscreen?: string | undefined;
+  /** Step forward one frame key. Matched via `KeyboardEvent.key`. */
+  oneFrameForward?: string | undefined;
+  /** Step backward one frame key. Matched via `KeyboardEvent.key`. */
+  oneFrameBackward?: string | undefined;
+  /** Increase volume by 5%. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.stepVolume(1)`. */
+  volumeUp?: string | undefined;
+  /** Decrease volume by 5%. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.stepVolume(-1)`. */
+  volumeDown?: string | undefined;
+  /** Captures a screenshot. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.captureScreenshot()`. */
+  screenshotKey?: string | undefined;
+  /** Toggles Picture-in-Picture. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.changePictureInPictureStatus()`. */
+  pictureInPictureKey?: string | undefined;
+  /** Toggles cinema mode. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.toggleCinemaMode()`. */
+  cinemaModeKey?: string | undefined;
+  /** Toggles video looping. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.toggleLoop()`. */
+  loopKey?: string | undefined;
+  /** Triggers the registered download handler. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.triggerDownload()`. No-op unless `<eva-download>` is present. */
+  downloadKey?: string | undefined;
+  /** Opens the remote playback (Cast/AirPlay) device picker. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.promptRemotePlayback()`. No-op unless `<eva-remote-playback>` is present. */
+  remotePlaybackKey?: string | undefined;
+  /** Retries playback after an error. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.retryVideo()`. */
+  retryKey?: string | undefined;
+  /** Switches to the next quality level. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.cycleQuality(1)`. No-op without an active streaming directive. */
+  nextQualityKey?: string | undefined;
+  /** Switches to the previous quality level. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.cycleQuality(-1)`. No-op without an active streaming directive. */
+  previousQualityKey?: string | undefined;
+  /** Switches to the next audio track. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.cycleAudioTrack(1)`. No-op without alternate audio tracks. */
+  nextAudioTrackKey?: string | undefined;
+  /** Switches to the previous audio track. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.cycleAudioTrack(-1)`. No-op without alternate audio tracks. */
+  previousAudioTrackKey?: string | undefined;
+  /** Switches to the next subtitle track (wrapping to "Off"). Matched via `KeyboardEvent.key`. Delegates to `EvaApi.cycleSubtitleTrack(1)`. No-op without any subtitle tracks. */
+  nextSubtitleTrackKey?: string | undefined;
+  /** Switches to the previous subtitle track (wrapping to "Off"). Matched via `KeyboardEvent.key`. Delegates to `EvaApi.cycleSubtitleTrack(-1)`. No-op without any subtitle tracks. */
+  previousSubtitleTrackKey?: string | undefined;
+  /** Increases playback speed by 0.25x, clamped to `[0.25, 4]`. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.increasePlaybackSpeed()`. */
+  increasePlaybackSpeedKey?: string | undefined;
+  /** Decreases playback speed by 0.25x, clamped to `[0.25, 4]`. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.decreasePlaybackSpeed()`. */
+  decreasePlaybackSpeedKey?: string | undefined;
+  /** Jumps to the next chapter marker. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.jumpToNextChapter()`. No-op without chapter markers. */
+  nextChapterKey?: string | undefined;
+  /** Jumps to the previous chapter marker. Matched via `KeyboardEvent.key`. Delegates to `EvaApi.jumpToPreviousChapter()`. No-op without chapter markers. */
+  previousChapterKey?: string | undefined;
+};
+
+/**
+ * The resolved form of `EvaKeyboardShortcutsConfiguration` after
+ * `validateAndTransformEvaKeyboardShortcutsConfiguration` has run.
+ *
+ * `backwardSeconds`/`forwardSeconds` are always present (defaulted to `10`
+ * when omitted). Every key-binding property remains optional — unset means
+ * the shortcut is disabled, never a fallback key. All key values are
+ * upper-cased for case-insensitive matching against `KeyboardEvent.key`/`.code`.
+ */
+export type EvaKeyboardShortcutsConfigurationTransformed = Omit<EvaKeyboardShortcutsConfiguration, "backwardSeconds" | "forwardSeconds"> & {
+  backwardSeconds: number;
+  forwardSeconds: number;
 };
 
 /**

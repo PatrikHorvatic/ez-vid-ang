@@ -1,6 +1,6 @@
 {
   "name": "ez-vid-ang",
-  "version": "22.0.8",
+  "version": "22.0.9",
   "license": "MIT",
   "description": "Highly configurable, performant and easy-to-use Angular component library for video playback and streaming.",
   "author": {
@@ -55,15 +55,14 @@
     "@angular/platform-browser": "~22.0.0",
     "@eslint/js": "^10.0.1",
     "angular-eslint": "22.1.0",
-    "eslint": "^10.7.0",
+    "eslint": "10.8.0",
     "eslint-config-prettier": "^10.1.8",
-    "jsdom": "29.1.1",
     "ng-packagr": "~22.0.0",
     "prettier": "^3.9.6",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "typescript": "~6.0.3",
-    "typescript-eslint": "8.64.0",
+    "typescript-eslint": "8.65.0",
     "vitest": "4.1.10"
   }
 }

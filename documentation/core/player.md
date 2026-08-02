@@ -113,7 +113,7 @@ The `EvaPlayer` component is the top-level host of the Eva video player library.
 | `evaVideoSources` | `EvaVideoSource[]` | ✅ Yes | — | List of video sources to load into the player. |
 | `evaVideoConfiguration` | `EvaVideoElementConfiguration` | No | `{}` | Configuration object applied to the native `<video>` element. |
 | `evaKeyboardShortcutsEnabled` | `boolean` | No | `false` | When `true`, enables keyboard shortcuts on the player. See [`EvaKeyboardShortcutsConfiguration`](#evakeyboardshortcutsconfiguration). |
-| `evaKeyboardShortcutsConfiguration` | `EvaKeyboardShortcutsConfiguration` | No | See [defaults](#default-keyboard-shortcuts) | Configures which keys trigger player actions. Missing properties fall back to defaults. |
+| `evaKeyboardShortcutsConfiguration` | `EvaKeyboardShortcutsConfiguration` | No | `{}` (no keys bound) | Configures which keys trigger player actions. No key has a default binding — see [actions](#default-keyboard-shortcuts). |
 | `evaVideoTracks` | `EvaTrack[]` | No | `[]` | List of subtitle/text tracks to attach to the video element. Runtime changes are automatically forwarded to child components. |
 | `evaLocalStorageEnabled` | `boolean` | No | `false` | When `true`, persists user preferences to `localStorage`. See [Configuration Storage](configuration-storage.md). |
 | `evaLocalStorageKey` | `string` | No | `"EVA_PLAYER_CONFIGURATION"` | Prefix for localStorage keys. Use different values to isolate preferences across multiple players. |
@@ -318,43 +318,88 @@ type EvaChapterMarker = {
 
 ### `EvaKeyboardShortcutsConfiguration`
 
-Configures which keys trigger player actions when keyboard shortcuts are enabled. All properties are optional — any omitted property falls back to its default key.
+Configures which keys trigger player actions when keyboard shortcuts are enabled.
+
+**No key has a default binding.** A shortcut only becomes active once you explicitly assign it a key — enabling `evaKeyboardShortcutsEnabled` never activates a shortcut for a control you haven't configured. This also means a bound key works independently of whether the matching component (e.g. `<eva-screenshot>`) is present in your template — the `EvaApi` method it calls always exists, but nothing fires unless you assign the key. The only exception is `backwardSeconds`/`forwardSeconds`, which are seek *amounts*, not key bindings — they default to `10` once their corresponding seek key is set.
 
 ```ts
 interface EvaKeyboardShortcutsConfiguration {
+  // Seeking
   backwardsKeyOne?: string;
   forwardKeyOne?: string;
   backwardsKeyTwo?: string;
   forwardKeyTwo?: string;
-  muteKey?: string;
-  playPause?: string;
-  fullscreen?: string;
+  backwardSeconds?: number;       // default 10 once a backward key is set
+  forwardSeconds?: number;        // default 10 once a forward key is set
   oneFrameForward?: string;
   oneFrameBackward?: string;
+  nextChapterKey?: string;
+  previousChapterKey?: string;
+
+  // Playback
+  playPause?: string;
+  increasePlaybackSpeedKey?: string;
+  decreasePlaybackSpeedKey?: string;
+
+  // Media
+  muteKey?: string;
+  volumeUp?: string;
+  volumeDown?: string;
+  fullscreen?: string;
+  pictureInPictureKey?: string;
+  cinemaModeKey?: string;
+  loopKey?: string;
+  screenshotKey?: string;
+  downloadKey?: string;
+  remotePlaybackKey?: string;
+  retryKey?: string;
+
+  // Tracks & quality
+  nextQualityKey?: string;
+  previousQualityKey?: string;
+  nextAudioTrackKey?: string;
+  previousAudioTrackKey?: string;
+  nextSubtitleTrackKey?: string;
+  previousSubtitleTrackKey?: string;
 }
 ```
 
 <a name="default-keyboard-shortcuts"></a>
-#### Default Keyboard Shortcuts
+#### Keyboard Shortcut Actions
 
-| Property | Default Key | Action |
-|---|---|---|
-| `backwardsKeyOne` | `J` | Seek backward 10 seconds (primary). |
-| `forwardKeyOne` | `L` | Seek forward 10 seconds (primary). |
-| `backwardsKeyTwo` | `ArrowLeft` | Seek backward 10 seconds (secondary). |
-| `forwardKeyTwo` | `ArrowRight` | Seek forward 10 seconds (secondary). |
-| `muteKey` | `M` | Toggle mute. |
-| `playPause` | `Space` | Toggle play/pause. Matched via `KeyboardEvent.code`. |
-| `fullscreen` | `F` | Toggle fullscreen. |
-| `oneFrameBackward` | `,` | Step backward one frame (1/30s). |
-| `oneFrameForward` | `.` | Step forward one frame (1/30s). |
-| `0`–`9` | `0`–`9` | Jump to 0%–90% of total duration. Ignored for live streams. |
+Every property delegates to an `EvaApi` method that works independently of the corresponding UI control — assign a key even if you don't render the button. `downloadKey` and `remotePlaybackKey` are no-ops until `<eva-download>`/`<eva-remote-playback>` register themselves (they must be present in the template); every other action calls the video element or a stream API directly.
+
+| Property | Action |
+|---|---|
+| `backwardsKeyOne` / `backwardsKeyTwo` | Seek backward by `backwardSeconds` (default `10`). |
+| `forwardKeyOne` / `forwardKeyTwo` | Seek forward by `forwardSeconds` (default `10`). |
+| `oneFrameBackward` / `oneFrameForward` | Step one frame backward/forward (1/30s). |
+| `nextChapterKey` / `previousChapterKey` | Jump to the next/previous chapter marker. No-op without chapters. |
+| `playPause` | Toggle play/pause. Matched via `KeyboardEvent.code` (reliably detects Space). |
+| `increasePlaybackSpeedKey` / `decreasePlaybackSpeedKey` | Step playback speed by `0.25`, clamped to `[0.25, 4]`. |
+| `muteKey` | Toggle mute. |
+| `volumeUp` / `volumeDown` | Step volume by 5%. |
+| `fullscreen` | Toggle fullscreen. |
+| `pictureInPictureKey` | Toggle Picture-in-Picture. |
+| `cinemaModeKey` | Toggle cinema mode. |
+| `loopKey` | Toggle video looping. |
+| `screenshotKey` | Capture a screenshot. |
+| `downloadKey` | Trigger `<eva-download>`'s click handler. No-op if not present. |
+| `remotePlaybackKey` | Open the Cast/AirPlay device picker. No-op if `<eva-remote-playback>` is not present. |
+| `retryKey` | Reload the video source (same as the error overlay's retry button). |
+| `nextQualityKey` / `previousQualityKey` | Cycle quality levels, wrapping at the ends. No-op without an active streaming directive. |
+| `nextAudioTrackKey` / `previousAudioTrackKey` | Cycle audio tracks, wrapping at the ends. No-op without alternate audio tracks. |
+| `nextSubtitleTrackKey` / `previousSubtitleTrackKey` | Cycle subtitle tracks (declared + stream, plus "Off"), wrapping at the ends. No-op without any subtitle tracks. |
+| `0`–`9` | Jump to 0%–90% of total duration. Always active — not configurable. Ignored for live streams. |
+| `?` | Show/hide the keyboard shortcuts overlay. Always active — not configurable. |
 
 All key values are normalized to uppercase once in `validateAndTransformEvaKeyboardShortcutsConfiguration`, so consumers can pass keys in any casing (e.g. `"arrowleft"`, `"ArrowLeft"`, and `"ARROWLEFT"` are all equivalent).
 
 Shortcuts are suppressed when focus is inside an `<input>`, `<textarea>`, `<select>`, `contenteditable` element, or any element with an interactive ARIA role (`listbox`, `combobox`, `menu`, `menuitem`, `slider`, `spinbutton`, `textbox`, `searchbox`, `gridcell`).
 
 In multi-player setups, only the last-interacted player responds to shortcuts.
+
+See [`eva-keyboard-shortcuts-overlay`](../controls/keyboard-shortcuts-overlay.md) — it lists only the shortcuts you've actually bound.
 
 ---
 

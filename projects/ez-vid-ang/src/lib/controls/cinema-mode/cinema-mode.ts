@@ -94,12 +94,8 @@ export class EvaCinemaMode implements OnInit, OnDestroy {
   }
 
   protected toggle(): void {
-    const next = !this.isActive();
-    this.isActive.set(next);
-    if (this.evaAPI.cinemaModeSubject.getValue() !== next) {
-      this.evaAPI.cinemaModeSubject.next(next);
-    }
-    this.evaCinemaToggled.emit(next);
+    this.evaAPI.toggleCinemaMode();
+    this.evaCinemaToggled.emit(this.evaAPI.cinemaModeSubject.value);
   }
 
   protected onKeyDown(e: KeyboardEvent): void {

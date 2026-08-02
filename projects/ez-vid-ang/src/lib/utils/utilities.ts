@@ -1,5 +1,5 @@
 import { DEFAULT_SEEK_SECONDS, MAX_PLAYBACK_SPEED, MIN_PLAYBACK_SPEED } from "../constants";
-import { EvaKeyboardShortcutsConfiguration, EvaStorageConfiguration, EvaTrack } from "../types";
+import { EvaKeyboardShortcutsConfiguration, EvaKeyboardShortcutsConfigurationTransformed, EvaStorageConfiguration, EvaTrack } from "../types";
 
 /** Input transform that clamps negative timeout values to `0`. */
 export function transformTimeoutDuration(v: number): number {
@@ -95,40 +95,68 @@ export function validateTracks(tracks: EvaTrack[]): EvaTrack[] {
   return uniqueTracks;
 }
 
-/** Returns a fully populated `EvaKeyboardShortcutsConfiguration` with all default key bindings. */
-export function prepareDefaultKeyboardShortcutsConfiguration(): Required<EvaKeyboardShortcutsConfiguration> {
+/**
+ * Returns the default `EvaKeyboardShortcutsConfiguration` — no keys are bound.
+ * Only the seek-amount fields carry a default, since they are magnitudes, not
+ * key bindings, and are meaningless to leave undefined once a seek key is set.
+ */
+export function prepareDefaultKeyboardShortcutsConfiguration(): EvaKeyboardShortcutsConfigurationTransformed {
   return {
     backwardSeconds: DEFAULT_SEEK_SECONDS,
     forwardSeconds: DEFAULT_SEEK_SECONDS,
-    backwardsKeyOne: "J",
-    forwardKeyOne: "L",
-    backwardsKeyTwo: "ARROWLEFT",
-    forwardKeyTwo: "ARROWRIGHT",
-    muteKey: "M",
-    fullscreen: "F",
-    playPause: "SPACE",
-    oneFrameBackward: ",",
-    oneFrameForward: ".",
   };
 }
 
-/** Input transform that fills missing keys with defaults. `backwardSeconds` and `forwardSeconds` are clamped to a minimum of `1` (values `<= 0` fall back to `10`). Returns the full default config when `conf` is `null`/`undefined`. */
-export function validateAndTransformEvaKeyboardShortcutsConfiguration(conf: EvaKeyboardShortcutsConfiguration): Required<EvaKeyboardShortcutsConfiguration> {
+/** Upper-cases a key binding for case-insensitive matching, or returns `undefined` if unset. Never invents a fallback key. */
+function transformKey(v: string | undefined): string | undefined {
+  return v ? v.toUpperCase() : undefined;
+}
+
+/**
+ * Input transform for `EvaKeyboardShortcutsConfiguration`.
+ *
+ * Every key-binding property is passed through untouched aside from
+ * upper-casing — a shortcut is only active when the consumer explicitly
+ * assigns it a key. `backwardSeconds`/`forwardSeconds` are the only fields
+ * with a fallback (`10`), since they are seek amounts, not bindings.
+ * Returns `prepareDefaultKeyboardShortcutsConfiguration()` (no keys bound)
+ * when `conf` is `null`/`undefined`.
+ */
+export function validateAndTransformEvaKeyboardShortcutsConfiguration(conf: EvaKeyboardShortcutsConfiguration): EvaKeyboardShortcutsConfigurationTransformed {
   if (!conf) {
     return prepareDefaultKeyboardShortcutsConfiguration();
   }
   return {
     backwardSeconds: conf.backwardSeconds && conf.backwardSeconds > 0 ? conf.backwardSeconds : DEFAULT_SEEK_SECONDS,
     forwardSeconds: conf.forwardSeconds && conf.forwardSeconds > 0 ? conf.forwardSeconds : DEFAULT_SEEK_SECONDS,
-    backwardsKeyOne: (conf.backwardsKeyOne ?? "J").toUpperCase(),
-    forwardKeyOne: (conf.forwardKeyOne ?? "L").toUpperCase(),
-    backwardsKeyTwo: (conf.backwardsKeyTwo ?? "ARROWLEFT").toUpperCase(),
-    forwardKeyTwo: (conf.forwardKeyTwo ?? "ARROWRIGHT").toUpperCase(),
-    muteKey: (conf.muteKey ?? "M").toUpperCase(),
-    fullscreen: (conf.fullscreen ?? "F").toUpperCase(),
-    playPause: (conf.playPause ?? "SPACE").toUpperCase(),
-    oneFrameBackward: (conf.oneFrameBackward ?? ",").toUpperCase(),
-    oneFrameForward: (conf.oneFrameForward ?? ".").toUpperCase(),
+    backwardsKeyOne: transformKey(conf.backwardsKeyOne),
+    forwardKeyOne: transformKey(conf.forwardKeyOne),
+    backwardsKeyTwo: transformKey(conf.backwardsKeyTwo),
+    forwardKeyTwo: transformKey(conf.forwardKeyTwo),
+    muteKey: transformKey(conf.muteKey),
+    fullscreen: transformKey(conf.fullscreen),
+    playPause: transformKey(conf.playPause),
+    oneFrameBackward: transformKey(conf.oneFrameBackward),
+    oneFrameForward: transformKey(conf.oneFrameForward),
+    volumeUp: transformKey(conf.volumeUp),
+    volumeDown: transformKey(conf.volumeDown),
+    screenshotKey: transformKey(conf.screenshotKey),
+    pictureInPictureKey: transformKey(conf.pictureInPictureKey),
+    cinemaModeKey: transformKey(conf.cinemaModeKey),
+    loopKey: transformKey(conf.loopKey),
+    downloadKey: transformKey(conf.downloadKey),
+    remotePlaybackKey: transformKey(conf.remotePlaybackKey),
+    retryKey: transformKey(conf.retryKey),
+    nextQualityKey: transformKey(conf.nextQualityKey),
+    previousQualityKey: transformKey(conf.previousQualityKey),
+    nextAudioTrackKey: transformKey(conf.nextAudioTrackKey),
+    previousAudioTrackKey: transformKey(conf.previousAudioTrackKey),
+    nextSubtitleTrackKey: transformKey(conf.nextSubtitleTrackKey),
+    previousSubtitleTrackKey: transformKey(conf.previousSubtitleTrackKey),
+    increasePlaybackSpeedKey: transformKey(conf.increasePlaybackSpeedKey),
+    decreasePlaybackSpeedKey: transformKey(conf.decreasePlaybackSpeedKey),
+    nextChapterKey: transformKey(conf.nextChapterKey),
+    previousChapterKey: transformKey(conf.previousChapterKey),
   };
 }
 

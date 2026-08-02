@@ -1,7 +1,22 @@
 import { EventEmitter, Injectable, signal } from "@angular/core";
 import { BehaviorSubject, Subject } from "rxjs";
-import { EvaState, EvaChapterMarker, EvaKeyboardShortcutsConfiguration, EvaQualityLevel, EvaAudioTrack, EvaScreenshotEvent, EvaTrack, EvaTrackInternal, EvaStreamSubtitleTrack } from "../types";
-import { MAX_DIGIT_KEY, DIGIT_DIVISOR, READY_STATE_HAVE_FUTURE_DATA, BUFFERING_DETECTION_DELAY_MS, CHAPTER_UPDATE_DEBOUNCE_MS, DEFAULT_ARROW_SEEK_SECONDS, DEFAULT_UNMUTE_VOLUME, DEFAULT_IMAGE_QUALITY } from "../constants";
+import { EvaState, EvaChapterMarker, EvaKeyboardShortcutsConfigurationTransformed, EvaQualityLevel, EvaAudioTrack, EvaScreenshotEvent, EvaTrack, EvaTrackInternal, EvaStreamSubtitleTrack } from "../types";
+import {
+  MAX_DIGIT_KEY,
+  DIGIT_DIVISOR,
+  READY_STATE_HAVE_FUTURE_DATA,
+  BUFFERING_DETECTION_DELAY_MS,
+  CHAPTER_UPDATE_DEBOUNCE_MS,
+  DEFAULT_ARROW_SEEK_SECONDS,
+  DEFAULT_UNMUTE_VOLUME,
+  DEFAULT_IMAGE_QUALITY,
+  PERCENTAGE,
+  VOLUME_ARROW_KEY_STEP,
+  MIN_PLAYBACK_SPEED,
+  MAX_PLAYBACK_SPEED,
+  PLAYBACK_SPEED_STEP,
+  PLAYBACK_SPEED_ROUNDING_FACTOR,
+} from "../constants";
 
 /**
  * Core API service for the Eva video player.
@@ -214,7 +229,7 @@ export class EvaApi {
   public keyboardShortcutsOverlaySubject = new BehaviorSubject<boolean>(false);
 
   /** Holds the resolved keyboard shortcuts configuration. Published by `EvaKeyboardShortcuts` on init. */
-  public keyboardShortcutsConfigSubject = new BehaviorSubject<Required<EvaKeyboardShortcutsConfiguration> | null>(null);
+  public keyboardShortcutsConfigSubject = new BehaviorSubject<EvaKeyboardShortcutsConfigurationTransformed | null>(null);
 
   /** Broadcasts the current remote playback connection state. Updated by `EvaRemotePlayback`. */
   public remotePlaybackStateSubject = new BehaviorSubject<"disconnected" | "connecting" | "connected">("disconnected");
@@ -230,6 +245,44 @@ export class EvaApi {
   /** Opens the browser's remote playback device picker (Cast/AirPlay). No-op if not available. */
   public promptRemotePlayback(): void {
     this.remotePlaybackPromptFn?.();
+  }
+
+  /** Registered callback that emits `EvaDownload.evaDownloadClicked`. Set by `EvaDownload`. */
+  private downloadTriggerFn: (() => void) | null = null;
+
+  /** Registers the download trigger function. Called by `EvaDownload` on init. */
+  public registerDownloadTrigger(fn: () => void): void {
+    this.downloadTriggerFn = fn;
+  }
+
+  /** Triggers the registered `EvaDownload` click handler. No-op if `<eva-download>` is not present. */
+  public triggerDownload(): void {
+    this.downloadTriggerFn?.();
+  }
+
+  /**
+   * Toggles the native `HTMLVideoElement.loop` property and broadcasts the
+   * new state via `loopSubject`. Shared by `EvaLoop` and `EvaKeyboardShortcuts`.
+   */
+  public toggleLoop(): void {
+    if (!this.validateVideoAndPlayerBeforeAction()) {
+      return;
+    }
+    this.assignedVideoElement!.loop = !this.assignedVideoElement!.loop;
+    this.loopSubject.next(this.assignedVideoElement!.loop);
+  }
+
+  /**
+   * Toggles cinema mode by flipping `cinemaModeSubject`. Purely a broadcast —
+   * consumers own the actual layout change. Shared by `EvaCinemaMode` and `EvaKeyboardShortcuts`.
+   */
+  public toggleCinemaMode(): void {
+    this.cinemaModeSubject.next(!this.cinemaModeSubject.value);
+  }
+
+  /** Reloads the current video source, mirroring `EvaErrorOverlay`'s retry button. */
+  public retryVideo(): void {
+    this.assignedVideoElement?.load();
   }
 
   public lastActiveVolume = 1;
@@ -348,6 +401,20 @@ export class EvaApi {
   }
 
   /**
+   * Switches to the next (`1`) or previous (`-1`) quality level in `qualityLevelsSubject`,
+   * wrapping around at the ends. No-op if no quality levels are registered.
+   */
+  public cycleQuality(direction: 1 | -1): void {
+    const levels = this.qualityLevelsSubject.value;
+    if (levels.length === 0) {
+      return;
+    }
+    const currentIndex = levels.findIndex((l) => l.qualityIndex === this.currentQualityIndex());
+    const nextIndex = this.cycleIndex(currentIndex === -1 ? 0 : currentIndex, levels.length, direction);
+    this.setQuality(levels[nextIndex].qualityIndex);
+  }
+
+  /**
    * Registers the streaming library's audio track setter function.
    * Called by `EvaHlsDirective` or `EvaDashDirective` when alternate audio tracks are available.
    *
@@ -382,6 +449,20 @@ export class EvaApi {
     }
     this.currentAudioTrackId.set(id);
     this.audioTrackFn(id);
+  }
+
+  /**
+   * Switches to the next (`1`) or previous (`-1`) audio track in `audioTracksSubject`,
+   * wrapping around at the ends. No-op if no alternate audio tracks are registered.
+   */
+  public cycleAudioTrack(direction: 1 | -1): void {
+    const tracks = this.audioTracksSubject.value;
+    if (tracks.length === 0) {
+      return;
+    }
+    const currentIndex = tracks.findIndex((t) => t.id === this.currentAudioTrackId());
+    const nextIndex = this.cycleIndex(currentIndex === -1 ? 0 : currentIndex, tracks.length, direction);
+    this.setAudioTrack(tracks[nextIndex].id);
   }
 
   /**
@@ -427,6 +508,43 @@ export class EvaApi {
   public setStreamSubtitleTrack(id: number): void {
     this.currentStreamSubtitleTrackId.set(id);
     this.subtitleTrackFn?.(id);
+  }
+
+  /**
+   * Switches to the next (`1`) or previous (`-1`) subtitle track, merging
+   * `evaVideoTracks`-declared subtitle tracks and manifest-native stream tracks
+   * into the same order `EvaTrackSelector` renders, with a trailing "Off" entry.
+   * Wraps around at the ends. No-op if no subtitle tracks (declared or stream) exist.
+   */
+  public cycleSubtitleTrack(direction: 1 | -1): void {
+    const declared = (this.videoTracksSubject.value ?? []).filter((t) => t.kind === "subtitles");
+    const stream = this.streamSubtitleTracksSubject.value;
+    if (declared.length === 0 && stream.length === 0) {
+      return;
+    }
+
+    const options: EvaTrackInternal[] = [
+      ...declared.map((t) => ({ id: t.srclang, label: t.label ?? "", selected: false, source: "declared" as const })),
+      ...stream.map((t) => ({ id: `stream:${t.id}`, label: t.label, selected: false, source: "stream" as const, streamId: t.id })),
+      { id: "off", label: "Off", selected: false, source: "declared" as const },
+    ];
+
+    const current = this.videoSubtitlesSubject.value;
+    const currentIndex = current ? options.findIndex((o) => o.id === current.id) : options.length - 1;
+    const nextIndex = this.cycleIndex(currentIndex === -1 ? options.length - 1 : currentIndex, options.length, direction);
+    const next = options[nextIndex];
+
+    if (next.source === "stream" && next.streamId !== undefined) {
+      this.setStreamSubtitleTrack(next.streamId);
+    } else {
+      this.setStreamSubtitleTrack(-1);
+    }
+    this.subtitlesChanged(next);
+  }
+
+  /** Shared wraparound index calculation for `cycleQuality()`, `cycleAudioTrack()`, and `cycleSubtitleTrack()`. */
+  private cycleIndex(current: number, length: number, direction: 1 | -1): number {
+    return (((current + direction) % length) + length) % length;
   }
 
   // ─── Playback Commands ────────────────────────────────────────────────────
@@ -484,6 +602,63 @@ export class EvaApi {
   }
 
   /**
+   * Seeks to the given chapter's start time with proper seek coordination
+   * (`isSeeking`, `pendingPlayAfterSeek`) and updates `activeChapterSubject`.
+   * Called by `EvaChapterList` and by `jumpToNextChapter()`/`jumpToPreviousChapter()`.
+   */
+  public jumpToChapter(chapter: EvaChapterMarker): void {
+    if (!this.validateVideoAndPlayerBeforeAction()) {
+      return;
+    }
+    if (chapter.startTime < 0 || !isFinite(chapter.startTime)) {
+      return;
+    }
+
+    const wasPlaying = !this.assignedVideoElement!.paused;
+    this.isSeeking.set(true);
+    this.assignedVideoElement!.currentTime = chapter.startTime;
+    this.time.update((a) => ({
+      ...a,
+      current: chapter.startTime,
+      remaining: a.total - chapter.startTime,
+    }));
+    this.activeChapterSubject.next(chapter);
+    if (wasPlaying) {
+      this.pendingPlayAfterSeek = true;
+    }
+  }
+
+  /** Jumps to the next chapter marker after the currently active one. No-op past the last chapter or when no chapters are registered. */
+  public jumpToNextChapter(): void {
+    this.jumpRelativeChapter(1);
+  }
+
+  /** Jumps to the chapter marker before the currently active one. No-op before the first chapter or when no chapters are registered. */
+  public jumpToPreviousChapter(): void {
+    this.jumpRelativeChapter(-1);
+  }
+
+  /** Shared next/previous chapter resolution for `jumpToNextChapter()`/`jumpToPreviousChapter()`. */
+  private jumpRelativeChapter(direction: 1 | -1): void {
+    const chapters = this.chapterMarkerChangesSubject.value;
+    if (chapters.length === 0) {
+      return;
+    }
+    const active = this.activeChapterSubject.value;
+    const currentIndex = active ? chapters.findIndex((c) => c.startTime === active.startTime) : -1;
+
+    if (currentIndex === -1) {
+      this.jumpToChapter(direction === 1 ? chapters[0] : chapters[chapters.length - 1]);
+      return;
+    }
+    const nextIndex = currentIndex + direction;
+    if (nextIndex < 0 || nextIndex >= chapters.length) {
+      return;
+    }
+    this.jumpToChapter(chapters[nextIndex]);
+  }
+
+  /**
    * Jumps to a percentage of total duration based on a digit key.
    * `"0"` seeks to 0%, `"5"` to 50%, `"9"` to 90%, etc.
    * Ignored for live streams (duration is `Infinity`).
@@ -529,6 +704,23 @@ export class EvaApi {
       return 1;
     }
     return this.assignedVideoElement!.playbackRate;
+  }
+
+  /** Increases playback speed by `PLAYBACK_SPEED_STEP` (`0.25`), clamped to `MAX_PLAYBACK_SPEED`. */
+  public increasePlaybackSpeed(): void {
+    this.stepPlaybackSpeed(1);
+  }
+
+  /** Decreases playback speed by `PLAYBACK_SPEED_STEP` (`0.25`), clamped to `MIN_PLAYBACK_SPEED`. */
+  public decreasePlaybackSpeed(): void {
+    this.stepPlaybackSpeed(-1);
+  }
+
+  /** Shared step calculation for `increasePlaybackSpeed()`/`decreasePlaybackSpeed()`. */
+  private stepPlaybackSpeed(direction: 1 | -1): void {
+    const current = this.getPlaybackSpeed();
+    const stepped = Math.min(MAX_PLAYBACK_SPEED, Math.max(MIN_PLAYBACK_SPEED, current + direction * PLAYBACK_SPEED_STEP));
+    this.setPlaybackSpeed(Math.round(stepped * PLAYBACK_SPEED_ROUNDING_FACTOR) / PLAYBACK_SPEED_ROUNDING_FACTOR);
   }
 
   /**
@@ -582,6 +774,15 @@ export class EvaApi {
       this.assignedVideoElement!.volume = volume;
       this.lastActiveVolume = volume;
     }
+  }
+
+  /** Increases (`1`) or decreases (`-1`) volume by `VOLUME_ARROW_KEY_STEP` (5%), clamped to `[0, 1]` via `setVideoVolume()`. */
+  public stepVolume(direction: 1 | -1): void {
+    if (!this.validateVideoAndPlayerBeforeAction()) {
+      return;
+    }
+    const currentPercent = this.getVideoVolume() * PERCENTAGE;
+    this.setVideoVolume((currentPercent + direction * VOLUME_ARROW_KEY_STEP) / PERCENTAGE);
   }
 
   // ─── Event Listener Callbacks ─────────────────────────────────────────────

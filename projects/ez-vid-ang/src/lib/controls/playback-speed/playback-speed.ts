@@ -107,6 +107,9 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
 
   private playerReady$: Subscription | null = null;
 
+  /** Subscription to `EvaApi.playbackRateSubject`, keeping `currentSpeed`/`selectedIndex` in sync with external rate changes (e.g. `EvaApi.increasePlaybackSpeed()`/`decreasePlaybackSpeed()` from `EvaKeyboardShortcuts`). Cleaned up in `ngOnDestroy`. */
+  private rateSub: Subscription | null = null;
+
   /**
    * Sets the initial playback speed based on `evaDefaultPlaybackSpeed` and `evaPlaybackSpeeds`,
    * then attaches a document-level click listener to close the dropdown when clicking outside.
@@ -120,9 +123,26 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
       this.initializeSpeed();
     }
 
+    this.rateSub = this.evaAPI.playbackRateSubject.subscribe((rate) => {
+      this.reconcileSpeed(rate);
+    });
+
     // Listen for clicks outside
     this.clickOutsideListener = this.handleClickOutside.bind(this);
     document.addEventListener("click", this.clickOutsideListener, true);
+  }
+
+  /** Reconciles `currentSpeed`/`selectedIndex` with an externally-changed playback rate, if it matches one of `evaPlaybackSpeeds`. */
+  private reconcileSpeed(rate: number | null): void {
+    if (rate === null) {
+      return;
+    }
+    const speeds = this.evaPlaybackSpeeds();
+    const index = speeds.indexOf(rate);
+    if (index !== -1 && index !== this.selectedIndex()) {
+      this.currentSpeed.set(rate);
+      this.selectedIndex.set(index);
+    }
   }
 
   private initializeSpeed(): void {
@@ -144,6 +164,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
   /** Removes the document-level click-outside listener to prevent memory leaks. */
   public ngOnDestroy(): void {
     this.playerReady$?.unsubscribe();
+    this.rateSub?.unsubscribe();
     if (this.clickOutsideListener) {
       document.removeEventListener("click", this.clickOutsideListener, true);
     }

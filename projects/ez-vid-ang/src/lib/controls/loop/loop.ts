@@ -84,11 +84,7 @@ export class EvaLoop implements OnInit, OnDestroy {
   }
 
   protected toggleLoop(): void {
-    if (!this.evaApi.validateVideoAndPlayerBeforeAction()) {
-      return;
-    }
-    this.evaApi.assignedVideoElement!.loop = !this.evaApi.assignedVideoElement!.loop;
-    this.evaApi.loopSubject.next(this.evaApi.assignedVideoElement!.loop);
+    this.evaApi.toggleLoop();
   }
 
   protected onKeydown(e: KeyboardEvent): void {

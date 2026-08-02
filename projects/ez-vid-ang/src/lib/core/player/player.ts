@@ -2,7 +2,7 @@ import { AfterViewInit, booleanAttribute, ChangeDetectionStrategy, Component, El
 import { Subscription } from "rxjs";
 import { EvaApi } from "../../api/eva-api";
 import { EvaFullscreenAPI } from "../../api/fullscreen";
-import { EvaKeyboardShortcutsConfiguration, EvaStorageConfiguration, EvaTrack, EvaVideoElementConfiguration, EvaVideoSource, validateAndTransformStorageKey } from "../../types";
+import { EvaKeyboardShortcutsConfiguration, EvaKeyboardShortcutsConfigurationTransformed, EvaStorageConfiguration, EvaTrack, EvaVideoElementConfiguration, EvaVideoSource, validateAndTransformStorageKey } from "../../types";
 import { DEFAULT_STORAGE_KEY } from "../../constants";
 import { prepareDefaultKeyboardShortcutsConfiguration, prepareDefaultStorageConfiguration, validateAndTransformEvaKeyboardShortcutsConfiguration, validateAndTransformEvaStorageConfiguration, validateTracks } from "../../utils/utilities";
 import { EvaCueChangeDirective } from "../directives/cue-change";
@@ -107,11 +107,13 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
 
   /**
    * Key binding configuration for keyboard shortcuts.
-   * Partial configs are merged with defaults via `validateAndTransformEvaKeyboardShortcutsConfiguration`.
+   * No key has a default binding — a shortcut only activates once you assign it a key
+   * here. Only `backwardSeconds`/`forwardSeconds` (seek amounts, not bindings) default
+   * to `10`. See `validateAndTransformEvaKeyboardShortcutsConfiguration`.
    *
    * @default prepareDefaultKeyboardShortcutsConfiguration()
    */
-  public readonly evaKeyboardShortcutsConfiguration = input<Required<EvaKeyboardShortcutsConfiguration>, EvaKeyboardShortcutsConfiguration>(prepareDefaultKeyboardShortcutsConfiguration(), {
+  public readonly evaKeyboardShortcutsConfiguration = input<EvaKeyboardShortcutsConfigurationTransformed, EvaKeyboardShortcutsConfiguration>(prepareDefaultKeyboardShortcutsConfiguration(), {
     transform: validateAndTransformEvaKeyboardShortcutsConfiguration,
   });
 

@@ -60,10 +60,10 @@ This example demonstrates every available component and feature in the library: 
   <!-- Controls bar -->
   <eva-controls-container evaUserInteractionEvents [evaAutohide]="true">
     <eva-play-pause evaTooltip evaTooltipShortcutKey="playPause" />
-    <eva-backward evaTooltip evaTooltipShortcutKey="backwardsKey" />
-    <eva-forward evaTooltip evaTooltipShortcutKey="forwardKey" />
-    <eva-loop evaTooltip />
-    <eva-picture-in-picture evaTooltip />
+    <eva-backward evaTooltip evaTooltipShortcutKey="backwardsKeyOne" />
+    <eva-forward evaTooltip evaTooltipShortcutKey="forwardKeyOne" />
+    <eva-loop evaTooltip evaTooltipShortcutKey="loopKey" />
+    <eva-picture-in-picture evaTooltip evaTooltipShortcutKey="pictureInPictureKey" />
 
     <eva-active-chapter (evaChapterClicked)="toggleChapterList()" evaTooltip />
 
@@ -77,14 +77,14 @@ This example demonstrates every available component and feature in the library: 
 
     <eva-time-display evaTimeProperty="remaining" evaTimeFormating="HH:mm:ss" />
 
-    <eva-cinema-mode (evaCinemaToggled)="isCinemaMode = $event" evaTooltip />
-    <eva-remote-playback evaTooltip />
-    <eva-download (evaDownloadClicked)="onDownload($event)" evaTooltip />
-    <eva-screenshot (evaScreenshotCaptured)="onScreenshot($event)" evaTooltip />
+    <eva-cinema-mode (evaCinemaToggled)="isCinemaMode = $event" evaTooltip evaTooltipShortcutKey="cinemaModeKey" />
+    <eva-remote-playback evaTooltip evaTooltipShortcutKey="remotePlaybackKey" />
+    <eva-download (evaDownloadClicked)="onDownload($event)" evaTooltip evaTooltipShortcutKey="downloadKey" />
+    <eva-screenshot (evaScreenshotCaptured)="onScreenshot($event)" evaTooltip evaTooltipShortcutKey="screenshotKey" />
     <!-- Lists videoTracks() below AND any manifest-native subtitle tracks from evaHlsSrc's stream, merged into one dropdown -->
-    <eva-track-selector evaTooltip />
-    <eva-playback-speed [evaPlaybackSpeeds]="[0.25, 0.5, 1, 1.5, 2, 4]" evaTooltip />
-    <eva-quality-selector evaTooltip />
+    <eva-track-selector evaTooltip evaTooltipShortcutKey="nextSubtitleTrackKey" />
+    <eva-playback-speed [evaPlaybackSpeeds]="[0.25, 0.5, 1, 1.5, 2, 4]" evaTooltip evaTooltipShortcutKey="increasePlaybackSpeedKey" />
+    <eva-quality-selector evaTooltip evaTooltipShortcutKey="nextQualityKey" />
     <eva-settings-panel
       [evaSettingsMenuItems]="settingsItems()"
       (evaSettingsMenuItemSelected)="onSettingChanged($event)"
@@ -235,6 +235,8 @@ export class FullExampleComponent implements AfterViewInit, OnInit, OnDestroy {
     startingVolume: 0.5,
   });
 
+  // No key has a default binding — every entry below is what actually turns a
+  // shortcut on. Omit any of these and that action simply has no keyboard shortcut.
   protected readonly keyboardConfig = signal<EvaKeyboardShortcutsConfiguration>({
     backwardsKeyOne: 'J',
     forwardKeyOne: 'L',
@@ -242,6 +244,28 @@ export class FullExampleComponent implements AfterViewInit, OnInit, OnDestroy {
     forwardKeyTwo: 'ArrowRight',
     backwardSeconds: 10,
     forwardSeconds: 10,
+    playPause: 'Space',
+    muteKey: 'M',
+    volumeUp: '+',
+    volumeDown: '-',
+    fullscreen: 'F',
+    pictureInPictureKey: 'P',
+    cinemaModeKey: 'C',
+    loopKey: 'R',
+    screenshotKey: 'S',
+    downloadKey: 'D',
+    remotePlaybackKey: 'T',
+    retryKey: 'Y',
+    nextQualityKey: ']',
+    previousQualityKey: '[',
+    nextAudioTrackKey: "'",
+    previousAudioTrackKey: ';',
+    nextSubtitleTrackKey: '.',
+    previousSubtitleTrackKey: ',',
+    increasePlaybackSpeedKey: '>',
+    decreasePlaybackSpeedKey: '<',
+    nextChapterKey: 'N',
+    previousChapterKey: 'B',
   });
 
   // ─── Tracks & chapters ─────────────────────────────────────────────────────

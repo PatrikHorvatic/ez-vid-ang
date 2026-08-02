@@ -26,6 +26,8 @@ export const DIGIT_DIVISOR = 10;
 // Playback speed bounds
 export const MIN_PLAYBACK_SPEED = 0.25;
 export const MAX_PLAYBACK_SPEED = 4;
+export const PLAYBACK_SPEED_STEP = 0.25;
+export const PLAYBACK_SPEED_ROUNDING_FACTOR = 100;
 
 // Buffering detection
 export const READY_STATE_HAVE_FUTURE_DATA = 3;

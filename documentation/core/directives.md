@@ -183,39 +183,28 @@ Applied as a template directive on the `<video>` element inside `EvaPlayer` — 
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
 | `evaKeyboardShortcutsEnabled` | `boolean` | ✅ Yes | — | When `true`, attaches a `keydown` listener on the document. When `false`, removes it. |
-| `evaKeyboardShortcutsConfiguration` | `EvaKeyboardShortcutsConfiguration` | ✅ Yes | — | Configures which keys trigger player actions. See [`EvaKeyboardShortcutsConfiguration`](player.md#evakeyboardshortcutsconfiguration) for defaults and available properties. |
+| `evaKeyboardShortcutsConfiguration` | `EvaKeyboardShortcutsConfiguration` | ✅ Yes | — | Configures which keys trigger player actions. **No key has a default binding** — see [`EvaKeyboardShortcutsConfiguration`](player.md#evakeyboardshortcutsconfiguration) for the full action list. |
 
 ### Keyboard Actions
 
-| Action | Default Key | `EvaApi` / Service call |
-|---|---|---|
-| Seek backward 10s (primary) | `J` | `EvaApi.seekBack(10)` |
-| Seek forward 10s (primary) | `L` | `EvaApi.seekForward(10)` |
-| Seek backward 10s (secondary) | `ArrowLeft` | `EvaApi.seekBack(10)` |
-| Seek forward 10s (secondary) | `ArrowRight` | `EvaApi.seekForward(10)` |
-| Toggle mute | `M` | `EvaApi.muteOrUnmuteVideo()` |
-| Toggle play/pause | `Space` | `EvaApi.playOrPauseVideo()` |
-| Toggle fullscreen | `F` | `EvaFullscreenAPI.toggleFullscreen()` |
-| Step backward one frame | `,` | `EvaApi.seekBack(1/30)` |
-| Step forward one frame | `.` | `EvaApi.seekForward(1/30)` |
-| Jump to 0%–90% of duration | `0`–`9` | `EvaApi.jumpToVideoPercentage(key)` |
+Every shortcut is opt-in: enabling `evaKeyboardShortcutsEnabled` alone binds nothing. Only `0`–`9` (percentage jump) and `?` (this overlay toggle) are always active — every other action requires an explicit key in `evaKeyboardShortcutsConfiguration`. See the full property-by-action table in [`EvaKeyboardShortcutsConfiguration`](player.md#default-keyboard-shortcuts).
 
 ### Usage
 
 ```html
-<!-- Enable with default key bindings -->
+<!-- Enabling alone binds nothing — every shortcut is opt-in -->
 <eva-player
   id="player"
   [evaVideoSources]="sources"
   [evaKeyboardShortcutsEnabled]="true"
 />
 
-<!-- Enable with custom key bindings -->
+<!-- Bind the keys you actually want active -->
 <eva-player
   id="player"
   [evaVideoSources]="sources"
   [evaKeyboardShortcutsEnabled]="true"
-  [evaKeyboardShortcutsConfiguration]="{ backwardsKey: 'ArrowLeft', forwardKey: 'ArrowRight' }"
+  [evaKeyboardShortcutsConfiguration]="{ backwardsKeyTwo: 'ArrowLeft', forwardKeyTwo: 'ArrowRight', playPause: 'Space', screenshotKey: 's' }"
 />
 ```
 
@@ -223,6 +212,7 @@ Applied as a template directive on the `<video>` element inside `EvaPlayer` — 
 
 - Key matching uses `KeyboardEvent.key` (case-insensitive) for all shortcuts except `playPause`, which uses `KeyboardEvent.code` to reliably detect the Space bar.
 - All configured key values are normalized to uppercase once in `validateAndTransformEvaKeyboardShortcutsConfiguration`, so consumers can pass keys in any casing.
+- Every action delegates to an `EvaApi` (or `EvaFullscreenAPI`) method that works independently of whether the matching control component is rendered — e.g. `screenshotKey` calls `EvaApi.captureScreenshot()` directly, so you can bind a shortcut for it without placing `<eva-screenshot>` in your template. `downloadKey` and `remotePlaybackKey` are the two exceptions — they trigger a callback registered by `<eva-download>`/`<eva-remote-playback>` and are no-ops if those components aren't present.
 - The listener is attached to `document`, not the host element, so shortcuts work regardless of which element has focus.
 - **Multi-player scoping:** when focus is inside a specific `eva-player`, only that player handles the event. When focus is outside all players (e.g. on `document.body`), the last-interacted player responds. This prevents multiple players from reacting to the same keystroke.
 - Cleanup is handled via `DestroyRef` — the listener is always removed when the directive is destroyed.
@@ -294,8 +284,8 @@ Apply `evaTooltip` to any of the following elements:
 <eva-play-pause evaTooltip evaTooltipShortcutKey="playPause" />
 <eva-mute evaTooltip evaTooltipShortcutKey="muteKey" />
 <eva-fullscreen evaTooltip evaTooltipShortcutKey="fullscreen" />
-<eva-backward evaTooltip evaTooltipShortcutKey="backwardsKey" />
-<eva-forward evaTooltip evaTooltipShortcutKey="forwardKey" />
+<eva-backward evaTooltip evaTooltipShortcutKey="backwardsKeyOne" />
+<eva-forward evaTooltip evaTooltipShortcutKey="forwardKeyOne" />
 
 <!-- Explicit label override -->
 <eva-play-pause evaTooltip="Play / Pause" evaTooltipShortcutKey="playPause" />
@@ -363,7 +353,7 @@ type EvaTooltipShortcutKey = keyof Omit<
 >;
 ```
 
-Valid values: `'playPause'`, `'muteKey'`, `'fullscreen'`, `'backwardsKey'`, `'backwardsKeyTwo'`, `'forwardKey'`, `'forwardKeyTwo'`, `'cinemaMode'`, and any other string key-binding property of `EvaKeyboardShortcutsConfiguration`.
+Valid values: `'playPause'`, `'muteKey'`, `'fullscreen'`, `'backwardsKeyOne'`, `'backwardsKeyTwo'`, `'forwardKeyOne'`, `'forwardKeyTwo'`, `'cinemaModeKey'`, `'screenshotKey'`, `'loopKey'`, and any other string key-binding property of `EvaKeyboardShortcutsConfiguration`.
 
 ### SCSS Variables
 

@@ -116,6 +116,9 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
   /** Subscription to declared + stream-native track list changes from `EvaApi`. Cleaned up in `ngOnDestroy`. */
   private tracksSub: Subscription | null = null;
 
+  /** Subscription to `EvaApi.videoSubtitlesSubject`, keeping `localTracks` in sync with external changes (e.g. `EvaApi.cycleSubtitleTrack()` from `EvaKeyboardShortcuts`). Cleaned up in `ngOnDestroy`. */
+  private subtitlesSub: Subscription | null = null;
+
   /**
    * Tracks the index of the currently focused option during keyboard navigation.
    * Updated on `ArrowUp`, `ArrowDown`, `Home`, and `End` key events.
@@ -135,6 +138,10 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
       this.changeSubtitles();
     });
 
+    this.subtitlesSub = this.evaAPI.videoSubtitlesSubject.subscribe((active) => {
+      this.reconcileSelection(active);
+    });
+
     // Listen for clicks outside
     this.clickOutsideListener = this.handleClickOutside.bind(this);
     document.addEventListener("click", this.clickOutsideListener, true);
@@ -150,6 +157,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
     if (this.tracksSub) {
       this.tracksSub.unsubscribe();
     }
+    this.subtitlesSub?.unsubscribe();
     if (this.announceTimeout) {
       clearTimeout(this.announceTimeout);
     }
@@ -424,5 +432,23 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
     }
     const t = this.localTracks().find((a) => a.selected);
     this.evaAPI.subtitlesChanged(t ? t : null);
+  }
+
+  /**
+   * Reconciles `localTracks`' `selected` flags with an externally-set active track
+   * (e.g. `EvaApi.cycleSubtitleTrack()` called from `EvaKeyboardShortcuts`), so the
+   * dropdown's highlighted option and `currentTrack()` label stay accurate even when
+   * the selection changes outside of this component's own click/keyboard handlers.
+   */
+  private reconcileSelection(active: EvaTrackInternal | null): void {
+    if (!active) {
+      return;
+    }
+    this.localTracks.update((tracks) => {
+      if (!tracks.some((t) => t.id === active.id)) {
+        return tracks;
+      }
+      return tracks.map((t) => ({ ...t, selected: t.id === active.id }));
+    });
   }
 }

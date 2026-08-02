@@ -3,6 +3,7 @@
 Highly configurable, performant and easy-to-use Angular component library for video playback and streaming.
 
 ## Why to use it?
+
 🚦 **Signal based components** - Granular and optimized render updates<br/>
 ⚡ **Zoneless** - Built for zoneless Angular applications by default<br/>
 🧩 **Standalone architecture** – No NgModules required; simpler imports, better tree-shaking, and improved DX<br/>
@@ -27,19 +28,23 @@ Example project can be found on [Stackblitz](https://stackblitz.com/edit/stackbl
 
 EzVidAng updates and develops the library for the 2 latest versions.
 
-| EzVidAng    | Angular    | Node.js                           |
-| ----------- | ---------- | --------------------------------- |
-| ^21.2.x     | ^21.2.x    | [According to Angular docs](https://angular.dev/reference/versions#actively-supported-versions)    |
-| ^22.0.0     | ^22.0.0    | [According to Angular docs](https://angular.dev/reference/versions#actively-supported-versions)    |
-
+| EzVidAng | Angular | Node.js                                                                                         |
+| -------- | ------- | ----------------------------------------------------------------------------------------------- |
+| ^21.2.x  | ^21.2.x | [According to Angular docs](https://angular.dev/reference/versions#actively-supported-versions) |
+| ^22.0.x  | ^22.0.x | [According to Angular docs](https://angular.dev/reference/versions#actively-supported-versions) |
+| ^22.1.x  | ^22.1.x | [According to Angular docs](https://angular.dev/reference/versions#actively-supported-versions) |
+| ^22.2.x  | ^22.2.x | [According to Angular docs](https://angular.dev/reference/versions#actively-supported-versions) |
 
 ## Installing and preparation
 
 Install the package:
+
 ```
 npm i ez-vid-ang
 ```
+
 Add the required styles to your angular.json:
+
 ```
 {
   "projects": {
@@ -57,11 +62,12 @@ Add the required styles to your angular.json:
   }
 }
 ```
+
 Register the built-in icons once in your `main.ts` (or any bootstrapping code that runs before your components render):
 
 ```typescript
-import { addEvaIcons } from 'ez-vid-ang';
-import { evaAllIcons } from 'ez-vid-ang/icons';
+import { addEvaIcons } from "ez-vid-ang";
+import { evaAllIcons } from "ez-vid-ang/icons";
 
 addEvaIcons(evaAllIcons);
 ```
@@ -69,19 +75,21 @@ addEvaIcons(evaAllIcons);
 To minimize bundle size, import only the icons your components use:
 
 ```typescript
-import { addEvaIcons } from 'ez-vid-ang';
-import { evaPlayIcon, evaPauseIcon, evaFullscreenIcon, evaFullscreenExitIcon } from 'ez-vid-ang/icons';
+import { addEvaIcons } from "ez-vid-ang";
+import { evaPlayIcon, evaPauseIcon, evaFullscreenIcon, evaFullscreenExitIcon } from "ez-vid-ang/icons";
 
 addEvaIcons({ evaPlayIcon, evaPauseIcon, evaFullscreenIcon, evaFullscreenExitIcon });
 ```
 
 > [!IMPORTANT]
 > **If you want to use HLS streaming directive you must install latest version of the hls.js.**
-> 
+>
 > ```
 > npm i hls.js
->```
+> ```
+>
 > **And add the required script to your angular.json**
+>
 > ```
 > {
 >   "projects": {
@@ -102,11 +110,13 @@ addEvaIcons({ evaPlayIcon, evaPauseIcon, evaFullscreenIcon, evaFullscreenExitIco
 
 > [!IMPORTANT]
 > **If you want to use DASH streaming directive you must install v5 of the dash.js.**
-> 
+>
 > ```
 > npm i dashjs
->```
+> ```
+>
 > **And add the required script to your angular.json**
+>
 > ```
 > {
 >   "projects": {
@@ -126,8 +136,9 @@ addEvaIcons({ evaPlayIcon, evaPauseIcon, evaFullscreenIcon, evaFullscreenExitIco
 > ```
 
 Import only the components you need — every component is standalone and tree-shakable:
+
 ```typescript
-import { Component, signal } from '@angular/core';
+import { Component, signal } from "@angular/core";
 import {
   EvaBuffering,
   EvaControlsContainer,
@@ -144,12 +155,12 @@ import {
   EvaUserInteractionEventsDirective,
   EvaVideoSource,
   EvaVolume,
-} from 'ez-vid-ang';
+} from "ez-vid-ang";
 
 @Component({
-  selector: 'app-player',
-  templateUrl: './player.html',
-  styleUrl: './player.scss',
+  selector: "app-player",
+  templateUrl: "./player.html",
+  styleUrl: "./player.scss",
   imports: [
     EvaBuffering,
     EvaControlsContainer,
@@ -168,9 +179,7 @@ import {
   ],
 })
 export class PlayerComponent {
-  protected readonly sources = signal<EvaVideoSource[]>([
-    { type: 'video/mp4', src: '/video.mp4' },
-  ]);
+  protected readonly sources = signal<EvaVideoSource[]>([{ type: "video/mp4", src: "/video.mp4" }]);
 }
 ```
 
@@ -179,20 +188,24 @@ See [Simple Example](documentation/example-simple.md) and [Full-Featured Example
 ## Components
 
 Library has four groups of components. Click on the name to go to the documentation:
+
 - [**EvaCore**](documentation/core) – Main player component, icon registry, directives (keyboard shortcuts, configuration storage), and providers
 - [**EvaControls**](documentation/controls) – Video control components (play/pause, volume, scrub bar, fullscreen, playback speed, quality selector, track selector, loop, picture-in-picture, download, screenshot, context menu, settings panel, keyboard shortcuts overlay, cinema mode, error overlay, chapter list, and more)
 - [**EvaBuffering**](documentation/buffering) – Loading and buffering indicators
 - [**EvaStreaming**](documentation/streaming) – Directives for HLS and DASH live streaming support
 
 ---
+
 ## Roadmap
 
 There are few functionalities I want to implement that are work in progress:
+
 - **Audio selection** - Select audio track for the video
 - **A/B loop** - Let users set loop start/end points on the scrub bar for segment replay. Useful for music/education.
 - **Double tap forward/backward** - Double-tap left/right halves of the video to seek backward/forward. Standard mobile UX (YouTube, Netflix).
 
 ---
+
 ## Development
 
 ### Linting
@@ -218,12 +231,14 @@ npm run format:check  # Check formatting without writing changes
 Install the recommended `esbenp.prettier-vscode` VS Code extension for format-on-save. See [formatting documentation](documentation/core/formatting.md) for details.
 
 ---
+
 ### 💖 Support This Project
 
 If you wish to make a donation you can click the widget.
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/K3K01AFMO6)
 
 Your support helps:
+
 - Maintain the project
 - Add new features
 - Fix bugs

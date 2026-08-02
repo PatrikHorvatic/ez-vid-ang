@@ -170,6 +170,24 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    */
   public readonly evaThumbnailVtt = input<string>("");
 
+  /**
+   * Overrides how relative and root-relative (`/...`) thumbnail image URLs found in the
+   * VTT file are resolved. When unset, relative URLs resolve against the VTT file's own
+   * location and root-relative URLs are left as-is (so the browser resolves them against
+   * `window.location.origin`). When set, every non-absolute URL is resolved against this
+   * base instead — e.g. `new URL('/api/thumb?id=1', evaThumbnailBaseUrl)`.
+   *
+   * Useful for self-hosted deployments where the API serving thumbnail images is not on
+   * the same origin as the page (reverse proxies, separate API subdomains, etc.) — without
+   * this, a cue like `/api/image/cue-point?cuePointId=1#xywh=0,0,160,90` silently resolves
+   * against the frontend's own origin instead of the intended backend.
+   *
+   * Already-absolute URLs (`http://...`, `https://...`, `data:...`) are never affected.
+   *
+   * @default ''
+   */
+  public readonly evaThumbnailBaseUrl = input<string>("");
+
   /** Whether the scrub bar is currently hidden. Applies the `hide` class to the host. */
   protected readonly hideControls = signal(false);
 
@@ -219,13 +237,31 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
   /** Reference to the auto-hide timeout. Cleared when new interaction is detected. */
   private hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  /** Re-syncs external chapters when the `evaChapters` input changes at runtime. */
+  /**
+   * Re-syncs external chapters when `evaChapters` changes at runtime, reloads thumbnails
+   * when `evaThumbnailVtt`/`evaThumbnailBaseUrl` change, and responds to runtime toggles
+   * of `hideWithControlsContainer` (mirroring `EvaControlsContainer`'s `evaAutohide` handling)
+   * and `evaShowChapters` (activates chapter tracking the first time it flips to `true`).
+   */
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes["evaChapters"] && !changes["evaChapters"].firstChange) {
       this.syncExternalChapters(this.evaChapters());
     }
     if (changes["evaThumbnailVtt"] && !changes["evaThumbnailVtt"].firstChange) {
       this.loadThumbnailVtt(this.evaThumbnailVtt());
+    } else if (changes["evaThumbnailBaseUrl"] && !changes["evaThumbnailBaseUrl"].firstChange && this.evaThumbnailVtt()) {
+      // Re-fetches and re-parses so already-resolved cue URLs pick up the new base.
+      this.loadThumbnailVtt(this.evaThumbnailVtt());
+    }
+    if (changes["hideWithControlsContainer"] && !changes["hideWithControlsContainer"].firstChange) {
+      if (changes["hideWithControlsContainer"].currentValue) {
+        this.startListening();
+      } else {
+        this.disableHiding();
+      }
+    }
+    if (changes["evaShowChapters"] && !changes["evaShowChapters"].firstChange && changes["evaShowChapters"].currentValue && !this.chapterChanges$) {
+      this.initChapters();
     }
   }
 
@@ -771,6 +807,9 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
    * bar from disappearing behind an open dropdown.
    */
   private startListening(): void {
+    this.userInteraction$?.unsubscribe();
+    this.controlsSelectorActive$?.unsubscribe();
+
     this.userInteraction$ = this.evaAPI.triggerUserInteraction.subscribe(() => {
       if (this.hideTimeout) {
         clearTimeout(this.hideTimeout);
@@ -789,6 +828,20 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
         this.prepareHiding();
       }
     });
+  }
+
+  /**
+   * Disables the controls-bar-synced auto-hide by cancelling any pending timeout,
+   * unsubscribing from user interaction events, and immediately showing the scrub bar.
+   * Called when `hideWithControlsContainer` is toggled to `false` at runtime.
+   */
+  private disableHiding(): void {
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout);
+    }
+    this.userInteraction$?.unsubscribe();
+    this.controlsSelectorActive$?.unsubscribe();
+    this.hideControls.set(false);
   }
 
   /**
@@ -842,24 +895,57 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
     }
   }
 
-  /** Splits VTT text into blocks and parses each into an `EvaThumbnailCue`. Invalid blocks are skipped. */
+  /**
+   * Splits VTT text into blocks and parses each into an `EvaThumbnailCue`. Invalid blocks
+   * are skipped; a `console.warn` is emitted when some (or all) cue blocks fail to parse,
+   * so a malformed VTT doesn't fail silently.
+   */
   private parseThumbnailVtt(text: string, vttUrl: string): EvaThumbnailCue[] {
     const cues: EvaThumbnailCue[] = [];
-    const blocks = text.split(/\n\s*\n/u);
-    const baseUrl = vttUrl.substring(0, vttUrl.lastIndexOf("/") + 1);
+    // Only blocks containing a "-->" time range are cue attempts — this excludes the
+    // "WEBVTT" header and blank blocks from the invalid-cue count below.
+    const cueBlocks = text.split(/\n\s*\n/u).filter((b) => b.includes("-->"));
 
-    for (const block of blocks) {
-      const parsed = this.parseThumbnailBlock(block, baseUrl);
+    for (const block of cueBlocks) {
+      const parsed = this.parseThumbnailBlock(block, vttUrl);
       if (parsed) {
         cues.push(parsed);
       }
     }
 
+    if (cueBlocks.length > 0 && cues.length === 0) {
+      console.warn(`[EvaScrubBar] Failed to parse any thumbnail cues from "${vttUrl}". Each cue needs a valid time range and either a "#xywh=x,y,w,h" sprite fragment or a direct image URL (.jpg/.png/.webp).`);
+    } else if (cues.length < cueBlocks.length) {
+      console.warn(`[EvaScrubBar] Skipped ${cueBlocks.length - cues.length} invalid thumbnail cue(s) while parsing "${vttUrl}".`);
+    }
+
     return cues;
   }
 
+  /**
+   * Resolves a thumbnail image URL found in the VTT against `evaThumbnailBaseUrl`, if set.
+   * Falls back to the default resolution (relative to `vttUrl`; root-relative and absolute
+   * URLs left as-is) when the input is unset or invalid.
+   */
+  private resolveThumbnailUrl(rawUrl: string, vttUrl: string): string {
+    const override = this.evaThumbnailBaseUrl();
+    if (override) {
+      try {
+        return new URL(rawUrl, override).toString();
+      } catch {
+        /* Ignored — falls through to default resolution below */
+      }
+    }
+
+    if (rawUrl.startsWith("http") || rawUrl.startsWith("/") || rawUrl.startsWith("data:")) {
+      return rawUrl;
+    }
+    const baseUrl = vttUrl.substring(0, vttUrl.lastIndexOf("/") + 1);
+    return baseUrl + rawUrl;
+  }
+
   /** Parses a single VTT block into an `EvaThumbnailCue`. Returns `null` if the block is invalid. */
-  private parseThumbnailBlock(block: string, baseUrl: string): EvaThumbnailCue | null {
+  private parseThumbnailBlock(block: string, vttUrl: string): EvaThumbnailCue | null {
     const lines = block.trim().split("\n");
     let timeLine = "";
     let imageLine = "";
@@ -892,10 +978,7 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
       return null;
     }
 
-    let url = imageLine.substring(0, hashIndex);
-    if (!url.startsWith("http") && !url.startsWith("/") && !url.startsWith("data:")) {
-      url = baseUrl + url;
-    }
+    const url = this.resolveThumbnailUrl(imageLine.substring(0, hashIndex), vttUrl);
 
     const coords = imageLine
       .substring(hashIndex + VTT_XYWH_PREFIX_LENGTH)

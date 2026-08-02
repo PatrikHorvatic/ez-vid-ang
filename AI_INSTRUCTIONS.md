@@ -169,7 +169,7 @@ Selector and class must match exactly — do not invent alternate names (e.g. it
 | `eva-mute` | `EvaMute` | — | — | Mute/unmute toggle with volume-level icon. |
 | `eva-volume` | `EvaVolume` | — | — | Volume slider. |
 | `eva-time-display` | `EvaTimeDisplay` | `evaTimeProperty` (`"current"\|"total"\|"remaining"`), `evaTimeFormating` (`"HH:mm:ss"\|"mm:ss"\|"ss"`) | — | Renders a formatted time value. |
-| `eva-scrub-bar` | `EvaScrubBar` | — | — | Seek bar; supports `evaShowChapters`, `evaChapters`, `evaThumbnailVtt`, `hideWithControlsContainer`. |
+| `eva-scrub-bar` | `EvaScrubBar` | — | — | Seek bar; supports `evaShowChapters`, `evaChapters`, `evaThumbnailVtt`, `hideWithControlsContainer`. VTT thumbnail cues need a `#xywh=x,y,w,h` fragment — cues without it are skipped (with a `console.warn`). Relative/root-relative cue image URLs resolve against the VTT's own location by default; pass `evaThumbnailBaseUrl` to resolve them against a different origin instead (self-hosted/reverse-proxied APIs). |
 | `eva-scrub-bar-buffering-time` | `EvaScrubBarBufferingTime` | — | — | Child of `eva-scrub-bar`; renders the buffered range. |
 | `eva-scrub-bar-current-time` | `EvaScrubBarCurrentTime` | — | — | Child of `eva-scrub-bar`; renders the playhead. |
 | `eva-buffering` | `EvaBuffering` | — | — | Loading/buffering spinner overlay. |

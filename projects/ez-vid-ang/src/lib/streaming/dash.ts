@@ -224,11 +224,17 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
     }
 
     this.dash = dashjs.MediaPlayer().create();
+    /*
+     * Applied as two separate updateSettings() calls, not a single spread — dash.js deep-merges
+     * settings across successive calls (see setQualityLevel()), whereas a top-level object spread
+     * would let a user config that sets its own `streaming` key (e.g. for ABR/buffer tuning) silently
+     * clobber the whole `streaming` object, including `streaming.text.defaultEnabled` below.
+     */
     this.dash.updateSettings({
       debug: { logLevel: dashjs.Debug.LOG_LEVEL_NONE },
       streaming: { text: { defaultEnabled: false } },
-      ...this.evaDashConfig(),
     });
+    this.dash.updateSettings(this.evaDashConfig());
     this.dash.initialize(video);
     this.dash.setAutoPlay(false);
 
@@ -362,6 +368,7 @@ export class EvaDashDirective implements OnInit, OnChanges, OnDestroy {
       this.dashSubtitleTracks = [];
       this.evaAPI.registerAudioTracks([]);
       this.evaAPI.registerStreamSubtitleTracks([]);
+      this.evaAPI.registerQualityLevels([]);
     }
   }
 

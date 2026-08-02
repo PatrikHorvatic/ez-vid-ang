@@ -120,6 +120,14 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
   private subtitlesSub: Subscription | null = null;
 
   /**
+   * Whether the user has explicitly picked a track (or Off) via `selectTrack()`. Consulted by
+   * `buildTrackList()` so a real user choice survives a track-list re-registration — the
+   * neutral "Off" state present before any interaction is not sticky, so `default: true`
+   * tracks can still auto-select normally the first time tracks actually arrive.
+   */
+  private hasExplicitSelection = false;
+
+  /**
    * Tracks the index of the currently focused option during keyboard navigation.
    * Updated on `ArrowUp`, `ArrowDown`, `Home`, and `End` key events.
    */
@@ -177,6 +185,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * @param i - The index of the track within `localTracks`.
    */
   protected selectTrack(tr: EvaTrackInternal, i: number): void {
+    this.hasExplicitSelection = true;
     this.localTracks.update((tracks) => {
       const updated = tracks.map((track) => ({
         ...track,
@@ -361,10 +370,23 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * - The "Off" option is selected whenever neither source has a selected track (including
    *   when both are empty).
    *
+   * Preserves the user's explicitly selected track (by `id`, including an explicit "Off",
+   * tracked via `hasExplicitSelection`) across the rebuild if it is still present in the
+   * new combined list — both source subjects can legitimately re-emit mid-session (e.g.
+   * `evaVideoTracks` changing on a playlist swap, or hls.js re-firing
+   * `SUBTITLE_TRACKS_UPDATED` on a manifest reload) and without this, a user's explicit
+   * choice would be silently reverted back to whatever the `default` flags compute on
+   * every such re-emission. Only an explicit selection is sticky this way — the neutral
+   * "Off" state present before the user ever interacts is not, so a `default: true` track
+   * can still auto-select the first time tracks actually arrive (e.g. tracks loading
+   * asynchronously after the player first renders with an empty list).
+   *
    * @param declaredTracks - The raw track list from `EvaApi.videoTracksSubject`.
    * @param streamTracks - The raw track list from `EvaApi.streamSubtitleTracksSubject`.
    */
   private buildTrackList(declaredTracks: EvaTrack[] | null, streamTracks: EvaStreamSubtitleTrack[]): EvaTrackInternal[] {
+    const previousSelectedId = this.hasExplicitSelection ? this.localTracks().find((t) => t.selected)?.id : undefined;
+
     const declared: EvaTrackInternal[] = (declaredTracks ?? [])
       .filter((t) => t.kind === "subtitles")
       .map((b) => ({
@@ -383,6 +405,19 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
     }));
 
     const combined = [...declared, ...stream];
+
+    if (previousSelectedId !== undefined) {
+      if (previousSelectedId === "off") {
+        for (const t of combined) {
+          t.selected = false;
+        }
+      } else if (combined.some((t) => t.id === previousSelectedId)) {
+        for (const t of combined) {
+          t.selected = t.id === previousSelectedId;
+        }
+      }
+    }
+
     const hasSelected = combined.some((i) => i.selected);
 
     return [

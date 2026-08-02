@@ -290,6 +290,7 @@ export class EvaHlsDirective implements OnInit, OnChanges, OnDestroy {
       this.hls = null;
       this.evaAPI.registerAudioTracks([]);
       this.evaAPI.registerStreamSubtitleTracks([]);
+      this.evaAPI.registerQualityLevels([]);
     }
   }
 

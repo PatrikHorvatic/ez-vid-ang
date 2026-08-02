@@ -47,6 +47,17 @@ addEvaIcons({ evaPlayIcon });
 
 The overlay is shown when the video state is `loading`, `paused`, or `error`, AND the player is not buffering. It is hidden during buffering regardless of the current state. The `ended` state is only included when `evaShowPlayOnVideoEnding` is `true`.
 
+### Sizing
+
+The overlay's height tracks whether `eva-controls-container` is currently visible, so it never leaves an uncovered strip of video at the bottom:
+
+| Controls bar state | Overlay height |
+|---|---|
+| Visible | `calc(100% - var(--eva-control-element-height))` — stops just above the controls bar. |
+| Hidden (auto-hidden, or `evaAutohide` off and never shown) | `100%` — covers the full player. |
+
+Driven by subscribing to `EvaApi.componentsContainerVisibilityStateSubject`, the same subject [`EvaSubtitleDisplay`](subtitle-display.md) uses to reposition itself around the controls bar. No configuration needed — this is automatic whenever `eva-overlay-play` and `eva-controls-container` are both present.
+
 ### Keyboard Support
 
 | Key | Action |

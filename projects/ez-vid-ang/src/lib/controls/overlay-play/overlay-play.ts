@@ -18,6 +18,12 @@ import { EvaOverlayPlayAria, EvaOverlayPlayAriaTransformed, transformEvaOverlayP
  * or hides the play icon accordingly. The default `play` icon is resolved from the Eva
  * icon registry. Register it with `addEvaIcons` before using the component.
  *
+ * The overlay's height leaves room for the controls bar (`calc(100% - var(--eva-control-element-height))`)
+ * only while it's actually visible — it expands to `100%` while the controls bar is
+ * auto-hidden, so there's no uncovered strip of video left at the bottom in between.
+ * Tracked by subscribing to `EvaApi.componentsContainerVisibilityStateSubject`, the same
+ * subject `EvaSubtitleDisplay` uses to reposition itself around the controls bar.
+ *
  * Use `evaCustomIcon` to suppress the registry icon and project your own content instead.
  *
  * Keyboard support: `Enter` and `Space` trigger play/pause.
@@ -53,6 +59,7 @@ import { EvaOverlayPlayAria, EvaOverlayPlayAriaTransformed, transformEvaOverlayP
     role: "button",
     "[attr.aria-label]": "ariaLabel()",
     "[class.eva-display-overlay-play]": "evaIconPlay() && !evaAPI.isBuffering()",
+    "[style.height]": "controlsContainerHidden() ? '100%' : 'calc(100% - var(--eva-control-element-height))'",
     "(click)": "playClicked()",
   },
 })
@@ -100,22 +107,40 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
   /** Reactive signal tracking the current video playback state. Initialized from `EvaApi`. */
   protected readonly playingState = signal(this.evaAPI.getCurrentVideoState());
 
+  /**
+   * Whether the controls container is currently hidden (auto-hidden due to inactivity,
+   * or immediately, if `evaAutohide` is off and it's just never shown). When `true`, the
+   * overlay expands to `100%` height to cover the strip of video the controls bar would
+   * otherwise have reserved. Updated by subscribing to `EvaApi.componentsContainerVisibilityStateSubject`.
+   */
+  protected readonly controlsContainerHidden = signal(false);
+
   /** Subscription to video state changes from `EvaApi`. Cleaned up in `ngOnDestroy`. */
   private playingStateSub: Subscription | null = null;
 
+  /** Subscription to controls container visibility changes. Cleaned up in `ngOnDestroy`. */
+  private controlsVisibility$: Subscription | null = null;
+
   /**
-   * Subscribes to `EvaApi.videoStateSubject` to keep `playingState`
-   * in sync with the current video playback state.
+   * Subscribes to:
+   * - `EvaApi.videoStateSubject` — to keep `playingState` in sync with the current video
+   *   playback state.
+   * - `EvaApi.componentsContainerVisibilityStateSubject` — to expand the overlay to full
+   *   height while the controls bar is hidden.
    */
   public ngOnInit(): void {
     this.playingStateSub = this.evaAPI.videoStateSubject.subscribe((state) => {
       this.playingState.set(state);
+    });
+    this.controlsVisibility$ = this.evaAPI.componentsContainerVisibilityStateSubject.subscribe((hidden) => {
+      this.controlsContainerHidden.set(hidden);
     });
   }
 
   /** Unsubscribes from the video state subscription to prevent memory leaks. */
   public ngOnDestroy(): void {
     this.playingStateSub?.unsubscribe();
+    this.controlsVisibility$?.unsubscribe();
   }
 
   /** Delegates play/pause toggling to `EvaApi`. */

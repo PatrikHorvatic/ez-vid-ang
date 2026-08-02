@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 
 import { EvaEndedOverlay } from "./ended-overlay";
+import { EvaApi } from "../../api/eva-api";
 
 describe("EndedOverlay", () => {
   let component: EvaEndedOverlay;
@@ -9,6 +10,7 @@ describe("EndedOverlay", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [EvaEndedOverlay],
+      providers: [EvaApi],
     }).compileComponents();
 
     fixture = TestBed.createComponent(EvaEndedOverlay);

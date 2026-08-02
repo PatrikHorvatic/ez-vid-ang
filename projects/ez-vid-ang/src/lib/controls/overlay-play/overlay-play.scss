@@ -3,7 +3,9 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: calc(100% - var(--eva-control-element-height));
+  // Height is set dynamically via the [style.height] host binding in overlay-play.ts —
+  // calc(100% - var(--eva-control-element-height)) while the controls bar is visible,
+  // 100% while it's auto-hidden.
   cursor: pointer;
   color: var(--eva-icon-color);
 

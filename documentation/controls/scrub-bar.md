@@ -23,6 +23,7 @@ Mouse and touch event listeners are registered outside Angular's zone to avoid u
 | `evaShowChapters` | `boolean` | No | `true` | When `true`, chapter markers are rendered on the bar. |
 | `evaChapters` | `EvaChapterMarker[]` | No | `[]` | Chapter markers to display. Takes priority over any VTT text track on the video element. See [Types — `EvaChapterMarker`](#). |
 | `evaThumbnailVtt` | `string` | No | `''` | URL to a VTT file that maps time ranges to regions in a thumbnail sprite image. When provided, a thumbnail preview is shown above the scrub bar on hover. |
+| `evaThumbnailBaseUrl` | `string` | No | `''` | Overrides how relative/root-relative thumbnail image URLs from the VTT file are resolved. See [Base URL Override](#base-url-override). |
 
 ### Usage
 
@@ -119,6 +120,28 @@ Use `ffmpeg` to generate the sprite image and a tool like `vtt-thumbnail-generat
 ffmpeg -i video.mp4 -vf "fps=1/5,scale=160:90,tile=10x10" thumbnails.jpg
 ```
 
+#### Base URL Override
+
+By default, relative image paths in the VTT file resolve against the VTT file's own location, and root-relative paths (`/api/...`) are left as-is — meaning the browser resolves them against `window.location.origin` when the image is requested. That default breaks down for self-hosted setups where the thumbnail images are served from a different origin than the page (a reverse-proxied API, a separate backend subdomain, etc.) — a cue like:
+
+```
+00:09:55.828 --> 00:21:39.083
+/api/image/cue-point?cuePointId=1&apiKey=pgDXVGe3ZbMGkdXV#xywh=0,0,160,90
+```
+
+would silently resolve against the frontend's own origin instead of the intended backend.
+
+Set `evaThumbnailBaseUrl` to resolve every relative/root-relative cue URL against an explicit base instead, using the same semantics as `new URL(cueUrl, evaThumbnailBaseUrl)`:
+
+```html
+<eva-scrub-bar
+  [evaThumbnailVtt]="'assets/thumbnails.vtt'"
+  evaThumbnailBaseUrl="https://api.example.com"
+/>
+```
+
+With the override set, the cue above resolves to `https://api.example.com/api/image/cue-point?cuePointId=1&apiKey=pgDXVGe3ZbMGkdXV`. Already-absolute URLs (`http://`, `https://`, `data:`) are never affected by the override — only relative and root-relative cue URLs are resolved against it. Changing `evaThumbnailBaseUrl` at runtime re-fetches and re-resolves the currently loaded VTT.
+
 #### Usage
 
 ```html
@@ -151,7 +174,7 @@ ffmpeg -i video.mp4 -vf "fps=1/5,scale=160:90,tile=10x10" thumbnails.jpg
 
 #### VTT Validation
 
-The parser validates each cue and silently skips invalid entries:
+The parser validates each cue and skips invalid entries:
 
 | Condition | Result |
 |---|---|
@@ -168,14 +191,21 @@ Valid cues must have:
 - A parseable time range with `endTime > startTime`
 - An image URL with `#xywh=x,y,width,height` where all values are finite, non-negative, and width/height are greater than zero
 
+Skipped cues are not silent: a `console.warn` is emitted once per parse —
+
+- `[EvaScrubBar] Failed to parse any thumbnail cues from "<url>". ...` when every cue block in an otherwise-successfully-fetched VTT is invalid.
+- `[EvaScrubBar] Skipped N invalid thumbnail cue(s) while parsing "<url>".` when some, but not all, cue blocks are invalid.
+
+Only cue blocks (those containing a `-->` time range) count toward this — the `WEBVTT` header line is not treated as an invalid cue.
+
 #### Runtime Behaviour
 
 - **VTT URL changes** — the previous fetch is aborted via `AbortController`, stale thumbnails are cleared immediately, and the new VTT is fetched and parsed.
 - **Component destroyed during fetch** — the in-flight fetch is cancelled via `AbortController`.
 - **VTT cleared** — setting `evaThumbnailVtt` to an empty string clears all thumbnails.
-- **Relative sprite URLs** — sprite image paths in the VTT file are resolved relative to the VTT file's location (e.g. if the VTT is at `assets/thumbnails.vtt` and a cue references `sprites.jpg`, the resolved URL is `assets/sprites.jpg`). Absolute URLs (`https://...`) and root-relative URLs (`/assets/...`) are used as-is.
+- **Relative sprite URLs** — sprite image paths in the VTT file are resolved relative to the VTT file's location (e.g. if the VTT is at `assets/thumbnails.vtt` and a cue references `sprites.jpg`, the resolved URL is `assets/sprites.jpg`). Absolute URLs (`https://...`) and root-relative URLs (`/assets/...`) are used as-is — unless `evaThumbnailBaseUrl` is set, in which case relative and root-relative URLs resolve against it instead. See [Base URL Override](#base-url-override).
 - **Sprite preloading** — unique sprite image URLs are preloaded after parsing to avoid flicker on first hover.
-- **No VTT or failed fetch** — the hover tooltip shows just the time (and chapter if applicable), with no thumbnail. No errors are thrown.
+- **No VTT or failed fetch** — the hover tooltip shows just the time (and chapter if applicable), with no thumbnail. No error is logged for a missing VTT or a failed/aborted fetch — that's expected and treated as "no thumbnails configured." A `console.warn` is only emitted when the VTT *does* fetch successfully but its cues fail to parse — see [VTT Validation](#vtt-validation).
 - **Edge clamping** — the thumbnail tooltip is clamped within the scrub bar boundaries. Near the left/right edges, the tooltip shifts inward based on half the thumbnail width to prevent overflow.
 - **Performance** — hover tooltip updates are coalesced via `requestAnimationFrame`. Multiple `mousemove` events between frames are collapsed into a single update. Seeking remains unthrottled for immediate feedback.
 - **Fade-in** — thumbnails fade in with an opacity animation on first appearance, using `--eva-transition-duration`.

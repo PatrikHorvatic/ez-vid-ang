@@ -131,6 +131,27 @@ export class EvaRemotePlayback implements OnInit, OnDestroy {
     this.evaRemotePlaybackStateChanged.emit("disconnected");
   };
 
+  /** Event handler for Safari's `webkitplaybacktargetavailabilitychanged` event. Stored so it can be removed in `teardown()`. */
+  private readonly onSafariAvailabilityChanged = (e: Event): void => {
+    const detail = e as unknown as { availability: string };
+    this.isAvailable.set(detail.availability === "available");
+  };
+
+  /** Event handler for Safari's `webkitcurrentplaybacktargetiswirelesschanged` event. Stored so it can be removed in `teardown()`. */
+  private readonly onSafariWirelessChanged = (): void => {
+    const video = this.evaAPI.assignedVideoElement;
+    const isWireless = video ? (video as unknown as { webkitCurrentPlaybackTargetIsWireless: boolean }).webkitCurrentPlaybackTargetIsWireless : false;
+    if (isWireless) {
+      this.state.set("connected");
+      this.evaAPI.remotePlaybackStateSubject.next("connected");
+      this.evaRemotePlaybackStateChanged.emit("connected");
+    } else {
+      this.state.set("disconnected");
+      this.evaAPI.remotePlaybackStateSubject.next("disconnected");
+      this.evaRemotePlaybackStateChanged.emit("disconnected");
+    }
+  };
+
   /** Waits for the player to be ready, then sets up the Remote Playback API or Safari fallback. */
   public ngOnInit(): void {
     if (this.evaAPI.isPlayerReady) {
@@ -208,28 +229,13 @@ export class EvaRemotePlayback implements OnInit, OnDestroy {
   private setupSafariFallback(video: HTMLVideoElement): void {
     this.usingSafariFallback = true;
 
-    video.addEventListener("webkitplaybacktargetavailabilitychanged", (e: Event) => {
-      const detail = e as unknown as { availability: string };
-      this.isAvailable.set(detail.availability === "available");
-    });
-
-    video.addEventListener("webkitcurrentplaybacktargetiswirelesschanged", () => {
-      const isWireless = (video as unknown as { webkitCurrentPlaybackTargetIsWireless: boolean }).webkitCurrentPlaybackTargetIsWireless;
-      if (isWireless) {
-        this.state.set("connected");
-        this.evaAPI.remotePlaybackStateSubject.next("connected");
-        this.evaRemotePlaybackStateChanged.emit("connected");
-      } else {
-        this.state.set("disconnected");
-        this.evaAPI.remotePlaybackStateSubject.next("disconnected");
-        this.evaRemotePlaybackStateChanged.emit("disconnected");
-      }
-    });
+    video.addEventListener("webkitplaybacktargetavailabilitychanged", this.onSafariAvailabilityChanged);
+    video.addEventListener("webkitcurrentplaybacktargetiswirelesschanged", this.onSafariWirelessChanged);
 
     this.isAvailable.set(true);
   }
 
-  /** Cancels `watchAvailability` and removes all Remote Playback API event listeners. */
+  /** Cancels `watchAvailability` and removes all Remote Playback API and Safari fallback event listeners. */
   private teardown(): void {
     const video = this.evaAPI.assignedVideoElement;
     if (!video) {
@@ -247,6 +253,11 @@ export class EvaRemotePlayback implements OnInit, OnDestroy {
       remote.removeEventListener("connecting", this.onConnecting);
       remote.removeEventListener("connect", this.onConnect);
       remote.removeEventListener("disconnect", this.onDisconnect);
+    }
+
+    if (this.usingSafariFallback) {
+      video.removeEventListener("webkitplaybacktargetavailabilitychanged", this.onSafariAvailabilityChanged);
+      video.removeEventListener("webkitcurrentplaybacktargetiswirelesschanged", this.onSafariWirelessChanged);
     }
   }
 

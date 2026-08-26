@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [22.1.1, 22.0.10, 21.2.10] - 2026-08-26
+
+### Fixed
+
+- **`EvaPlayer` — changing `evaVideoSources` at runtime did not switch the video** (GitHub issue: passing a single source computed from an `input()` that changes, e.g. `sources = computed(() => [{ type: 'video/mp4', src: this.src() }])`, updated the rendered `<source>` elements' attributes but the video kept playing the old one — worked around by manually querying the `<video>` element and calling `.load()`). This is standard HTML5 behavior, not an Angular bug: a `<video>` element only re-reads its `<source>` children via the resource-selection algorithm on initial load or an explicit `.load()` call — mutating `<source>` attributes afterward has no effect on its own. `EvaPlayer` now detects a genuine `evaVideoSources` change in `ngOnChanges` (comparing `type`/`src`/`media` per entry, not array reference, so an incidentally-recreated array — e.g. `[]` in HLS/DASH setups — doesn't trigger a spurious reload, and skipping the first change since the browser already performs initial resource selection on its own) and calls `.load()` in `ngAfterViewChecked`, once the `<source>` elements' own bindings have actually been refreshed with the new values — calling it directly from `ngOnChanges` would reload the still-stale previous source, since that hook fires before this component's own template is refreshed.
+
+---
+
 ## [22.0.9, 21.2.9] - 2026-08-02
 
 ### Breaking Changes

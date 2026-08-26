@@ -110,7 +110,7 @@ The `EvaPlayer` component is the top-level host of the Eva video player library.
 | Input | Type | Required | Default | Description |
 |---|---|---|---|---|
 | `id` | `string` | ✅ Yes | — | Unique identifier for this player instance. Required to distinguish multiple players on the same page. |
-| `evaVideoSources` | `EvaVideoSource[]` | ✅ Yes | — | List of video sources to load into the player. |
+| `evaVideoSources` | `EvaVideoSource[]` | ✅ Yes | — | List of video sources to load into the player. Changing this at runtime (e.g. switching to a different video) automatically reloads the `<video>` element with the new sources — see [Runtime source changes](#runtime-source-changes). |
 | `evaVideoConfiguration` | `EvaVideoElementConfiguration` | No | `{}` | Configuration object applied to the native `<video>` element. |
 | `evaKeyboardShortcutsEnabled` | `boolean` | No | `false` | When `true`, enables keyboard shortcuts on the player. See [`EvaKeyboardShortcutsConfiguration`](#evakeyboardshortcutsconfiguration). |
 | `evaKeyboardShortcutsConfiguration` | `EvaKeyboardShortcutsConfiguration` | No | `{}` (no keys bound) | Configures which keys trigger player actions. No key has a default binding — see [actions](#default-keyboard-shortcuts). |
@@ -119,6 +119,23 @@ The `EvaPlayer` component is the top-level host of the Eva video player library.
 | `evaLocalStorageKey` | `string` | No | `"EVA_PLAYER_CONFIGURATION"` | Prefix for localStorage keys. Use different values to isolate preferences across multiple players. |
 | `evaLocalStorageConfiguration` | `EvaStorageConfiguration` | No | `{ volume: false, playbackSpeed: false }` | Controls which preferences are persisted. Each flag can be toggled at runtime. |
 | `evaNotSupportedText` | `string` | No | `"I'm sorry; your browser doesn't support HTML video."` | Fallback text displayed inside the `<video>` element for browsers that do not support HTML5 video. |
+
+---
+
+### Runtime source changes
+
+Changing `evaVideoSources` at runtime (e.g. a computed signal that switches to a different video) reloads the `<video>` element automatically:
+
+```typescript
+src = input('');
+sources = computed(() => [{ type: 'video/mp4', src: this.src() }]);
+```
+
+```html
+<eva-player id="player" [evaVideoSources]="sources()" />
+```
+
+Per the HTML5 media resource-selection algorithm, a `<video>` element only re-reads its `<source>` children when explicitly told to via `.load()` — updating the `src`/`type` attributes alone (which the `evaVideoSources` binding does) has no effect once the element has already loaded once. `EvaPlayer` detects a genuine content change (comparing `type`/`src`/`media` per entry, not array identity) and calls `.load()` for you, so switching sources works as expected without any manual DOM access. This does not apply when using `EvaHlsDirective`/`EvaDashDirective` — those manage the video element's source themselves; see their own docs for switching streams at runtime.
 
 ---
 

@@ -1,4 +1,4 @@
-import { AfterViewInit, booleanAttribute, ChangeDetectionStrategy, Component, ElementRef, inject, input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges, viewChild } from "@angular/core";
+import { AfterViewChecked, AfterViewInit, booleanAttribute, ChangeDetectionStrategy, Component, ElementRef, inject, input, OnChanges, OnDestroy, OnInit, signal, SimpleChanges, viewChild } from "@angular/core";
 import { Subscription } from "rxjs";
 import { EvaApi } from "../../api/eva-api";
 import { EvaFullscreenAPI } from "../../api/fullscreen";
@@ -25,6 +25,9 @@ import { EvaConfigurationStorage } from "../../api/configuration-storage";
  * - Assigns the native `<video>` element to `EvaApi` after the view initializes.
  * - Signals player readiness via `EvaApi.onPlayerReady()`.
  * - Propagates `evaVideoTracks` changes to `EvaApi.videoTracksSubject` at runtime.
+ * - Reloads the video element when `evaVideoSources` changes at runtime (e.g. switching to a
+ *   different video), since the browser does not do this on its own once a `<video>` has
+ *   already loaded once — see `ngOnChanges`/`ngAfterViewChecked`.
  * - Optionally integrates HLS or DASH streaming via `EvaHlsDirective` / `EvaDashDirective`
  *   (injected optionally — absent if neither streaming directive is present).
  *
@@ -44,7 +47,7 @@ import { EvaConfigurationStorage } from "../../api/configuration-storage";
   providers: [EvaApi, EvaFullscreenAPI, EvaConfigurationStorage],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
+export class EvaPlayer implements AfterViewChecked, AfterViewInit, OnChanges, OnDestroy, OnInit {
   /** The scoped `EvaApi` instance provided to this player's component subtree. */
   public playerMainAPI = inject(EvaApi);
 
@@ -146,15 +149,55 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
   protected readonly activeSubtitleLabel = signal<string | null>(null);
 
   /**
-   * Responds to runtime changes of `evaVideoTracks`.
-   * Forwards the updated track list to `EvaApi.videoTracksSubject` so that
-   * child components (e.g. `eva-track-selector`) stay in sync.
+   * Serialized form (`type`+`src`+`media` per entry) of the last-seen `evaVideoSources()`
+   * value. `null` until the first `ngOnChanges` run. Used to detect a genuine content change
+   * while ignoring array-reference-only re-emissions — e.g. an inline `[]` literal recreated
+   * by an unrelated parent re-render in HLS/DASH setups, where `evaVideoSources` is
+   * intentionally empty and unrelated to playback — which would otherwise trigger a
+   * spurious reload. `SimpleChanges` alone can't distinguish these, since Angular compares
+   * `evaVideoSources` by reference, not content.
+   */
+  private previousVideoSourcesKey: string | null = null;
+
+  /**
+   * Set by `ngOnChanges` when `evaVideoSources` has genuinely changed, and consumed by
+   * `ngAfterViewChecked` on the same change-detection pass. See `ngOnChanges` for why the
+   * actual `.load()` call is deferred to `ngAfterViewChecked` rather than made directly here.
+   */
+  private pendingVideoSourcesReload = false;
+
+  /**
+   * Responds to runtime changes of `evaVideoTracks` and `evaVideoSources`.
+   *
+   * `evaVideoTracks` changes are forwarded to `EvaApi.videoTracksSubject` so that child
+   * components (e.g. `eva-track-selector`) stay in sync.
+   *
+   * `evaVideoSources` changes need to reload the video element — per the HTML5 media
+   * resource-selection algorithm, a `<video>` element only re-reads its `<source>` children
+   * via `.load()`, on initial load or when explicitly told to; updating the `<source>`
+   * elements' `src`/`type` attributes alone (already handled by the template binding) has no
+   * effect once the element has already loaded once. `ngOnChanges` only *detects* a genuine
+   * change here (skipping the first change, and comparing content rather than array
+   * reference so an incidentally-recreated-but-identical array — e.g. `[]` in HLS/DASH
+   * setups — doesn't trigger a reload) and records it in `pendingVideoSourcesReload`. The
+   * `.load()` call itself happens in `ngAfterViewChecked`, since `ngOnChanges` fires *before*
+   * this component's own template — including the `<source>` elements' bindings — is
+   * refreshed; calling `.load()` here would reload the still-stale previous source.
    *
    * @param changes - The `SimpleChanges` map provided by Angular.
    */
   public ngOnChanges(changes: SimpleChanges): void {
     if (changes["evaVideoTracks"]) {
       this.playerMainAPI.updateAndPrepareTracks(changes["evaVideoTracks"].currentValue as EvaTrack[]);
+    }
+
+    if (changes["evaVideoSources"]) {
+      const isFirstChange = changes["evaVideoSources"].firstChange;
+      const sources = this.evaVideoSources();
+      const key = JSON.stringify(sources.map((s) => ({ type: s.type, src: s.src, media: s.media })));
+      const hasGenuinelyChanged = key !== this.previousVideoSourcesKey;
+      this.previousVideoSourcesKey = key;
+      this.pendingVideoSourcesReload = !isFirstChange && hasGenuinelyChanged;
     }
   }
 
@@ -181,6 +224,24 @@ export class EvaPlayer implements AfterViewInit, OnChanges, OnDestroy, OnInit {
         }
       }
     });
+  }
+
+  /**
+   * Performs the video reload flagged by `ngOnChanges`, once the view (and so the
+   * `<source>` elements' updated `src`/`type` attributes) has actually been refreshed.
+   *
+   * Calls `EvaApi.prepareForSourceChange()` first — `.load()` silently resets the video
+   * element to paused without firing a `pause` event, so without this, `EvaApi`'s playback
+   * state (e.g. `videoStateSubject`) would keep reporting whatever it was before the switch
+   * (e.g. `PLAYING`) indefinitely, since nothing would ever correct it if the new source
+   * fails to load. See `EvaApi.prepareForSourceChange()`.
+   */
+  public ngAfterViewChecked(): void {
+    if (this.pendingVideoSourcesReload) {
+      this.pendingVideoSourcesReload = false;
+      this.playerMainAPI.prepareForSourceChange();
+      this.evaVideoElement().nativeElement.load();
+    }
   }
 
   public ngOnDestroy(): void {

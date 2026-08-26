@@ -785,6 +785,35 @@ export class EvaApi {
     this.setVideoVolume((currentPercent + direction * VOLUME_ARROW_KEY_STEP) / PERCENTAGE);
   }
 
+  /**
+   * Resets native-video-derived playback state ahead of an explicit `.load()` call
+   * triggered by a runtime `evaVideoSources` change. Called by `EvaPlayer.ngAfterViewChecked()`
+   * immediately before it reloads the video element.
+   *
+   * `HTMLMediaElement.load()` silently resets the element to a paused state — per the HTML5
+   * media element load algorithm — without dispatching a `pause` event, or any other event
+   * `EvaMediaEventListenersDirective` listens to. Without this reset, `EvaApi`'s state would
+   * go stale across the switch: e.g. `videoStateSubject` would keep reporting `PLAYING`
+   * indefinitely after switching away from a playing video — even though the video is no
+   * longer actually playing — until the *next* native event happens to correct it, which may
+   * never come if the new source fails to load (confirmed via real-browser testing: no
+   * `pause` event fires at any point during a source switch, playing or not).
+   *
+   * Mirrors the fields' initial values so the player looks the same as it would on first
+   * load, since the browser is about to re-run the same resource-selection algorithm.
+   */
+  public prepareForSourceChange(): void {
+    this.currentVideoState = EvaState.LOADING;
+    this.videoStateSubject.next(this.currentVideoState);
+    this.canPlay.set(false);
+    this.isBuffering.set(true);
+    this.isSeeking.set(false);
+    this.isLive.set(false);
+    this.hasStartedPlaying = false;
+    this.pendingPlayAfterSeek = false;
+    this.time.set({ current: 0, remaining: 0, total: 0 });
+  }
+
   // ─── Event Listener Callbacks ─────────────────────────────────────────────
 
   /**

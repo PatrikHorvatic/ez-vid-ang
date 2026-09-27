@@ -15,6 +15,7 @@ TAG="$1"
 
 echo "🧹 Cleaning..."
 rm -rf .angular node_modules dist
+rm package-lock.json
 
 echo "📦 Installing..."
 npm i

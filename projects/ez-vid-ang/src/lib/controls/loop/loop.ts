@@ -90,6 +90,7 @@ export class EvaLoop implements OnInit, OnDestroy {
   protected onKeydown(e: KeyboardEvent): void {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
+      e.stopPropagation();
       this.toggleLoop();
     }
   }

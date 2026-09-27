@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, OnInit, output } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, input, OnDestroy, OnInit, output } from "@angular/core";
 import { EvaApi } from "../../api/eva-api";
 import { EvaIcon } from "../../core/icon/icon";
 import { EvaDownloadEvent } from "../../types";
@@ -56,7 +56,7 @@ import { EvaDownloadAria, EvaDownloadAriaTransformed, transformEvaDownloadAria }
     "(keydown)": "downloadClickedKeyboard($event)",
   },
 })
-export class EvaDownload implements OnInit {
+export class EvaDownload implements OnInit, OnDestroy {
   private readonly evaAPI = inject(EvaApi);
 
   /**
@@ -87,6 +87,17 @@ export class EvaDownload implements OnInit {
     });
   }
 
+  /**
+   * Replaces the registered trigger with a no-op so `EvaApi.triggerDownload()` can no longer
+   * reach this (about to be destroyed) instance — otherwise the closure registered in
+   * `ngOnInit()` would remain reachable via `EvaApi` after this component is gone.
+   */
+  public ngOnDestroy(): void {
+    this.evaAPI.registerDownloadTrigger((): void => {
+      /* No-op: component destroyed. */
+    });
+  }
+
   protected downloadClicked(): void {
     this.evaDownloadClicked.emit(this.buildEvent());
   }
@@ -94,6 +105,7 @@ export class EvaDownload implements OnInit {
   protected downloadClickedKeyboard(e: KeyboardEvent): void {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
+      e.stopPropagation();
       this.downloadClicked();
     }
   }

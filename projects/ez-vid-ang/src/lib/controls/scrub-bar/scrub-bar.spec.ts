@@ -32,6 +32,16 @@ describe("EvaScrubBar", () => {
     expect(component).toBeTruthy();
   });
 
+  it("binds aria-valuenow to a bare number, not a percentage string", () => {
+    const evaApi = fixture.debugElement.injector.get(EvaApi);
+    evaApi.time.set({ current: 25, remaining: 75, total: 100 });
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.getAttribute("aria-valuenow")).toBe("25");
+    expect(host.getAttribute("aria-valuetext")).toBe("25%");
+  });
+
   it("only auto-hides once hideWithControlsContainer is enabled, including via a runtime toggle", async () => {
     const evaApi = fixture.debugElement.injector.get(EvaApi);
     fixture.componentRef.setInput("evaAutohideTime", TEST_AUTOHIDE_TIME_MS);
@@ -52,6 +62,22 @@ describe("EvaScrubBar", () => {
     evaApi.triggerUserInteraction.next(new MouseEvent("mousemove"));
     await wait(AUTO_HIDE_TEST_DELAY_MS);
     expect(hideControls()).toBe(true);
+  });
+
+  it("does not auto-hide once enabled while a menu was already open (claimed before subscribing)", async () => {
+    const evaApi = fixture.debugElement.injector.get(EvaApi);
+    const selectorId = Symbol("already-open-menu");
+    evaApi.claimSelector(selectorId);
+
+    fixture.componentRef.setInput("evaAutohideTime", TEST_AUTOHIDE_TIME_MS);
+    fixture.componentRef.setInput("hideWithControlsContainer", true);
+    fixture.detectChanges();
+
+    evaApi.triggerUserInteraction.next(new MouseEvent("mousemove"));
+    await wait(AUTO_HIDE_TEST_DELAY_MS);
+
+    const hideControls = (component as unknown as { hideControls: () => boolean }).hideControls;
+    expect(hideControls()).toBe(false);
   });
 
   it("activates chapter tracking when evaShowChapters flips from false to true at runtime", async () => {

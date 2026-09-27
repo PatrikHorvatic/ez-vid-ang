@@ -37,6 +37,7 @@ All player components and directives communicate through `EvaApi` rather than di
 | `loopSubject` | `BehaviorSubject<boolean>` | Broadcasts the current loop state. Updated by `EvaVideoConfigurationDirective` and `EvaLoop`. |
 | `componentsContainerVisibilityStateSubject` | `BehaviorSubject<boolean>` | Broadcasts controls container visibility state. |
 | `controlsSelectorComponentActive` | `BehaviorSubject<boolean>` | Whether a selector dropdown (e.g. quality, track, playback speed) is currently open. |
+| `activeSelectorSubject` | `BehaviorSubject<symbol \| null>` | Identifies which dropdown/menu currently owns the open UI, for mutual exclusion between them (e.g. opening `EvaSettingsPanel` closes an already-open `EvaQualitySelector`). `null` when none are open. Set via `claimSelector()`/`releaseSelector()`, not written to directly. |
 | `triggerUserInteraction` | `Subject<MouseEvent \| TouchEvent \| PointerEvent>` | Emits on user interaction events. Subscribed to by `EvaControlsContainerComponent` and `EvaScrubBar` for auto-hide. Published to by `EvaUserInteractionEventsDirective`. |
 | `playerReadyEvent` | `EventEmitter<EvaApi>` | Emits this instance when the player is fully initialized. Subscribe to defer setup until the player is ready. |
 
@@ -127,6 +128,8 @@ These methods are called by `EvaMediaEventListenersDirective` from the correspon
 | `getCurrentVideoState` | `() => EvaState` | Returns the current `EvaState` synchronously. |
 | `checkIfItIsLiveStram` | `() => boolean` | Returns whether the current source is a live stream. Guarded by player readiness. |
 | `destroy` | `() => void` | Completes all subjects, clears timeouts, nulls quality function and PiP window. Called from `EvaPlayer.ngOnDestroy`. |
+| `claimSelector` | `(id: symbol) => void` | Claims exclusive ownership of the open dropdown UI for `id`, closing any other dropdown/menu subscribed to `activeSelectorSubject`, and sets `controlsSelectorComponentActive` to suppress controls-bar auto-hide. Called by every dropdown/menu component (settings panel, quality/audio/track selectors, playback speed, context menu) when it opens. |
+| `releaseSelector` | `(id: symbol) => void` | Releases `id`'s claim on the open dropdown UI. No-ops if `id` isn't the current claimant (e.g. it already lost the claim to another dropdown opening), so a stale "close" call can't clobber a newer claim. Called by the same components when they close or are destroyed. |
 
 ### Buffering Detection
 

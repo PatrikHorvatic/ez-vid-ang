@@ -190,7 +190,7 @@ See [Simple Example](documentation/example-simple.md) and [Full-Featured Example
 Library has four groups of components. Click on the name to go to the documentation:
 
 - [**EvaCore**](documentation/core) – Main player component, icon registry, directives (keyboard shortcuts, configuration storage), and providers
-- [**EvaControls**](documentation/controls) – Video control components (play/pause, volume, scrub bar, fullscreen, playback speed, quality selector, track selector, loop, picture-in-picture, download, screenshot, context menu, settings panel, keyboard shortcuts overlay, cinema mode, error overlay, chapter list, and more)
+- [**EvaControls**](documentation/controls) – Video control components (play/pause, volume, scrub bar, fullscreen, playback speed, quality selector, track selector, loop, picture-in-picture, download, screenshot, context menu, settings panel, keyboard shortcuts overlay, cinema mode, error overlay, chapter list, double-tap seek, and more)
 - [**EvaBuffering**](documentation/buffering) – Loading and buffering indicators
 - [**EvaStreaming**](documentation/streaming) – Directives for HLS and DASH live streaming support
 
@@ -200,9 +200,7 @@ Library has four groups of components. Click on the name to go to the documentat
 
 There are few functionalities I want to implement that are work in progress:
 
-- **Audio selection** - Select audio track for the video
 - **A/B loop** - Let users set loop start/end points on the scrub bar for segment replay. Useful for music/education.
-- **Double tap forward/backward** - Double-tap left/right halves of the video to seek backward/forward. Standard mobile UX (YouTube, Netflix).
 
 ---
 

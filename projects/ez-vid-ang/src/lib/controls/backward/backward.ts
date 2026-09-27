@@ -96,6 +96,7 @@ export class EvaBackward {
   protected backwardClickedKeyboard(k: KeyboardEvent): void {
     if (k.key === "Enter" || k.key === " ") {
       k.preventDefault();
+      k.stopPropagation();
       this.backwardClicked();
     }
   }

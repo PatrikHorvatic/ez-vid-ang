@@ -21,4 +21,29 @@ describe("EvaControlsContainerComponent", () => {
   it("should create", () => {
     expect(component).toBeTruthy();
   });
+
+  const AUTOHIDE_TEST_TIME_MS = 10;
+  const AFTER_AUTOHIDE_MS = 40;
+
+  async function wait(ms: number): Promise<void> {
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, ms);
+    });
+  }
+
+  it("does not auto-hide once auto-hide is enabled while a menu was already open (claimed before subscribing)", async () => {
+    const evaApi = fixture.debugElement.injector.get(EvaApi);
+    const selectorId = Symbol("already-open-menu");
+    evaApi.claimSelector(selectorId);
+
+    fixture.componentRef.setInput("evaAutohideTime", AUTOHIDE_TEST_TIME_MS);
+    fixture.componentRef.setInput("evaAutohide", true);
+    fixture.detectChanges();
+
+    evaApi.triggerUserInteraction.next(new MouseEvent("mousemove"));
+    await wait(AFTER_AUTOHIDE_MS);
+
+    const hideControls = (component as unknown as { hideControls: () => boolean }).hideControls;
+    expect(hideControls()).toBe(false);
+  });
 });

@@ -599,7 +599,7 @@ export class PlayerComponent implements OnInit, OnDestroy {
 - **Sub-menu options** emit `evaSettingsMenuItemSelected` with both `itemId` and `optionId`, then navigate back to the main menu (the panel stays open so the user can change another setting).
 - The gear icon **rotates 60°** when the panel is open.
 - The panel appears **above** the button, anchored to the bottom-right, matching other dropdown positions in the player.
-- The component notifies `EvaApi.controlsSelectorComponentActive` when opening/closing, preventing the controls container from auto-hiding while the panel is open.
+- The component claims `EvaApi.activeSelectorSubject` when opening (via `claimSelector()`/`releaseSelector()`), which also sets `controlsSelectorComponentActive` to prevent the controls container from auto-hiding while the panel is open. Opening another dropdown/menu (quality/audio/track selector, playback speed, context menu) closes this panel, and vice versa — only one can be open at a time.
 
 ### Menu Navigation Flow
 

@@ -120,6 +120,38 @@ export class EvaApi {
   public controlsSelectorComponentActive = new BehaviorSubject<boolean>(false);
 
   /**
+   * Identifies which dropdown/menu component currently owns the open UI, for mutual
+   * exclusion between them (e.g. `EvaSettingsPanel` and `EvaQualitySelector`). `null` when
+   * none claim it. Each dropdown calls `claimSelector()`/`releaseSelector()` and closes
+   * itself when a different id claims this — see those methods for details.
+   */
+  public readonly activeSelectorSubject = new BehaviorSubject<symbol | null>(null);
+
+  /**
+   * Claims exclusive ownership of the open dropdown UI for `id`, also setting
+   * `controlsSelectorComponentActive` to suppress controls-bar auto-hide. Any other
+   * dropdown/menu subscribed to `activeSelectorSubject` closes itself in response.
+   */
+  public claimSelector(id: symbol): void {
+    this.activeSelectorSubject.next(id);
+    this.controlsSelectorComponentActive.next(true);
+  }
+
+  /**
+   * Releases `id`'s claim on the open dropdown UI. No-ops entirely if `id` isn't the
+   * current claimant (e.g. it already lost the claim to another dropdown opening) — this
+   * matters for `controlsSelectorComponentActive` too, since unconditionally clearing it
+   * would incorrectly suppress auto-hide-suppression for whichever dropdown claimed it next.
+   */
+  public releaseSelector(id: symbol): void {
+    if (this.activeSelectorSubject.value !== id) {
+      return;
+    }
+    this.activeSelectorSubject.next(null);
+    this.controlsSelectorComponentActive.next(false);
+  }
+
+  /**
    * Broadcasts the current playback rate (e.g. `1`, `1.5`, `2`).
    * Emits `null` until the first rate change occurs.
    */
@@ -318,7 +350,12 @@ export class EvaApi {
         const listOfChapters = this.loadChaptersFromTrack();
         this.chapterMarkerChangesSubject.next(listOfChapters);
         if (!this.isLive()) {
-          const currentTime = Math.floor(this.time().current);
+          /*
+           * Compares the raw (unrounded) current time against chapter boundaries — flooring
+           * it first would momentarily match neither the old nor the new chapter whenever a
+           * boundary falls on a fractional second (e.g. 20.334), briefly emitting `null`.
+           */
+          const currentTime = this.time().current;
           const chapter = listOfChapters.find((c) => currentTime >= c.startTime && currentTime < c.endTime);
           this.activeChapterSubject.next(chapter ? chapter : null);
         }
@@ -614,9 +651,22 @@ export class EvaApi {
       return;
     }
 
-    const wasPlaying = !this.assignedVideoElement!.paused;
+    const video = this.assignedVideoElement!;
+    if (video.currentTime === chapter.startTime) {
+      /*
+       * Setting currentTime to its current value is a documented no-op (e.g. re-clicking
+       * the already-active chapter): no `seeking`/`seeked` events fire, so isSeeking/
+       * pendingPlayAfterSeek must not be armed here, since videoSeeked() — the only place
+       * that clears them — would never run, leaving a stale flag to surface as unexpected
+       * behavior (e.g. auto-resuming playback) on some later, unrelated seek.
+       */
+      this.activeChapterSubject.next(chapter);
+      return;
+    }
+
+    const wasPlaying = !video.paused;
     this.isSeeking.set(true);
-    this.assignedVideoElement!.currentTime = chapter.startTime;
+    video.currentTime = chapter.startTime;
     this.time.update((a) => ({
       ...a,
       current: chapter.startTime,
@@ -739,18 +789,28 @@ export class EvaApi {
    * Toggles mute/unmute. Saves the current volume before muting (when > 0)
    * and restores it on unmute. Falls back to `0.75` if `lastActiveVolume`
    * is `0` (e.g. volume was dragged to zero before muting).
+   *
+   * Checks the native `muted` property (in addition to `volume`) to decide which
+   * direction to toggle, and keeps it in sync with `volume` on both branches — otherwise
+   * a video started via `{ muted: true }` (with `volume` still at its default `1`) would
+   * be treated as already-unmuted, so the first click would silently no-op instead of
+   * producing audible sound.
    */
   public muteOrUnmuteVideo(): void {
     if (!this.validateVideoAndPlayerBeforeAction()) {
       return;
     }
 
-    if (this.assignedVideoElement!.volume > 0) {
-      this.lastActiveVolume = this.assignedVideoElement!.volume;
-      this.assignedVideoElement!.volume = 0;
+    const video = this.assignedVideoElement!;
+    const isCurrentlyMuted = video.muted || video.volume === 0;
+
+    if (isCurrentlyMuted) {
+      video.muted = false;
+      video.volume = this.lastActiveVolume > 0 ? this.lastActiveVolume : DEFAULT_UNMUTE_VOLUME;
     } else {
-      this.assignedVideoElement!.muted = false;
-      this.assignedVideoElement!.volume = this.lastActiveVolume > 0 ? this.lastActiveVolume : DEFAULT_UNMUTE_VOLUME;
+      this.lastActiveVolume = video.volume;
+      video.muted = true;
+      video.volume = 0;
     }
   }
 
@@ -976,7 +1036,9 @@ export class EvaApi {
 
     if (!this.isLive()) {
       if (this.isActiveChapterPresent) {
-        const currentTime = Math.floor(this.time().current);
+        // See the identical comment in updateAndPrepareTracks() — flooring here caused the
+        // Active-chapter indicator to blink off around fractional-second chapter boundaries.
+        const currentTime = this.time().current;
         const listOfChapters = this.chapterMarkerChangesSubject.value;
         const chapter = listOfChapters.find((c) => currentTime >= c.startTime && currentTime < c.endTime);
         // Prevent triggering unneccesery change detection in signals.
@@ -1391,6 +1453,7 @@ export class EvaApi {
     this.chapterMarkerChangesSubject.complete();
     this.componentsContainerVisibilityStateSubject.complete();
     this.controlsSelectorComponentActive.complete();
+    this.activeSelectorSubject.complete();
     this.keyboardShortcutsOverlaySubject.complete();
     this.keyboardShortcutsConfigSubject.complete();
     this.remotePlaybackStateSubject.complete();

@@ -103,6 +103,7 @@ export class EvaScreenshot {
   protected captureClickedKeyboard(e: KeyboardEvent): void {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
+      e.stopPropagation();
       this.capture();
     }
   }

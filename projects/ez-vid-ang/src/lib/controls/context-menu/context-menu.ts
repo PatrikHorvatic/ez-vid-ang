@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, input, OnInit, output, signal, viewChild } from "@angular/core";
+import { ChangeDetectionStrategy, Component, ElementRef, inject, input, OnDestroy, OnInit, output, signal, viewChild } from "@angular/core";
+import { Subscription } from "rxjs";
 import { EvaApi } from "../../api/eva-api";
 import { EvaContextMenuEvent, EvaContextMenuItem } from "../../types";
 
@@ -55,12 +56,18 @@ import { EvaContextMenuEvent, EvaContextMenuItem } from "../../types";
     "(document:keydown.escape)": "close()",
   },
 })
-export class EvaContextMenu implements OnInit {
+export class EvaContextMenu implements OnInit, OnDestroy {
   private readonly evaAPI = inject(EvaApi);
   private readonly el = inject<ElementRef<HTMLElement>>(ElementRef);
 
   /** Cached reference to the parent `eva-player` host element. Resolved once in `ngOnInit`. */
   private playerEl: HTMLElement | null = null;
+
+  /** Subscription used for mutual exclusion with other dropdowns/menus. Cleaned up in `ngOnDestroy`. */
+  private activeSelectorSub: Subscription | null = null;
+
+  /** Unique identity used with `EvaApi.claimSelector()`/`releaseSelector()` for mutual exclusion. */
+  private readonly selectorId = Symbol("context-menu");
 
   /**
    * The list of menu items to display.
@@ -101,6 +108,18 @@ export class EvaContextMenu implements OnInit {
     if (!this.playerEl) {
       console.warn("EvaContextMenu must be placed inside <eva-player>.");
     }
+
+    this.activeSelectorSub = this.evaAPI.activeSelectorSubject.subscribe((id) => {
+      if (id !== this.selectorId && this.isOpen()) {
+        this.close();
+      }
+    });
+  }
+
+  /** Unsubscribes and releases the selector claim. */
+  public ngOnDestroy(): void {
+    this.activeSelectorSub?.unsubscribe();
+    this.evaAPI.releaseSelector(this.selectorId);
   }
 
   /**
@@ -129,6 +148,7 @@ export class EvaContextMenu implements OnInit {
     this.menuTop.set(e.clientY - rect.top);
     this.focusedIndex.set(-1);
     this.isOpen.set(true);
+    this.evaAPI.claimSelector(this.selectorId);
 
     requestAnimationFrame(() => {
       this.clampPosition(rect);
@@ -230,10 +250,11 @@ export class EvaContextMenu implements OnInit {
     this.close();
   }
 
-  /** Hides the menu and resets keyboard focus. */
+  /** Hides the menu, resets keyboard focus, and releases the selector claim. */
   protected close(): void {
     this.isOpen.set(false);
     this.focusedIndex.set(-1);
+    this.evaAPI.releaseSelector(this.selectorId);
   }
 
   /** Returns the index of the given item among actionable (non-divider, non-disabled) items. Used for keyboard focus tracking. */

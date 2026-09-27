@@ -110,6 +110,12 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
   /** Subscription to `EvaApi.playbackRateSubject`, keeping `currentSpeed`/`selectedIndex` in sync with external rate changes (e.g. `EvaApi.increasePlaybackSpeed()`/`decreasePlaybackSpeed()` from `EvaKeyboardShortcuts`). Cleaned up in `ngOnDestroy`. */
   private rateSub: Subscription | null = null;
 
+  /** Subscription used for mutual exclusion with other dropdowns/menus. Cleaned up in `ngOnDestroy`. */
+  private activeSelectorSub: Subscription | null = null;
+
+  /** Unique identity used with `EvaApi.claimSelector()`/`releaseSelector()` for mutual exclusion. */
+  private readonly selectorId = Symbol("playback-speed");
+
   /**
    * Sets the initial playback speed based on `evaDefaultPlaybackSpeed` and `evaPlaybackSpeeds`,
    * then attaches a document-level click listener to close the dropdown when clicking outside.
@@ -125,6 +131,12 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
 
     this.rateSub = this.evaAPI.playbackRateSubject.subscribe((rate) => {
       this.reconcileSpeed(rate);
+    });
+
+    this.activeSelectorSub = this.evaAPI.activeSelectorSubject.subscribe((id) => {
+      if (id !== this.selectorId && this.isOpen()) {
+        this.isOpen.set(false);
+      }
     });
 
     // Listen for clicks outside
@@ -161,10 +173,12 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
     this.evaAPI.setPlaybackSpeed(index !== -1 ? defaultSpeed : speeds[0]);
   }
 
-  /** Removes the document-level click-outside listener to prevent memory leaks. */
+  /** Unsubscribes, removes the document-level click-outside listener, and releases the selector claim. */
   public ngOnDestroy(): void {
     this.playerReady$?.unsubscribe();
     this.rateSub?.unsubscribe();
+    this.activeSelectorSub?.unsubscribe();
+    this.evaAPI.releaseSelector(this.selectorId);
     if (this.clickOutsideListener) {
       document.removeEventListener("click", this.clickOutsideListener, true);
     }
@@ -194,38 +208,40 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
       case "Enter":
       case " ":
         e.preventDefault();
+        e.stopPropagation();
         this.toggleDropdown();
         break;
 
       case "ArrowUp":
         e.preventDefault();
+        e.stopPropagation();
         if (isOpen && currentIndex > 0) {
           this.selectSpeed(speeds[currentIndex - 1], currentIndex - 1);
         } else if (!isOpen) {
-          this.isOpen.set(true);
-          this.evaAPI.controlsSelectorComponentActive.next(true);
+          this.openDropdown();
         }
         break;
 
       case "ArrowDown":
         e.preventDefault();
+        e.stopPropagation();
         if (isOpen && currentIndex < speeds.length - 1) {
           this.selectSpeed(speeds[currentIndex + 1], currentIndex + 1);
         } else if (!isOpen) {
-          this.isOpen.set(true);
-          this.evaAPI.controlsSelectorComponentActive.next(true);
+          this.openDropdown();
         }
         break;
 
       case "Escape":
         e.preventDefault();
-        this.isOpen.set(false);
-        this.evaAPI.controlsSelectorComponentActive.next(false);
+        e.stopPropagation();
+        this.closeDropdown();
         break;
 
       case "Home":
         if (isOpen) {
           e.preventDefault();
+          e.stopPropagation();
           this.selectSpeed(speeds[0], 0);
         }
         break;
@@ -233,6 +249,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
       case "End":
         if (isOpen) {
           e.preventDefault();
+          e.stopPropagation();
           const lastIndex = speeds.length - 1;
           this.selectSpeed(speeds[lastIndex], lastIndex);
         }
@@ -251,8 +268,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
 
     const relatedTarget = event.relatedTarget;
     if (!(relatedTarget instanceof HTMLElement) || !relatedTarget.closest("eva-playback-speed")) {
-      this.isOpen.set(false);
-      this.evaAPI.controlsSelectorComponentActive.next(false);
+      this.closeDropdown();
     }
   }
 
@@ -267,8 +283,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
     event?.stopPropagation();
     this.currentSpeed.set(speed);
     this.selectedIndex.set(index);
-    this.isOpen.set(false);
-    this.evaAPI.controlsSelectorComponentActive.next(false);
+    this.closeDropdown();
     this.evaAPI.setPlaybackSpeed(speed);
   }
 
@@ -284,8 +299,23 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
 
   /** Toggles the `isOpen` signal between `true` and `false`. */
   private toggleDropdown(): void {
-    this.isOpen.update((open) => !open);
-    this.evaAPI.controlsSelectorComponentActive.next(this.isOpen());
+    if (this.isOpen()) {
+      this.closeDropdown();
+    } else {
+      this.openDropdown();
+    }
+  }
+
+  /** Opens the dropdown and claims exclusive ownership of the open dropdown UI. */
+  private openDropdown(): void {
+    this.isOpen.set(true);
+    this.evaAPI.claimSelector(this.selectorId);
+  }
+
+  /** Closes the dropdown and releases its claim (a no-op if it already lost the claim to another dropdown). */
+  private closeDropdown(): void {
+    this.isOpen.set(false);
+    this.evaAPI.releaseSelector(this.selectorId);
   }
 
   /**
@@ -299,8 +329,7 @@ export class EvaPlaybackSpeed implements OnInit, OnDestroy {
       return;
     }
     if (!event.target.closest("eva-playback-speed")) {
-      this.isOpen.set(false);
-      this.evaAPI.controlsSelectorComponentActive.next(false);
+      this.closeDropdown();
     }
   }
 }

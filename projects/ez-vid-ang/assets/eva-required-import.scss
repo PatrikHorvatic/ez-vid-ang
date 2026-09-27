@@ -265,6 +265,14 @@
   --eva-shortcuts-overlay-key-border: 1px solid rgba(255, 255, 255, 0.15);
   --eva-shortcuts-overlay-key-font-size: 12px;
   --eva-shortcuts-overlay-key-color: rgba(255, 255, 255, 0.9);
+
+  --eva-double-tap-ripple-background: rgba(255, 255, 255, 0.25);
+  --eva-double-tap-ripple-duration: 0.6s;
+  --eva-double-tap-label-background: rgba(0, 0, 0, 0.6);
+  --eva-double-tap-label-color: white;
+  --eva-double-tap-label-font-size: 14px;
+  --eva-double-tap-label-padding: 14px 18px;
+  --eva-double-tap-label-icon-size: 28px;
 }
 
 .eva-tooltip-popup {

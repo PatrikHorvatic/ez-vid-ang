@@ -3,7 +3,6 @@ import { EvaApi } from "../../api/eva-api";
 import { EvaTimeFormating, EvaTimeProperty } from "../../types";
 import { transformEvaTimeDisplayAria, EvaTimeDisplayAria, EvaTimeDisplayAriaTransformed } from "../../utils/aria-utilities";
 import { EvaTimeDisplayPipe } from "../pipes/time-display-pipe";
-import { SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_DISPLAY_PAD_WIDTH } from "../../constants";
 
 /**
  * Time display component for the Eva video player.
@@ -55,6 +54,9 @@ import { SECONDS_PER_HOUR, SECONDS_PER_MINUTE, TIME_DISPLAY_PAD_WIDTH } from "..
 })
 export class EvaTimeDisplay {
   protected evaAPI = inject(EvaApi);
+
+  /** Shared formatting logic with the template's `evaTimeDisplay` pipe usage, so `aria-valuetext` and the visible text never drift apart. */
+  private readonly timeDisplayPipe = new EvaTimeDisplayPipe();
 
   /**
    * Which time value to display.
@@ -124,31 +126,8 @@ export class EvaTimeDisplay {
       return this.evaLiveText();
     }
 
-    // You'll need to implement the formatting logic here
-    // Or import a utility function from your pipe
     const timeProperty = this.evaTimeProperty();
     const timeValue = this.evaAPI.time()[timeProperty];
-    return this.formatTime(timeValue, this.evaTimeFormating(), timeProperty);
+    return this.timeDisplayPipe.transform(timeValue, this.evaTimeFormating(), timeProperty);
   });
-
-  private formatTime(seconds: number, format: EvaTimeFormating, _timeProperty: EvaTimeProperty): string {
-    const totalSeconds = Math.max(0, Math.floor(seconds));
-    const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
-    const minutes = Math.floor((totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);
-    const secs = totalSeconds % SECONDS_PER_MINUTE;
-    const pad = (n: number): string => n.toString().padStart(TIME_DISPLAY_PAD_WIDTH, "0");
-
-    switch (format) {
-      case "HH:mm:ss":
-        return `${pad(hours)}:${pad(minutes)}:${pad(secs)}`;
-      case "mm:ss": {
-        const totalMinutes = hours * SECONDS_PER_MINUTE + minutes;
-        return `${pad(totalMinutes)}:${pad(secs)}`;
-      }
-      case "ss":
-        return `${totalSeconds}`;
-      default:
-        return "00:00";
-    }
-  }
 }

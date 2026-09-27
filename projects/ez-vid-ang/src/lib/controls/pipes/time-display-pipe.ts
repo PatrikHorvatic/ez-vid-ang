@@ -39,8 +39,10 @@ export class EvaTimeDisplayPipe implements PipeTransform {
    *   Affects rounding: `'remaining'` uses `Math.ceil`, all others use `Math.floor`.
    * @returns A formatted time string, or `"00:00"` if the format is unrecognised.
    */
-  public transform(value: number, formating: EvaTimeFormating, _timeProperty: EvaTimeProperty): string {
-    const totalSeconds: number = Math.max(0, Math.floor(value));
+  public transform(value: number, formating: EvaTimeFormating, timeProperty: EvaTimeProperty): string {
+    const safeValue = Number.isFinite(value) ? value : 0;
+    const rounded = timeProperty === "remaining" ? Math.ceil(safeValue) : Math.floor(safeValue);
+    const totalSeconds: number = Math.max(0, rounded);
 
     const hours = Math.floor(totalSeconds / SECONDS_PER_HOUR);
     const minutes = Math.floor((totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE);

@@ -92,6 +92,12 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
   /** Subscription to audio track changes from `EvaApi`. Cleaned up in `ngOnDestroy`. */
   private audioTracksSub: Subscription | null = null;
 
+  /** Subscription used for mutual exclusion with other dropdowns/menus. Cleaned up in `ngOnDestroy`. */
+  private activeSelectorSub: Subscription | null = null;
+
+  /** Unique identity used with `EvaApi.claimSelector()`/`releaseSelector()` for mutual exclusion. */
+  private readonly selectorId = Symbol("audio-track-selector");
+
   /** Bound reference to the click-outside handler for cleanup in `ngOnDestroy`. */
   private clickOutsideListener?: (event: MouseEvent) => void;
 
@@ -126,13 +132,21 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
       this.keyboardIndex.set(idx >= 0 ? idx : 0);
     });
 
+    this.activeSelectorSub = this.evaAPI.activeSelectorSubject.subscribe((id) => {
+      if (id !== this.selectorId && this.isOpen()) {
+        this.isOpen.set(false);
+      }
+    });
+
     this.clickOutsideListener = this.handleClickOutside.bind(this);
     document.addEventListener("click", this.clickOutsideListener, true);
   }
 
-  /** Unsubscribes and removes the document-level click listener. */
+  /** Unsubscribes, removes the document-level click listener, and releases the selector claim. */
   public ngOnDestroy(): void {
     this.audioTracksSub?.unsubscribe();
+    this.activeSelectorSub?.unsubscribe();
+    this.evaAPI.releaseSelector(this.selectorId);
     if (this.clickOutsideListener) {
       document.removeEventListener("click", this.clickOutsideListener, true);
     }
@@ -153,8 +167,7 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
   protected selectTrack(track: EvaAudioTrack, index: number, event?: MouseEvent): void {
     event?.stopPropagation();
     this.keyboardIndex.set(index);
-    this.isOpen.set(false);
-    this.evaAPI.controlsSelectorComponentActive.next(false);
+    this.closeDropdown();
     this.evaAPI.setAudioTrack(track.id);
   }
 
@@ -180,14 +193,15 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
       case "Enter":
       case " ":
         e.preventDefault();
+        e.stopPropagation();
         this.toggleDropdown();
         break;
 
       case "ArrowDown":
         e.preventDefault();
+        e.stopPropagation();
         if (!isOpen) {
-          this.isOpen.set(true);
-          this.evaAPI.controlsSelectorComponentActive.next(true);
+          this.openDropdown();
         } else {
           const next = Math.min(currentIndex + 1, tracks.length - 1);
           this.selectTrack(tracks[next], next);
@@ -196,9 +210,9 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
 
       case "ArrowUp":
         e.preventDefault();
+        e.stopPropagation();
         if (!isOpen) {
-          this.isOpen.set(true);
-          this.evaAPI.controlsSelectorComponentActive.next(true);
+          this.openDropdown();
         } else {
           const prev = Math.max(currentIndex - 1, 0);
           this.selectTrack(tracks[prev], prev);
@@ -208,6 +222,7 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
       case "Home":
         if (isOpen) {
           e.preventDefault();
+          e.stopPropagation();
           this.selectTrack(tracks[0], 0);
         }
         break;
@@ -215,6 +230,7 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
       case "End":
         if (isOpen) {
           e.preventDefault();
+          e.stopPropagation();
           const last = tracks.length - 1;
           this.selectTrack(tracks[last], last);
         }
@@ -222,8 +238,8 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
 
       case "Escape":
         e.preventDefault();
-        this.isOpen.set(false);
-        this.evaAPI.controlsSelectorComponentActive.next(false);
+        e.stopPropagation();
+        this.closeDropdown();
         break;
 
       default:
@@ -235,14 +251,28 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
   protected onBlur(event: FocusEvent): void {
     const related = event.relatedTarget;
     if (!(related instanceof HTMLElement) || !related.closest("eva-audio-track-selector")) {
-      this.isOpen.set(false);
-      this.evaAPI.controlsSelectorComponentActive.next(false);
+      this.closeDropdown();
     }
   }
 
   private toggleDropdown(): void {
-    this.isOpen.update((open) => !open);
-    this.evaAPI.controlsSelectorComponentActive.next(this.isOpen());
+    if (this.isOpen()) {
+      this.closeDropdown();
+    } else {
+      this.openDropdown();
+    }
+  }
+
+  /** Opens the dropdown and claims exclusive ownership of the open dropdown UI. */
+  private openDropdown(): void {
+    this.isOpen.set(true);
+    this.evaAPI.claimSelector(this.selectorId);
+  }
+
+  /** Closes the dropdown and releases its claim (a no-op if it already lost the claim to another dropdown). */
+  private closeDropdown(): void {
+    this.isOpen.set(false);
+    this.evaAPI.releaseSelector(this.selectorId);
   }
 
   private handleClickOutside(event: MouseEvent): void {
@@ -250,8 +280,7 @@ export class EvaAudioTrackSelector implements OnInit, OnDestroy {
       return;
     }
     if (!event.target.closest("eva-audio-track-selector")) {
-      this.isOpen.set(false);
-      this.evaAPI.controlsSelectorComponentActive.next(false);
+      this.closeDropdown();
     }
   }
 }

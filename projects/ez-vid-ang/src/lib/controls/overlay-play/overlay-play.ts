@@ -61,6 +61,7 @@ import { EvaOverlayPlayAria, EvaOverlayPlayAriaTransformed, transformEvaOverlayP
     "[class.eva-display-overlay-play]": "evaIconPlay() && !evaAPI.isBuffering()",
     "[style.height]": "controlsContainerHidden() ? '100%' : 'calc(100% - var(--eva-control-element-height))'",
     "(click)": "playClicked()",
+    "(keydown)": "playClickedKeyboard($event)",
   },
 })
 export class EvaOverlayPlay implements OnInit, OnDestroy {
@@ -146,5 +147,18 @@ export class EvaOverlayPlay implements OnInit, OnDestroy {
   /** Delegates play/pause toggling to `EvaApi`. */
   protected playClicked(): void {
     this.evaAPI.playOrPauseVideo();
+  }
+
+  /**
+   * Triggers play/pause on `Enter` or `Space` keypress, matching the documented
+   * keyboard support. `stopPropagation()` prevents the same keypress from also being
+   * treated as a global keyboard shortcut while this element is focused.
+   */
+  protected playClickedKeyboard(k: KeyboardEvent): void {
+    if (k.key === "Enter" || k.key === " ") {
+      k.preventDefault();
+      k.stopPropagation();
+      this.playClicked();
+    }
   }
 }

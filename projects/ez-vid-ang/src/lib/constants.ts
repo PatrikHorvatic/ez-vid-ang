@@ -81,3 +81,7 @@ export const MS_PER_SECOND = 1000;
 
 // Screenshot
 export const DEFAULT_IMAGE_QUALITY = 0.92;
+
+// Double-tap seek (milliseconds)
+export const DOUBLE_TAP_THRESHOLD_MS = 300;
+export const DOUBLE_TAP_RIPPLE_DURATION_MS = 600;

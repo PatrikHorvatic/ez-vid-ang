@@ -37,6 +37,13 @@ All magic numbers used throughout the library are centralized in a single consta
 | `SEEK_ICON_THRESHOLD_30` | `30` | Value matched against seek seconds to apply the 30-second icon class. Also used as the FPS divisor for frame-step duration. |
 | `DEFAULT_ARROW_SEEK_SECONDS` | `5` | Default seconds for `EvaApi.seekForward()`/`seekBack()` keyboard arrow seek. |
 
+## Double-Tap Seek (milliseconds)
+
+| Constant | Value | Description |
+|----------|-------|-------------|
+| `DOUBLE_TAP_THRESHOLD_MS` | `300` | Max gap between taps in `EvaDoubleTapSeek` to count as a repeat (confirming or extending a seek sequence) rather than a lone single tap. |
+| `DOUBLE_TAP_RIPPLE_DURATION_MS` | `600` | How long a single tap ripple flash stays in the DOM in `EvaDoubleTapSeek` before being removed. |
+
 ## Number Key Seek
 
 | Constant | Value | Description |

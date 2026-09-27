@@ -153,6 +153,7 @@ export class EvaMute implements OnInit, OnDestroy {
   protected muteClickKeyboard(k: KeyboardEvent): void {
     if (k.key === "Enter" || k.key === " ") {
       k.preventDefault();
+      k.stopPropagation();
       this.muteClicked();
     }
   }

@@ -1,4 +1,5 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, computed, ElementRef, inject, input, OnDestroy, OnInit, output, signal, viewChild } from "@angular/core";
+import { Subscription } from "rxjs";
 import { EvaApi } from "../../api/eva-api";
 import { CLICK_OUTSIDE_DEBOUNCE_MS, HEIGHT_TRANSITION_FALLBACK_MS } from "../../constants";
 import { EvaIcon } from "../../core/icon/icon";
@@ -137,6 +138,12 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
   /** Bound reference to the click-outside handler for cleanup in `ngOnDestroy`. */
   private clickOutsideListener?: (event: MouseEvent) => void;
 
+  /** Subscription used for mutual exclusion with other dropdowns/menus. Cleaned up in `ngOnDestroy`. */
+  private activeSelectorSub: Subscription | null = null;
+
+  /** Unique identity used with `EvaApi.claimSelector()`/`releaseSelector()` for mutual exclusion. */
+  private readonly selectorId = Symbol("settings-panel");
+
   /** The items currently displayed — either main menu or sub-menu options mapped to the same shape. */
   protected readonly visibleItems = computed(() => {
     const sub = this.activeSubMenu();
@@ -154,6 +161,12 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
     this.playerElement = this.el.nativeElement.closest("eva-player");
     this.clickOutsideListener = this.handleClickOutside.bind(this);
     document.addEventListener("click", this.clickOutsideListener, true);
+
+    this.activeSelectorSub = this.evaAPI.activeSelectorSubject.subscribe((id) => {
+      if (id !== this.selectorId && this.isOpen()) {
+        this.isOpen.set(false);
+      }
+    });
   }
 
   /** Takes an initial height snapshot for the content element. */
@@ -161,8 +174,10 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
     this.snapshotHeight();
   }
 
-  /** Removes the document-level click-outside listener. */
+  /** Removes the document-level click-outside listener and releases the selector claim. */
   public ngOnDestroy(): void {
+    this.activeSelectorSub?.unsubscribe();
+    this.evaAPI.releaseSelector(this.selectorId);
     if (this.clickOutsideListener) {
       document.removeEventListener("click", this.clickOutsideListener, true);
     }
@@ -182,6 +197,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
       case "Enter":
       case " ":
         event.preventDefault();
+        event.stopPropagation();
         if (!this.isOpen()) {
           this.togglePanel();
         }
@@ -189,6 +205,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
 
       case "ArrowDown":
         event.preventDefault();
+        event.stopPropagation();
         if (!this.isOpen()) {
           this.togglePanel();
         } else {
@@ -198,6 +215,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
 
       case "ArrowUp":
         event.preventDefault();
+        event.stopPropagation();
         if (!this.isOpen()) {
           this.togglePanel();
         } else {
@@ -207,6 +225,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
 
       case "Escape":
         event.preventDefault();
+        event.stopPropagation();
         if (this.activeSubMenu()) {
           this.goBack();
         } else {
@@ -217,6 +236,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
       case "Home":
         if (this.isOpen()) {
           event.preventDefault();
+          event.stopPropagation();
           this.focusedIndex.set(0);
         }
         break;
@@ -224,6 +244,7 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
       case "End":
         if (this.isOpen() && this.visibleItems().length > 0) {
           event.preventDefault();
+          event.stopPropagation();
           this.focusedIndex.set(this.visibleItems().length - 1);
         }
         break;
@@ -317,9 +338,9 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
   private togglePanel(): void {
     const wasOpen = this.isOpen();
     this.isOpen.set(!wasOpen);
-    this.evaAPI.controlsSelectorComponentActive.next(!wasOpen);
 
     if (!wasOpen) {
+      this.evaAPI.claimSelector(this.selectorId);
       this.openedAt = Date.now();
       this.activeSubMenu.set(null);
       this.focusedIndex.set(0);
@@ -327,15 +348,17 @@ export class EvaSettingsPanel implements OnInit, OnDestroy, AfterViewInit {
       requestAnimationFrame(() => {
         this.clampDropdownPosition();
       });
+    } else {
+      this.evaAPI.releaseSelector(this.selectorId);
     }
   }
 
-  /** Closes the panel, resets sub-menu and focus, and notifies `controlsSelectorComponentActive`. */
+  /** Closes the panel, resets sub-menu and focus, and releases the selector claim. */
   private closePanel(): void {
     this.isOpen.set(false);
     this.activeSubMenu.set(null);
     this.focusedIndex.set(0);
-    this.evaAPI.controlsSelectorComponentActive.next(false);
+    this.evaAPI.releaseSelector(this.selectorId);
   }
 
   /** Moves the focused index by `direction` (+1 or -1), clamped to the visible items range. */

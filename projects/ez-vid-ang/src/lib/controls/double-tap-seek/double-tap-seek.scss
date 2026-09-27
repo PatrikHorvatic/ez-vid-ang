@@ -1,0 +1,109 @@
+:host {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 100%;
+  /* Above eva-overlay-play (301) so its zones win touch hit-testing there, but below
+     eva-scrub-bar (303) so dragging the progress bar on touch devices still works even
+     though the zones' full-height rect geometrically extends behind the scrub bar. */
+  z-index: 302;
+  // Never intercepts pointer input by default — only enabled under the coarse-pointer,
+  // no-hover media query below, so mouse/trackpad users never lose clicks to eva-overlay-play.
+  pointer-events: none;
+}
+
+.eva-tap-zone {
+  flex: 1 1 50%;
+  height: 100%;
+  pointer-events: none;
+
+  @media (hover: none) and (pointer: coarse) {
+    pointer-events: auto;
+  }
+}
+
+.eva-tap-ripple {
+  position: absolute;
+  top: 50%;
+  width: 35%;
+  max-width: 160px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  background: var(--eva-double-tap-ripple-background);
+  transform: translateY(-50%) scale(0.3);
+  pointer-events: none;
+  animation: eva-double-tap-ripple-flash var(--eva-double-tap-ripple-duration) ease-out;
+}
+
+.eva-tap-ripple-left {
+  left: 5%;
+}
+
+.eva-tap-ripple-right {
+  right: 5%;
+}
+
+@keyframes eva-double-tap-ripple-flash {
+  0% {
+    opacity: 0.9;
+    transform: translateY(-50%) scale(0.3);
+  }
+  60% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+.eva-tap-label {
+  position: absolute;
+  top: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: var(--eva-double-tap-label-padding);
+  border-radius: 50%;
+  background: var(--eva-double-tap-label-background);
+  color: var(--eva-double-tap-label-color);
+  font-size: var(--eva-double-tap-label-font-size);
+  font-weight: 600;
+  pointer-events: none;
+  transform: translateY(-50%) scale(1);
+  animation: eva-double-tap-label-in 0.2s ease-out;
+
+  eva-icon {
+    width: var(--eva-double-tap-label-icon-size);
+    height: var(--eva-double-tap-label-icon-size);
+  }
+}
+
+.eva-tap-label-left {
+  left: 12%;
+}
+
+.eva-tap-label-right {
+  right: 12%;
+}
+
+@keyframes eva-double-tap-label-in {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
+  }
+}
+
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  .eva-tap-ripple,
+  .eva-tap-label {
+    animation: none !important;
+  }
+}

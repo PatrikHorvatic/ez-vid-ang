@@ -1,0 +1,21 @@
+<div #leftZone class="eva-tap-zone eva-tap-zone-left"></div>
+<div #rightZone class="eva-tap-zone eva-tap-zone-right"></div>
+
+@for (ripple of ripples(); track ripple.id) {
+  <div class="eva-tap-ripple" [class.eva-tap-ripple-left]="ripple.side === 'left'" [class.eva-tap-ripple-right]="ripple.side === 'right'"></div>
+}
+
+@if (activeSide(); as side) {
+  <div class="eva-tap-label" [class.eva-tap-label-left]="side === 'left'" [class.eva-tap-label-right]="side === 'right'">
+    @if (evaCustomIcon()) {
+      @if (side === "left") {
+        <ng-content select="[evaSeekBackward]" />
+      } @else {
+        <ng-content select="[evaSeekForward]" />
+      }
+    } @else {
+      <eva-icon [name]="iconFor(side)" />
+    }
+    <span>{{ labelFor(side) }}</span>
+  </div>
+}

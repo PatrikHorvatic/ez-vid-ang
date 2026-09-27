@@ -8,6 +8,7 @@ export * from "./lib/controls/chapter-list/chapter-list";
 export * from "./lib/controls/cinema-mode/cinema-mode";
 export * from "./lib/controls/context-menu/context-menu";
 export * from "./lib/controls/controls-divider/controls-divider";
+export * from "./lib/controls/double-tap-seek/double-tap-seek";
 export * from "./lib/controls/download/download";
 export * from "./lib/controls/ended-overlay/ended-overlay";
 export * from "./lib/controls/error-overlay/error-overlay";

@@ -119,6 +119,12 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
   /** Subscription to `EvaApi.videoSubtitlesSubject`, keeping `localTracks` in sync with external changes (e.g. `EvaApi.cycleSubtitleTrack()` from `EvaKeyboardShortcuts`). Cleaned up in `ngOnDestroy`. */
   private subtitlesSub: Subscription | null = null;
 
+  /** Subscription used for mutual exclusion with other dropdowns/menus. Cleaned up in `ngOnDestroy`. */
+  private activeSelectorSub: Subscription | null = null;
+
+  /** Unique identity used with `EvaApi.claimSelector()`/`releaseSelector()` for mutual exclusion. */
+  private readonly selectorId = Symbol("track-selector");
+
   /**
    * Whether the user has explicitly picked a track (or Off) via `selectTrack()`. Consulted by
    * `buildTrackList()` so a real user choice survives a track-list re-registration — the
@@ -150,6 +156,12 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
       this.reconcileSelection(active);
     });
 
+    this.activeSelectorSub = this.evaAPI.activeSelectorSubject.subscribe((id) => {
+      if (id !== this.selectorId && this.isOpen()) {
+        this.isOpen.set(false);
+      }
+    });
+
     // Listen for clicks outside
     this.clickOutsideListener = this.handleClickOutside.bind(this);
     document.addEventListener("click", this.clickOutsideListener, true);
@@ -160,12 +172,14 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
     this.changeSubtitles();
   }
 
-  /** Unsubscribes from track changes and removes the document-level click listener. */
+  /** Unsubscribes from track changes, removes the document-level click listener, and releases the selector claim. */
   public ngOnDestroy(): void {
     if (this.tracksSub) {
       this.tracksSub.unsubscribe();
     }
     this.subtitlesSub?.unsubscribe();
+    this.activeSelectorSub?.unsubscribe();
+    this.evaAPI.releaseSelector(this.selectorId);
     if (this.announceTimeout) {
       clearTimeout(this.announceTimeout);
     }
@@ -214,8 +228,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
     // Announce the change to screen readers
     this.announceTrackChange(tr.label);
 
-    this.isOpen.set(false);
-    this.evaAPI.controlsSelectorComponentActive.next(false);
+    this.closeDropdown();
   }
 
   /** Toggles the dropdown open/closed on click. */
@@ -241,9 +254,9 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
       case "Enter":
       case " ":
         e.preventDefault();
+        e.stopPropagation();
         if (!isDropdownOpen) {
-          this.isOpen.set(true);
-          this.evaAPI.controlsSelectorComponentActive.next(true);
+          this.openDropdown();
           // Reset keyboard navigation to current selection
           const currentIndex = tracks.findIndex((t) => t.selected);
           this.keyboardNavigationIndex.set(currentIndex >= 0 ? currentIndex : 0);
@@ -252,17 +265,17 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
 
       case "Escape":
         e.preventDefault();
+        e.stopPropagation();
         if (isDropdownOpen) {
-          this.isOpen.set(false);
-          this.evaAPI.controlsSelectorComponentActive.next(false);
+          this.closeDropdown();
         }
         break;
 
       case "ArrowDown":
         e.preventDefault();
+        e.stopPropagation();
         if (!isDropdownOpen) {
-          this.isOpen.set(true);
-          this.evaAPI.controlsSelectorComponentActive.next(true);
+          this.openDropdown();
           this.keyboardNavigationIndex.set(0);
         } else {
           // Navigate down in the list
@@ -274,9 +287,9 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
 
       case "ArrowUp":
         e.preventDefault();
+        e.stopPropagation();
         if (!isDropdownOpen) {
-          this.isOpen.set(true);
-          this.evaAPI.controlsSelectorComponentActive.next(true);
+          this.openDropdown();
           this.keyboardNavigationIndex.set(tracks.length - 1);
         } else {
           // Navigate up in the list
@@ -288,6 +301,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
 
       case "Home":
         e.preventDefault();
+        e.stopPropagation();
         if (isDropdownOpen) {
           this.keyboardNavigationIndex.set(0);
           this.selectTrack(tracks[0], 0);
@@ -296,6 +310,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
 
       case "End":
         e.preventDefault();
+        e.stopPropagation();
         if (isDropdownOpen) {
           const lastIndex = tracks.length - 1;
           this.keyboardNavigationIndex.set(lastIndex);
@@ -315,8 +330,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
     // Close dropdown when focus moves outside the component
     const relatedTarget = event.relatedTarget;
     if (!(relatedTarget instanceof HTMLElement) || !relatedTarget.closest("eva-track-selector")) {
-      this.isOpen.set(false);
-      this.evaAPI.controlsSelectorComponentActive.next(false);
+      this.closeDropdown();
     }
   }
 
@@ -341,8 +355,7 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     if (!event.target.closest("eva-track-selector")) {
-      this.isOpen.set(false);
-      this.evaAPI.controlsSelectorComponentActive.next(false);
+      this.closeDropdown();
     }
   }
 
@@ -351,13 +364,26 @@ export class EvaTrackSelector implements OnInit, AfterViewInit, OnDestroy {
    * When opening, resets `keyboardNavigationIndex` to the currently selected track.
    */
   private toggleDropdown(): void {
-    this.isOpen.update((open) => !open);
-    this.evaAPI.controlsSelectorComponentActive.next(this.isOpen());
     if (this.isOpen()) {
+      this.closeDropdown();
+    } else {
+      this.openDropdown();
       // Set keyboard navigation to current selection when opening
       const currentIndex = this.localTracks().findIndex((t) => t.selected);
       this.keyboardNavigationIndex.set(currentIndex >= 0 ? currentIndex : 0);
     }
+  }
+
+  /** Opens the dropdown and claims exclusive ownership of the open dropdown UI. */
+  private openDropdown(): void {
+    this.isOpen.set(true);
+    this.evaAPI.claimSelector(this.selectorId);
+  }
+
+  /** Closes the dropdown and releases its claim (a no-op if it already lost the claim to another dropdown). */
+  private closeDropdown(): void {
+    this.isOpen.set(false);
+    this.evaAPI.releaseSelector(this.selectorId);
   }
 
   /**

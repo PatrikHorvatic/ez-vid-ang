@@ -144,6 +144,7 @@ export class EvaPictureInPicture implements OnInit, OnDestroy {
   protected pipClickedKeyboard(k: KeyboardEvent): void {
     if (k.key === "Enter" || k.key === " ") {
       k.preventDefault();
+      k.stopPropagation();
       this.pipClicked();
     }
   }

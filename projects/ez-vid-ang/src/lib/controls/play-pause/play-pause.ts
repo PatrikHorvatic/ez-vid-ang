@@ -161,6 +161,7 @@ export class EvaPlayPause implements OnInit, OnDestroy {
   protected playPauseClickedKeyboard(k: KeyboardEvent): void {
     if (k.key === "Enter" || k.key === " ") {
       k.preventDefault();
+      k.stopPropagation();
       this.playPauseClicked();
     }
   }

@@ -129,6 +129,7 @@ export class EvaFullscreen implements OnInit, OnDestroy {
   protected fullscreenClickedKeyboard(k: KeyboardEvent): void {
     if (k.key === "Enter" || k.key === " ") {
       k.preventDefault();
+      k.stopPropagation();
       this.fullscreenClicked();
     }
   }

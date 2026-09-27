@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, input, NgZone, signal, AfterViewInit, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
-import { skip, Subscription } from "rxjs";
+import { Subscription } from "rxjs";
 import { EvaApi } from "../../api/eva-api";
 import { EvaChapterMarker, EvaThumbnailCue, EvaTimeFormating } from "../../types";
 import { transformEvaScrubBarAria, EvaScrubBarAria, EvaScrubBarAriaTransformed } from "../../utils/aria-utilities";
@@ -73,7 +73,7 @@ import {
     tabindex: "0",
     role: "slider",
     "[attr.aria-label]": "ariaLabel()",
-    "[attr.aria-valuenow]": "getPercentage()",
+    "[attr.aria-valuenow]": "getPercentageValue()",
     "aria-valuemin": "0",
     "aria-valuemax": "100",
     "[attr.aria-valuetext]": "getPercentage()",
@@ -312,16 +312,24 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
   }
 
   /**
-   * Returns the current playback position as a percentage string (e.g. `"42%"`).
-   * Used for both `aria-valuenow` and `aria-valuetext`.
-   * Returns `"0%"` if total duration is not yet available.
+   * Returns the current playback position as a bare number (`0`-`100`), per the ARIA spec
+   * for `aria-valuenow` (unlike `aria-valuetext`, it must not carry a unit suffix).
+   * Returns `0` if total duration is not yet available.
    */
-  protected getPercentage(): string {
+  protected getPercentageValue(): number {
     const time = this.evaAPI.time();
     if (!time.total) {
-      return "0%";
+      return 0;
     }
-    return `${Math.round((time.current * PERCENTAGE) / time.total)}%`;
+    return Math.round((time.current * PERCENTAGE) / time.total);
+  }
+
+  /**
+   * Returns the current playback position as a percentage string (e.g. `"42%"`), for
+   * `aria-valuetext`.
+   */
+  protected getPercentage(): string {
+    return `${this.getPercentageValue()}%`;
   }
 
   /**
@@ -819,8 +827,22 @@ export class EvaScrubBar implements OnInit, AfterViewInit, OnChanges, OnDestroy 
       }
     });
 
-    this.controlsSelectorActive$ = this.evaAPI.controlsSelectorComponentActive.pipe(skip(1)).subscribe((isActive) => {
+    /*
+     * See the identical comment in EvaControlsContainer.startListening() — a `skip(1)` here
+     * would miss a menu that's already open at (re)subscribe time, letting the scrub bar
+     * auto-hide behind it, while unconditionally reacting to the replayed value would start
+     * the hide countdown immediately instead of waiting for the first real interaction.
+     */
+    let isFirstEmission = true;
+    this.controlsSelectorActive$ = this.evaAPI.controlsSelectorComponentActive.subscribe((isActive) => {
+      const wasFirstEmission = isFirstEmission;
+      isFirstEmission = false;
       this.isControlerSelectorActive = isActive;
+
+      if (wasFirstEmission && !isActive) {
+        return;
+      }
+
       if (this.hideTimeout) {
         clearTimeout(this.hideTimeout);
       }

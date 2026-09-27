@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, input, signal, OnChanges, OnDestroy, OnInit, SimpleChanges } from "@angular/core";
-import { skip, Subscription } from "rxjs";
+import { Subscription } from "rxjs";
 import { EvaApi } from "../../api/eva-api";
 import { transformTimeoutDuration } from "../../utils/utilities";
 import { DEFAULT_AUTOHIDE_TIMEOUT_MS } from "../../constants";
@@ -131,8 +131,26 @@ export class EvaControlsContainer implements OnInit, OnDestroy, OnChanges {
         this.prepareHiding();
       }
     });
-    this.controlsSelectorActive$ = this.evaAPI.controlsSelectorComponentActive.pipe(skip(1)).subscribe((isActive) => {
+    /*
+     * `BehaviorSubject` replays its current value synchronously on subscribe. If a menu is
+     * already active at that moment (e.g. `evaAutohide` toggled on at runtime while a dropdown
+     * is open), that replayed `true` must be applied immediately — otherwise `startListening()`
+     * would just spawned a fresh subscription that never called back until the NEXT genuine
+     * toggle, leaving the container able to auto-hide while a menu is still visibly open. But
+     * the replayed value if `false` (the common case: nothing open yet) must NOT trigger
+     * `prepareHiding()` on its own — the auto-hide countdown is meant to start only after the
+     * first real user interaction, not immediately on subscribe.
+     */
+    let isFirstEmission = true;
+    this.controlsSelectorActive$ = this.evaAPI.controlsSelectorComponentActive.subscribe((isActive) => {
+      const wasFirstEmission = isFirstEmission;
+      isFirstEmission = false;
       this.isControlerSelectorActive = isActive;
+
+      if (wasFirstEmission && !isActive) {
+        return;
+      }
+
       if (this.hideTimeout) {
         clearTimeout(this.hideTimeout);
       }

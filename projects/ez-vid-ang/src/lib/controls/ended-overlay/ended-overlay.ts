@@ -68,10 +68,12 @@ export class EvaEndedOverlay implements OnInit, OnDestroy {
       if (!this.evaAPI.validateVideoAndPlayerBeforeAction()) {
         return;
       }
-      // Prevent flashing if video is set on loop
-      if (!this.evaAPI.assignedVideoElement!.loop) {
-        this.isVisible.set(state === EvaState.ENDED);
-      }
+      /*
+       * Force `false` (rather than skipping the update) when looping — otherwise a stale
+       * `true` from before loop was enabled would never clear, leaving the overlay stuck
+       * visible over a playing, looping video.
+       */
+      this.isVisible.set(!this.evaAPI.assignedVideoElement!.loop && state === EvaState.ENDED);
     });
   }
 

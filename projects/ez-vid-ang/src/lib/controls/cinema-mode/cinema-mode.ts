@@ -101,6 +101,7 @@ export class EvaCinemaMode implements OnInit, OnDestroy {
   protected onKeyDown(e: KeyboardEvent): void {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
+      e.stopPropagation();
       this.toggle();
     }
   }

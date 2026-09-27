@@ -180,6 +180,7 @@ export class EvaRemotePlayback implements OnInit, OnDestroy {
   protected onKeyDown(event: KeyboardEvent): void {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
+      event.stopPropagation();
       this.promptDevicePicker();
     }
   }
@@ -237,6 +238,14 @@ export class EvaRemotePlayback implements OnInit, OnDestroy {
 
   /** Cancels `watchAvailability` and removes all Remote Playback API and Safari fallback event listeners. */
   private teardown(): void {
+    /*
+     * Replace the registered prompt with a no-op so EvaApi.promptRemotePlayback() can no
+     * longer reach this (about to be destroyed) instance's closure.
+     */
+    this.evaAPI.registerRemotePlaybackPrompt(() => {
+      /* No-op: component destroyed. */
+    });
+
     const video = this.evaAPI.assignedVideoElement;
     if (!video) {
       return;

@@ -69,6 +69,13 @@ export function validateTracks(tracks: EvaTrack[]): EvaTrack[] {
     return [];
   }
 
+  // Validate: subtitle tracks must have a srclang (required by the <track> element for kind="subtitles")
+  const invalidSubtitleTracks = tracks.filter((track) => track.kind === "subtitles" && !track.srclang);
+  if (invalidSubtitleTracks.length > 0) {
+    console.warn("Subtitle tracks must have a srclang. Tracks without one will be ignored.", invalidSubtitleTracks);
+    tracks = tracks.filter((track) => !(track.kind === "subtitles" && !track.srclang));
+  }
+
   // Validate: only one default track allowed
   const defaultTracks = tracks.filter((track) => track.default === true);
   if (defaultTracks.length > 1) {

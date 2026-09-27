@@ -96,6 +96,7 @@ export class EvaForward {
   protected forwardClickedKeyboard(k: KeyboardEvent): void {
     if (k.key === "Enter" || k.key === " ") {
       k.preventDefault();
+      k.stopPropagation();
       this.forwardClicked();
     }
   }

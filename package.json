@@ -54,16 +54,16 @@
     "@angular/core": "~22.2.0",
     "@angular/platform-browser": "~22.2.0",
     "@eslint/js": "^10.0.1",
-    "angular-eslint": "22.5.0",
-    "eslint": "10.11.0",
+    "angular-eslint": "22.6.0",
+    "eslint": "10.13.0",
     "eslint-config-prettier": "^10.1.8",
-    "happy-dom": "^20.14.5",
+    "happy-dom": "^21.0.4",
     "ng-packagr": "~22.2.0",
-    "prettier": "^3.9.9",
+    "prettier": "^3.9.10",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "typescript": "~6.0.3",
-    "typescript-eslint": "8.70.1",
-    "vitest": "5.0.2"
+    "typescript-eslint": "8.72.1",
+    "vitest": "5.0.5"
   }
 }
